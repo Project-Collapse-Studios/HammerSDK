@@ -1,6 +1,7 @@
 # Version (dev)
 
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
+* Automatically remove old generated vactube animation models.
 
 -----------------------
 

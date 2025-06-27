@@ -240,11 +240,13 @@ async def vactube_transform(ctx: Context) -> None:
     # Now generate the animation model.
     # First wipe the model.
     full_loc = ctx.game.path / 'models' / anim_mdl_name
-    for ext in MDL_EXTS:
+    for file in full_loc.parent.glob("vac_anim_*"):
         try:
-            full_loc.with_suffix(ext).unlink()
+            file.unlink()
         except FileNotFoundError:
             pass
+        else:
+            LOGGER.debug('Removing {}', file)
 
     with TemporaryDirectory(prefix='vactubes_') as temp_dir:
         # Make the reference mesh.
