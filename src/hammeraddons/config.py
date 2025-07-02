@@ -55,21 +55,50 @@ type Expander = Callable[[str], Path]
 
 def make_expander(roots: dict[str, Path], orig_root: str | Path) -> Expander:
     """Produce a function that expands configs potentially containing || refs."""
+    appid_cache: dict[int, Path] = {}
+
     def expander(path: str) -> Path:
         """Expand a reference potentially containing || refs."""
         root = orig_root
+        orig_path = path
+        appid = -1
+
         if path.startswith('|'):
-            _, ref, path = path.split('|', 2)
-            path = path.lstrip('\\/')  # Make |loc|/blah/ allowed, don't treat as a root.
             try:
-                root = roots[ref.casefold()]
+                _, ref, path = path.split('|', 2)
+            except ValueError:
+                LOGGER.warning('Invalid |ref| path prefix in {!r}', path)
+            else:
+                path = path.lstrip('\\/')  # Make |loc|/blah/ allowed, don't treat as a root.
+                try:
+                    root = roots[ref.casefold()]
+                except KeyError:
+                    LOGGER.warning(
+                        '|{}| is not defined in {}! Assuming {}\nKnown: {}',
+                        ref, PATHS_NAME, root,
+                        ', '.join(sorted(roots)),
+                    )
+        # Game mount, we just replace the <appid> with a path.
+        elif path.startswith("<") and (end := path.find(">")) != -1:
+            appid = conv_int(path[1:end], -1)
+            path = path[end+1:].lstrip('\\/')  # Same as above.
+
+        if appid != -1:
+            try:
+                root = appid_cache[appid]
             except KeyError:
-                LOGGER.warning(
-                    '|{}| is not defined in {}! Assuming {}\nKnown: {}',
-                    ref, PATHS_NAME, root,
-                    ', '.join(sorted(roots)),
-                )
-        return Path(root, path).resolve()
+                LOGGER.info("Mounting appid {}", appid)
+                try:
+                    info = find_app(appid)
+                except KeyError:
+                    LOGGER.warning("No game with appid {} found!", appid)
+                else:
+                    appid_cache[appid] = root = info.path
+                    LOGGER.info(f"Mounted game {info.name} with path: {root}")
+
+        expanded = Path(root, path).resolve()
+        LOGGER.debug('Expanding {} -> {}', orig_path, expanded)
+        return expanded
     return expander
 
 
@@ -163,8 +192,7 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
                         )
                     path_roots[name] = Path(kv.value)
     except FileNotFoundError:
-        with open(paths_conf_loc, 'w', encoding='utf8') as f:
-            f.write(PATHS_CONF_STARTER)
+        paths_conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
 
     if not game_folder:
         game_folder = opts.get(GAMEINFO)
@@ -191,32 +219,10 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
             if isinstance(fsys, VPKFileSystem):
                 blacklist.add(fsys)
 
-    appid_cache: dict[int, Path] = {}
-
     for kv in opts.get(SEARCHPATHS):
         if kv.has_children():
             raise ValueError('Config "searchpaths" value cannot have children.')
         assert isinstance(kv.value, str)
-
-        appid = -1
-        # Game mount, we just replace the <appid> with a path, this will ensure compatibility with .vpk
-        if (end := kv.value.find(">")) and kv.value.startswith("<"):
-            appid = conv_int(kv.value[1:end])
-
-        if appid != -1:
-            try:
-                app_path = appid_cache[appid]
-            except KeyError:
-                LOGGER.info("Mounting appid {}", appid)
-                try:
-                    info = find_app(appid)
-                except KeyError:
-                    LOGGER.warning("No game with appid {} found!", appid)
-                    continue
-                appid_cache[appid] = app_path = info.path
-                LOGGER.info(f"Mounted game {info.name} with path: {app_path}")
-            # If it's '<123>/some/path', the first / is treated as a root which we don't want.
-            kv.value = (app_path / kv.value[end + 1:].lstrip('\\/')).as_posix()
 
         if kv.value.endswith('.vpk'):
             fsys = VPKFileSystem(str(expand_path(kv.value)))
