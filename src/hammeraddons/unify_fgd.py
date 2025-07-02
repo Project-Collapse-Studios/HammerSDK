@@ -44,7 +44,7 @@ GAMES_CHRONO: list[tuple[str, str]] = [
 # Additional mods/games, which branched off of mainline ones.
 MODS_BRANCHED: dict[str, list[tuple[str, str]]] = {
     'HL2': [
-        ('HLS', 'Half-Life: Source'),
+        ('HLS',  'Half-Life: Source'),
         ('DODS', 'Day of Defeat: Source'),
         ('CSS',  'Counter-Strike: Source'),
     ],
@@ -712,12 +712,11 @@ def action_count(
     count_point: dict[str, int] = Counter()
     count_brush: dict[str, int] = Counter()
 
-    all_tags = set()
-
-    ent: EntityDef
-    for ent in fgd:
-        for tag in get_appliesto(ent):
-            all_tags.add(tag.lstrip('+-!').upper())
+    all_tags = {
+        tag.lstrip('+-!').upper()
+        for ent in fgd
+        for tag in get_appliesto(ent)
+    }
 
     games = (ALL_GAMES | ALL_MODS) & all_tags
 
@@ -1582,7 +1581,7 @@ def main(args: list[str] | None = None) -> None:
             tags,
             Path(result.output).resolve(),
             result.binary,
-            result.engine | result.binary, # Binary mode forces --engine
+            result.engine | result.binary,  # Binary mode forces --engine
             result.map_size,
             result.srctools_only,
             result.collapse_bases,

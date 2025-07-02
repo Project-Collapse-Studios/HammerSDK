@@ -275,8 +275,7 @@ async def check_existing(settings: Settings, filename: trio.Path) -> None:
         scene = await trio.to_thread.run_sync(
             choreo.Scene.parse_text, Tokenizer(data, filename)
         )
-        for sound in scene.used_sounds():
-            MANUAL_SOUNDSCRIPTS.add(sound.casefold())
+        MANUAL_SOUNDSCRIPTS.update(map(str.casefold, scene.used_sounds()))
         SCENES.append(choreo.Entry.from_scene(
             filename.relative_to(settings.game_dir).as_posix(),
             scene,
@@ -501,6 +500,7 @@ async def make_vscript(settings: Settings, args: Args) -> None:
         pyperclip.copy(out.getvalue())
     else:
         sys.stdout.write(out.getvalue())
+
 
 if __name__ == '__main__':
     trio.run(main, sys.argv[1:])

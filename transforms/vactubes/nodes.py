@@ -82,6 +82,7 @@ class Node(ABC):
     # If OnPass is present, use this relay for the input.
     pass_relay: RelayOut | None
     outputs: dict[DestType, 'Node | None']
+
     def __init__(self, ent: Entity, relay_maker: Iterator[RelayOut]) -> None:
         self.origin = Vec.from_str(ent['origin'])
         self.matrix = Matrix.from_angstr(ent['angles'])
@@ -114,7 +115,7 @@ class Node(ABC):
         )
 
     @abstractmethod
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         """Return the length of the track for this node.
 
         If zero, it's just a point position.
@@ -122,7 +123,7 @@ class Node(ABC):
         raise NotImplementedError(self)
 
     @abstractmethod
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the position of the track.
 
         T=0 means the start, T=1 is the end.
@@ -134,7 +135,7 @@ class Node(ABC):
         """Return the flow direction at the input point."""
 
     @abstractmethod
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the flow direction at the output node."""
 
 
@@ -220,18 +221,18 @@ class Spawner(Node):
         self.prop_disable_shadows = srctools.conv_bool(ent.pop('prop_disable_shadows'), True)
         self.prop_disable_projtex = srctools.conv_bool(ent.pop('prop_disable_projtex'))
 
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         assert dest is DestType.PRIMARY, self
         return self.origin
 
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         assert dest is DestType.PRIMARY, self
         return 0.0
 
     def input_norm(self) -> Vec:
         raise AssertionError(self)
 
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         assert dest is DestType.PRIMARY
         return Vec(x=1) @ self.matrix
 
@@ -241,18 +242,18 @@ class Destroyer(Node):
     pass_out_name = 'oncubearrived'
     out_types: ClassVar[Iterable[DestType]] = []
 
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         assert dest is DestType.PRIMARY
         return self.origin
 
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         assert dest is DestType.PRIMARY
         return 0.0
 
     def input_norm(self) -> Vec:
         return Vec(x=-1) @ self.matrix
 
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         """Destroyers have no outputs."""
         raise AssertionError(self)
 
@@ -297,7 +298,7 @@ class Spline(Node):
         pos1, len1 = self.points[i], self.lengths[i]
         try:
             pos2, len2 = self.points[i+1], self.lengths[i+1]
-        except IndexError: # End of list.
+        except IndexError:  # End of list.
             return self.origin + pos1
         return self.origin + Vec(
             lerp(dist, len1, len2, pos1.x, pos2.x),
@@ -392,13 +393,13 @@ class Curve(Node):
         self.radius = radius
         self.reversed = reversed
 
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         """Return the length of the curve."""
         assert dest is DestType.PRIMARY
         # πD / 4
         return math.pi * (2.0 / 4.0) * self.radius
 
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the position along the curve."""
         assert dest is DestType.PRIMARY
 
@@ -414,7 +415,7 @@ class Curve(Node):
         else:
             return Vec(y=1) @ self.matrix
 
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the flow direction at the end of this curve type."""
         assert dest is DestType.PRIMARY
         if self.reversed:
@@ -440,12 +441,12 @@ class DiagCurve(Node):
         # If flipped, we just want to flip the sign of the Y coord.
         self.y = -1.0 if flipped else 1.0
 
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         """Return the length of the curve."""
         assert dest is DestType.PRIMARY
         return self.TOTAL_LEN
 
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the position along the curve."""
         assert dest is DestType.PRIMARY
         if self.reversed:
@@ -468,7 +469,7 @@ class DiagCurve(Node):
         else:
             return Vec(y=-self.y) @ self.matrix
 
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the flow direction at the end of the curve."""
         assert dest is DestType.PRIMARY
         if self.reversed:
@@ -510,11 +511,11 @@ class Straight(Node):
 
 
 class Splitter(Node):
-    """A T-intersection that either randomly routes cubes or directs them to a dropper."""
+    """A T-intersection that outputs straight and to the side."""
     out_types: ClassVar[Iterable[DestType]] = [DestType.PRIMARY, DestType.SECONDARY]
 
     def __init__(self, ent: Entity, relay_maker: Iterator[RelayOut], straight: bool) -> None:
-        """If straight is true, the primary dir goes forward."""
+        """If straight is true, the primary dir goes forward, otherwise it's off to the side."""
         super().__init__(ent, relay_maker)
         self.is_straight = straight
 
@@ -551,23 +552,23 @@ class Splitter(Node):
 
 
 class CrossSplitter(Node):
-    """An X-intersection that either randomly routes cubes or directs them to a dropper.
+    """An X-intersection that outputs forward and to the side
 
     Primary is left, secondary is forward, tertiary is right.
     """
     out_types: ClassVar[Iterable[DestType]] = [DestType.PRIMARY, DestType.SECONDARY, DestType.TERTIARY]
 
     def __init__(self, ent: Entity, relay_maker: Iterator[RelayOut]) -> None:
-        """If straight is true, the primary dir goes forward."""
+        """No inversion is permitted."""
         super().__init__(ent, relay_maker)
 
-    def path_len(self, dest: DestType=DestType.PRIMARY) -> float:
+    def path_len(self, dest: DestType = DestType.PRIMARY) -> float:
         if dest is DestType.SECONDARY:  # Straight through
             return 128.0
-        else: # Either curve
+        else:  # Either curve
             return 64.0 / 4.0 * math.pi
 
-    def vec_point(self, t: float, dest: DestType=DestType.PRIMARY) -> Vec:
+    def vec_point(self, t: float, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the position this far through the given curve."""
         x, y = curve_point(64.0, t)
         if dest is DestType.PRIMARY:
@@ -583,7 +584,7 @@ class CrossSplitter(Node):
         """Return the flow direction at the input side."""
         return Vec(y=1) @ self.matrix
 
-    def output_norm(self, dest: DestType=DestType.PRIMARY) -> Vec:
+    def output_norm(self, dest: DestType = DestType.PRIMARY) -> Vec:
         """Return the flow direction at the end of this curve type."""
         if dest is DestType.PRIMARY:
             return Vec(x=1) @ self.matrix

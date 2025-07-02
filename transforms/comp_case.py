@@ -44,7 +44,7 @@ def collapse_case(ctx: Context, case: Entity) -> None:
             try:
                 num = int(out.output[6:])
             except ValueError:
-                LOGGER.warning('Unknown case output "{}" {}',out.output, desc)
+                LOGGER.warning('Unknown case output "{}" {}', out.output, desc)
                 continue
             out_cases[num].append(out)
         elif out.output.casefold() == 'ondefault':

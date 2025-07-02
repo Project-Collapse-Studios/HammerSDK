@@ -157,10 +157,12 @@ class Sensor:
                     out.output = relay.output
                 relay.ent.outputs.extend(outs)
         else:
+            # If either is set, we generated this from props, so it's fine to not match.
+            # Otherwise it's an explicit sensor, so warn.
             if self.scanner_tv is None and self.scanner_spinner is None:
                 LOGGER.warning('Vactube sensor at {} did not detect any paths!', self.origin)
 
-            # Not used, reset entity names if required.
+            # We didn't use the sensor, so clear entity names if we created them.
             if self.unnamed_tv and self.scanner_tv is not None:
                 self.scanner_tv['targetname'] = ''
             if self.unnamed_spinner and self.scanner_spinner is not None:

@@ -19,11 +19,12 @@ class FinderModes(Enum):
     TARG_TO_KNOWN = 'target2known'
     OUTPUT_MERGE = 'replacetarget'
 
+
 NEEDS = {
     # For each mode, what data they need.
     # In order: a source keyvalue, and a known entity
     FinderModes.CONST_TARG: (False, False),
-    FinderModes.CONST_KNOWN: (False,  True),
+    FinderModes.CONST_KNOWN: (False, True),
     FinderModes.KNOWN_TO_TARG: (True, True),
     FinderModes.TARG_TO_KNOWN: (True, True),
     FinderModes.OUTPUT_MERGE: (False, True),
@@ -40,6 +41,7 @@ def entity_finder(ctx: Context) -> None:
 
 
 def modify_finder(ctx: Context, target_cache: dict[tuple, Entity], finder: Entity) -> None:
+    """Apply a single finder."""
     finder.remove()
     targ_classes = frozenset(finder['targetcls'].split())
     targ_radius = conv_float(finder['radius'])

@@ -151,6 +151,7 @@ VAC_MAT: Final = 'models/props_backstage/vacum_pipe'
 # Pos/radius pairs defining cylinders, for visleaf computation.
 type CollData = list[tuple[Vec, float, Vec, float]]
 
+
 @attrs.define
 class SegProp:
     """Definition for an actually placed segment prop."""
@@ -432,6 +433,7 @@ def save_mesh(mesh: Mesh, path: Path) -> None:
     with path.open('wb') as fb:
         mesh.export(fb)
 
+
 # The compiler for ropes.
 type RopeBuilder = ModelCompiler[CompKey, CompArgs, CompResult]
 
@@ -465,10 +467,10 @@ def make_key(
     for node in node_list:
         id_remap[node.id] = new_id = NodeID(format(next(id_gen), 'x'))
         new_nodes.append(attrs.evolve(node, id=new_id))
-    new_conns = tuple([
+    new_conns = tuple(
         (id_remap[node1], id_remap[node2])
         for node1, node2 in connections
-    ])
+    )
     return tuple(new_nodes), new_conns, tuple(skins), vac_type
 
 
@@ -878,7 +880,7 @@ def interpolate_all(nodes: set[Node]) -> None:
         segments.append(points)
 
     for removenode in seen_bezier_nodes:
-        LOGGER.debug("Removing Bezier Keyframe Node ",removenode)
+        LOGGER.debug("Removing Bezier Keyframe Node", removenode)
         nodes.remove(removenode)
 
     for points in segments:
@@ -1260,7 +1262,8 @@ def compute_visleafs(
     # If both are on one side, the whole segment cannot cross.
     for point1, radius1, point2, radius2 in coll_data:
         todo_trees: list[VisTree] = [vis_tree_top]
-        for tree in todo_trees:
+        while todo_trees:
+            tree = todo_trees.pop()
             off1 = Vec.dot(tree.plane.normal, point1) - tree.plane.dist
             off2 = Vec.dot(tree.plane.normal, point2) - tree.plane.dist
             if off1 >= -radius1 or off2 >= -radius2:

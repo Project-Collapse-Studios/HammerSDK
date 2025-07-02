@@ -46,17 +46,21 @@ def p2_custom_models(ctx: Context) -> None:
         for ent in ctx.vmf.by_class[classname]:
             model_type = conv_int(ent.pop('comp_custom_model_type'))
 
-            if model_type == 0: # none
+            if model_type == 0:  # none
                 continue
-            elif model_type == 1: # script override
+            elif model_type == 1:  # script override
                 cust_model = ent['model']
                 # Make a comp_precache_model
                 ctx.vmf.create_ent(
-                    classname = 'comp_precache_model',
-                    model = cust_model,
+                    classname='comp_precache_model',
+                    model=cust_model,
                 )
-                ctx.add_code(ent, 'function OnPostSpawn() { self.SetModel("' + cust_model + '") }')
-            elif model_type == 2 and ent['classname'] == 'prop_weighted_cube': # cube type 6, for prop_weighted_cube only
+                ctx.add_code(
+                    ent,
+                    f'function OnPostSpawn() {{ self.SetModel(\"{cust_model}\") }}',
+                )
+            elif model_type == 2 and ent['classname'] == 'prop_weighted_cube':
+                # cube type 6, for prop_weighted_cube only
                 orig_cube_type = ent['CubeType']
                 ent['CubeType'] = '6'
                 # Revert to the original type on spawn

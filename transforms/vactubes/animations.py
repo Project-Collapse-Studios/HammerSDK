@@ -15,6 +15,7 @@ def limit(x: float, num: float) -> float:
     """Clamp x to within ±num."""
     return min(num, max(-num, x))
 
+
 LOGGER = logger.get_logger(__name__)
 SKIN_INPUT = '<SKIN>'  # Special input name which sets skin appropriately.
 # Max angular acceleration per frame
@@ -27,7 +28,7 @@ FPS = 30
 
 class RotGen:
     """Generate a stream of random rotations."""
-    def __init__(self, seed: str, pitch: float=0.0, yaw: float=0.0, roll: float=0.0) -> None:
+    def __init__(self, seed: str, pitch: float = 0.0, yaw: float = 0.0, roll: float = 0.0) -> None:
         self.rand = Random()
         # If a valid hex number, use that way. Otherwise use the bytes.
         try:

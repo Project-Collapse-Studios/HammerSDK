@@ -32,9 +32,9 @@ def comp_flicker(ctx: Context) -> None:
         ctx.add_io_remap(
             ent_name,
             Output('TurnOff', ent_name, INP_TURN_OFF),
-            Output('TurnOn',  ent_name, INP_TURN_ON),
+            Output('TurnOn', ent_name, INP_TURN_ON),
             Output('FlickerOff', ent_name, INP_FLICK_OFF),
-            Output('FlickerOn',  ent_name, INP_FLICK_ON),
+            Output('FlickerOn', ent_name, INP_FLICK_ON),
         )
 
         for out in ent.outputs:

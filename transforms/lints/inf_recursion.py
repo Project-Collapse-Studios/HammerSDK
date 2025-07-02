@@ -40,6 +40,7 @@ def parent_loop_check(ctx: Context) -> None:
         )
         sys.exit(1)
 
+
 # Fortunately, we only care about filters that can reference others.
 REDIRECT_FILTERS = [
     'filter_blood_control', 'filter_damage_mod', 'filter_damage_transfer',

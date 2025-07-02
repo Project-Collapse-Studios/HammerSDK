@@ -106,12 +106,12 @@ class Opt[OptionT: Option]:
         return OptWithDefault(opt_id, int, default, doc, fallback)
 
     @classmethod
-    def floating(cls, opt_id: str,  default: float, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[float]':
+    def floating(cls, opt_id: str, default: float, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[float]':
         """Return a float-type option."""
         return OptWithDefault(opt_id, float, default, doc, fallback)
 
     @classmethod
-    def vector(cls, opt_id: str, default: Vec,  doc: str, *, fallback: str | None = None) -> 'OptWithDefault[Vec]':
+    def vector(cls, opt_id: str, default: Vec, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[Vec]':
         """Return a vector-type option."""
         return OptWithDefault(opt_id, Vec, default, doc, fallback)
 

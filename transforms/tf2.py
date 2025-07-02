@@ -15,7 +15,7 @@ def comp_control_points(ctx: Context) -> None:
             continue
 
         ent.add_out(
-            Output('OnCapTeam1' , prop_name, 'Skin', '1'),
+            Output('OnCapTeam1', prop_name, 'Skin', '1'),
             Output('OnCapTeam2', prop_name, 'Skin', '2'),
             Output('OnCapReset', prop_name, 'Skin', '0'),
         )

@@ -53,7 +53,7 @@ def op_always_fail(a: Decimal, b: Decimal, /) -> Literal[False]:
     return False
 
 
-def parse_numeric_specifier(text: str, desc: str='') -> NumericSpecifier:
+def parse_numeric_specifier(text: str, desc: str = '') -> NumericSpecifier:
     """Parse case values like "> 5" into the operation and number."""
     operation: NumericOp
     if (match := OPERATION_RE.match(text)) is not None:
@@ -147,7 +147,7 @@ class RelayOut:
                 yield cls(ent, inp, out)
 
 
-def get_multimode_value(ent: Entity, *, prefix: str='', suffix: str='', desc: str) -> str:
+def get_multimode_value(ent: Entity, *, prefix: str = '', suffix: str = '', desc: str) -> str:
     """Read from differerent typed keyvalues, specified by a mode option.
 
     The mode was originally not present, which is why local/global is doubled up.

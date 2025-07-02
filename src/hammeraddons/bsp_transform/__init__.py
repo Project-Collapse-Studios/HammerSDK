@@ -89,7 +89,7 @@ class Context:
             if old_remove and not remove:
                 self._io_remaps[key] = (out_list, False)
 
-    def add_io_remap(self, name: str, *outputs: Output, remove: bool=True) -> None:
+    def add_io_remap(self, name: str, *outputs: Output, remove: bool = True) -> None:
         """Register an output to be replaced.
 
         This is used to convert inputs to comp_ entities into their real
@@ -158,7 +158,7 @@ class TransProto(Protocol):
     def __call__[Func: TransFuncOrSync](self, func: Func) -> Func: ...
 
 
-def trans(name: str, *, priority: int=0) -> TransProto:
+def trans(name: str, *, priority: int = 0) -> TransProto:
     """Add a transformation procedure to the list."""
     name = name.strip()
     if ',' in name:

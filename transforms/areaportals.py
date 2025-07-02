@@ -16,7 +16,7 @@ def optimise_areaportals(ctx: Context) -> None:
             for fade_ent in ctx.vmf.search(ap_ent['target']):
                 if fade_ent['classname'] in ['prop_dynamic', 'prop_dynamic_override']:
                     fade_ent['solid'] = '0'
-                elif fade_ent['classname'] in ['func_brush']:
+                elif fade_ent['classname'] == 'func_brush':
                     fade_ent['solidity'] = '1'  # Never Solid
 
                 try:

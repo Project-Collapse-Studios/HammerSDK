@@ -10,7 +10,7 @@ from hammeraddons.bsp_transform.common import strip_cust_keys, rng_get
 
 
 LOGGER = srctools.logger.get_logger(__name__)
-DIGIT_PATTERN = re.compile('[0-9]+')
+DIGIT_PATTERN = re.compile(r'[0-9]+')
 
 
 def num_suffix(ent: Entity) -> int:
@@ -20,6 +20,7 @@ def num_suffix(ent: Entity) -> int:
         return int(numbers[-1])
     else:
         return 0
+
 
 KEYVALUES = [
     'time_val', 'time_variance', 'time_mode',
