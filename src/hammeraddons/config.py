@@ -1,29 +1,49 @@
 """Handles user configuration common to the different scripts."""
-from typing import Final
+
+from typing import Final, Literal
 from collections.abc import Callable, Iterator
 from pathlib import Path
 import fnmatch
+import hashlib
 import re
+import struct
 import sys
 
-from srctools import AtomicWriter, Keyvalues, conv_int, logger
+from srctools import AtomicWriter, Keyvalues, conv_int, logger, NoKeyError
 from srctools.filesys import FileSystem, FileSystemChain, RawFileSystem, VPKFileSystem
 from srctools.game import Game
 from srctools.steam import find_app
 import attrs
 
 from .plugin import BUILTIN as BUILTIN_PLUGIN, PluginFinder, Source as PluginSource
-from .props_config import Opt, Options
+from .props_config import Opt as Opt, OptWithDefault, Options
+
+
+__all__ = [
+    "Opt", "OptWithDefault", "Options", # Re-export
+    "Expander", "Config", "parse",
+
+    # Options
+    "VERSION", "GAMEINFO", "AUTO_PACK", "PACK_VPK", "PACK_DUMP", "PACK_STRIP_CUBEMAPS",
+    "PACK_TAGS", "PACK_ALLOWLIST", "PACK_BLOCKLIST", "SEARCHPATHS", "SOUNDSCRIPT_MANIFEST",
+    "PARTICLES_MANIFEST", "STUDIOMDL", "MODEL_COMPILE_DUMP", "USE_COMMA_SEP",
+    "PROPCOMBINE_QC_FOLDER", "PROPCOMBINE_CROWBAR", "PROPCOMBINE_CACHE",
+    "PROPCOMBINE_VOLUME_TOLERANCE", "PROPCOMBINE_MIN_AUTO_RANGE", "PROPCOMBINE_MAX_AUTO_RANGE",
+    "PROPCOMBINE_MIN_CLUSTER", "PROPCOMBINE_MIN_CLUSTER_AUTO", "PROPCOMBINE_BLACKLIST",
+    "PROPCOMBINE_PACK", "PLUGINS", "TRANSFORM_OPTS", "DISABLED_TRANSFORMS",
+]
 
 
 LOGGER = logger.get_logger(__name__)
 MAIN_VERSION: Final = 1  # Ordinal version for the core configs.
 MAIN_NAME: Final = 'postcompiler'  # Name for the core config.
 CONF_NAME: Final = 'srctools.vdf'
+CONF_UPDATE_NAME = 'srctools.new.vdf'
 PATHS_NAME: Final = 'srctools_paths.vdf'
 
 PATH_KEY_GAME: Final = 'gameinfo_path'
 PATH_KEY_MAP: Final = 'mapdir_path'
+
 
 PREDEFINED_PATHS = {PATH_KEY_GAME, PATH_KEY_MAP}
 
@@ -51,17 +71,22 @@ PATHS_CONF_STARTER: Final = f'''\
     // "hl2" "C:/Program Files/Steam/SteamApps/common/Half Life 2/"
     }}
 '''
+# Special 'paths' used to detect specific expansion scenarios for the game folder.
+GAMEINFO_RECURSION_KEY: Final = '::recursion::'  # Expanding for the game folder itself.
+GAMEINFO_MISSING_KEY: Final = '::missing::'  # Expanding for plugins, when the game is missing.
+
 # A function taking a configured path, and expanding |refs| to get the full location.
 type Expander = Callable[[str], Path]
+type ExpanderRoots = dict[str, Path | Literal['::recursion::', '::missing::']]
 
 
-def make_expander(roots: dict[str, Path], orig_root: str | Path) -> Expander:
+def make_expander(roots: ExpanderRoots, orig_root: Path) -> Expander:
     """Produce a function that expands configs potentially containing || refs."""
     appid_cache: dict[int, Path] = {}
 
     def expander(path: str) -> Path:
         """Expand a reference potentially containing || refs."""
-        root = orig_root
+        root: Path = orig_root
         orig_path = path
         appid = -1
 
@@ -73,13 +98,34 @@ def make_expander(roots: dict[str, Path], orig_root: str | Path) -> Expander:
             else:
                 path = path.lstrip('\\/')  # Make |loc|/blah/ allowed, don't treat as a root.
                 try:
-                    root = roots[ref.casefold()]
+                    found_root = roots[ref.casefold()]
                 except KeyError:
                     LOGGER.warning(
                         '|{}| is not defined in {}! Assuming {}\nKnown: {}',
                         ref, PATHS_NAME, root,
                         ', '.join(sorted(roots)),
                     )
+                else:
+                    # Two special cases, detected by specific constants being set. Use identity
+                    # compare, we're putting the exact values in, users should never set these.
+                    if found_root == GAMEINFO_RECURSION_KEY:
+                        # We're trying to expand the game key to find gameinfo itself.
+                        # That's an infinite loop.
+                        raise ValueError(
+                            f'Cannot use |{PATH_KEY_GAME}| to locate the '
+                            'game folder, this is an infinite loop.'
+                        )
+                    elif found_root == GAMEINFO_MISSING_KEY:
+                        # Using game loc in a plugin, but game dir isn't set. We're only doing
+                        # this to create/update the config file, this would only happen if the user
+                        # messed up.
+                        LOGGER.warning(
+                            '|{}| used in plugin filenames, but no game folder provided! '
+                            'Plugins will not load correctly!',
+                            PATH_KEY_GAME,
+                        )
+                    else:  # All good.
+                        root = found_root
         # Game mount, we just replace the <appid> with a path.
         elif path.startswith("<") and (end := path.find(">")) != -1:
             appid = conv_int(path[1:end], -1)
@@ -123,7 +169,7 @@ class Config:
         return path
 
 
-def find_conf(map_path: Path, game_folder: str | None = '') -> tuple[Path, Keyvalues]:
+def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
     """From some directory, locate the config files.
 
     The first srctools.vdf file found in a parent directory is parsed.
@@ -161,9 +207,9 @@ def find_conf(map_path: Path, game_folder: str | None = '') -> tuple[Path, Keyva
     return conf_path, Keyvalues.root()
 
 
-def load_paths_config(conf_path: Path) -> dict[str, Path]:
+def load_paths_config(conf_path: Path) -> ExpanderRoots:
     """Load the srctools_paths config file."""
-    path_roots: dict[str, Path] = {}
+    path_roots: ExpanderRoots = {}
     paths_conf_loc = conf_path.with_name(PATHS_NAME)
     LOGGER.info('Paths config: {}', paths_conf_loc)
     try:
@@ -277,38 +323,107 @@ def parse_plugin_confs(plugins: PluginFinder, kv: Keyvalues) -> dict[str, Option
     return confs
 
 
+def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) -> bool:
+    """Check if any configuration definitions have changed, and if so begin updating the configs."""
+    hasher = hashlib.sha256(usedforsecurity=False)
+    main.hash(hasher)
+    hasher.update(struct.pack('<I', len(plugins)))
+    for plug_id, opt in sorted(plugins.items()):
+        hasher.update(plug_id.encode('utf8'))
+        opt.hash(hasher)
+    runtime_version = hasher.hexdigest()
+    updated = False
+    if not conf_path.exists():
+        LOGGER.debug('Version: ', runtime_version)
+        LOGGER.info('Writing new config to {}...', conf_path)
+        write_path = conf_path
+    else:
+        file_version = main.get(VERSION)
+        LOGGER.debug('Expected: {}', runtime_version)
+        LOGGER.debug('Current:  {}', file_version)
+        if file_version == runtime_version:
+            LOGGER.info('Config up to date.')
+            return False # No update required.
+        write_path = conf_path.with_name(CONF_UPDATE_NAME)
+        updated = True
+        LOGGER.info('Saving updated config to {}...', write_path)
+    main.set_opt(VERSION, runtime_version)
+    with AtomicWriter(write_path) as f:
+        f.write('// Main Configuration:\n')
+        main.save(f, 'Postcompiler')
+
+        for plug_id, opt in sorted(plugins.items()):
+            opt.save(f, plug_id)
+    if updated:
+        LOGGER.warning(
+            'Hammeraddons configurations have updated. A new file has been saved as:\n'
+            f'{write_path}\n'
+            'Compare with your old configuration and update any settings, then overwrite srctools.vdf.'
+        )
+    return updated
+
+
 def parse(map_path: Path, game_folder: str | None = '') -> Config:
     """Load the config, plugins, and parse."""
-    conf_path, conf_kv = find_conf(map_path, game_folder)
+    conf_path, conf_kv = find_conf(map_path)
 
     LOGGER.info('Loading main config options...')
     opts = Options(MAIN_NAME, MAIN_VERSION, globals())
-    opts.load(conf_kv.find_block(MAIN_NAME, or_blank=True))
+    # "Config" {} is the old location
+    try:
+        main_kv = conf_kv.find_block(MAIN_NAME)
+    except NoKeyError:
+        # Legacy location.
+        main_kv = conf_kv.find_block('config', or_blank=True)
+    opts.load(main_kv)
+    opts.path = conf_path
+    path_roots = load_paths_config(conf_path)
+    # We know where this is already.
+    path_roots[PATH_KEY_MAP] = map_path.parent
+
+    expand_path = make_expander(path_roots, conf_path.parent)
 
     if not game_folder:
         game_folder = opts.get(GAMEINFO)
-    if not game_folder:
-        raise ValueError(
-            'No game folder specified!\n'
-            'Add -game $gamedir to the command line, or set it in '
-            f'"{opts.path}".'
-        )
 
-    path_roots = load_paths_config(conf_path)
-    expand_path = make_expander(path_roots, conf_path.parent)
-    game = Game(expand_path(game_folder))
-    LOGGER.info('Game folder: {}', game.path)
-    # Now we located it, other definitions can use this loc.
-    path_roots[PATH_KEY_GAME] = game.path
-    path_roots[PATH_KEY_MAP] = map_path.parent
+    game: Game | None = None
+    pack_blacklist: set[FileSystem] = set()
+    fsys: FileSystemChain | None = None
 
-    fsys, pack_blacklist = calc_searchpaths(opts, game, expand_path)
+    if game_folder:
+        # Marker to ensure gameinfo doesn't try to recurse.
+        path_roots[PATH_KEY_GAME] = GAMEINFO_RECURSION_KEY
+        game = Game(expand_path(game_folder))
+        LOGGER.info('Game folder: {}', game.path)
+        # Now we located it, other definitions can use this loc.
+        path_roots[PATH_KEY_GAME] = game.path
+
+        fsys, pack_blacklist = calc_searchpaths(opts, game, expand_path)
+    else:
+        LOGGER.error('No game folder specified.')
+        # Chicken and egg problem. We may need the game folder to locate plugins,
+        # but need plugins loaded to generate the full config. Continue anyway to ensure the config
+        # is up to date. If a user deliberately unset the game folder but set plugins to use them,
+        # expand_path() will catch the issue.
+        path_roots[PATH_KEY_GAME] = GAMEINFO_MISSING_KEY
+
     plugins = parse_plugins(opts, expand_path)
 
     LOGGER.info('Loading plugins...')
     plugins.load_all()
 
     plugin_conf = parse_plugin_confs(plugins, conf_kv)
+    updated = update_check(conf_path, opts, plugin_conf)
+
+    if game is None or fsys is None:
+        LOGGER.error(
+            'No game folder specified!\n'
+            'Add -game $gamedir to the command line, or set it in "{}".',
+            conf_path
+        )
+        sys.exit(2)
+    if updated:
+        sys.exit(2)
 
     return Config(
         opts=opts,

@@ -27,7 +27,9 @@ TYPE_NAMES: dict[type[Option], str] = {
     Keyvalues: 'Keyvalues Block',
 }
 # Unique byte for hashing.
-TYPE_BYTE = {typ: bytes([ind]) for ind, typ in enumerate(TYPE_NAMES)}
+TYPE_BYTE: dict[type[object], bytes] = {
+    typ: bytes([ind]) for ind, typ in enumerate(TYPE_NAMES)
+}
 
 
 class Hasher(Protocol):
@@ -128,9 +130,9 @@ class Opt[OptionT: Option]:
     def hash(self, digest: Hasher) -> None:
         """Add in the state of this config."""
         digest.update(TYPE_BYTE[self.kind])
-        digest.update(self.id.encode('utf8'))
-        if self.fallback:
-            digest.update(b'\xF0' + self.fallback.encode('utf8'))
+        digest.update(self.id.encode('utf8', 'replace'))
+        if self.fallback is not None:
+            digest.update(b'\xF0' + self.fallback.encode('utf8', 'replace'))
 
 
 @attrs.define(init=False)  # __attrs_init__() is incompatible with the superclass.
@@ -154,10 +156,9 @@ class OptWithDefault[OptionT: Option](Opt[OptionT]):  # type: ignore[override]
     def hash(self, digest: Hasher) -> None:
         """Include the default value."""
         super().hash(digest)
-        kv: Keyvalues
         match self.default:
             case str() as text:
-                digest.update(b'\xF1' + text.encode('utf8'))
+                digest.update(b'\xF1' + text.encode('utf8', 'replace'))
             case int() as ordinal:
                 digest.update(struct.pack('<Bq', 0xF2, ordinal))
             case float() as number:
@@ -169,7 +170,7 @@ class OptWithDefault[OptionT: Option](Opt[OptionT]):  # type: ignore[override]
             case Vec(x, y, z):
                 digest.update(struct.pack('<Bddd', 0xF6, x, y, z))
             case Keyvalues() as kv:
-                digest.update(b'\xF7' + kv.serialise().encode('utf8'))
+                digest.update(b'\xF7' + kv.serialise().encode('utf8', 'replace'))
             case never:
                 assert_never(never)
 
@@ -201,13 +202,12 @@ class Options:
         for opt in self.defaults:
             opt.hash(digest)
 
-    def load(self, opt_blocks: Keyvalues) -> None:
+    def load(self, keyvalues: Keyvalues) -> None:
         """Read settings from the given keyvalues block."""
         self.settings.clear()
         set_vals = {}
-        for opt_block in opt_blocks:
-            for prop in opt_block:
-                set_vals[prop.name] = prop
+        for child in keyvalues:
+            set_vals[child.name] = child
 
         options: dict[str, Opt] = {opt.id: opt for opt in self.defaults}
         if len(options) != len(self.defaults):
@@ -316,12 +316,12 @@ class Options:
             assert isinstance(val, option.kind)
             return val
 
-    def save(self, file: IO[str]) -> None:
+    def save(self, file: IO[str], block_name: str) -> None:
         """Write the current config out to the given file.
 
         Descriptions are written out as comments.
         """
-        file.write('"Config"\n\t{\n')
+        file.write(f'"{block_name}"\n\t{{\n')
         for ind, option in enumerate(self.defaults):
             if ind != 0:
                 file.write('\n\n')
