@@ -17,6 +17,8 @@ from .props_config import Opt, Options
 
 
 LOGGER = logger.get_logger(__name__)
+MAIN_VERSION: Final = 1  # Ordinal version for the core configs.
+MAIN_NAME: Final = 'postcompiler'  # Name for the core config.
 CONF_NAME: Final = 'srctools.vdf'
 PATHS_NAME: Final = 'srctools_paths.vdf'
 
@@ -111,6 +113,7 @@ class Config:
     pack_blacklist: set[FileSystem]
     plugins: PluginFinder
     expand_path: Expander
+    plugin_conf: dict[str, Options]
 
     @property
     def loc(self) -> Path:
@@ -120,18 +123,14 @@ class Config:
         return path
 
 
-def parse(map_path: Path, game_folder: str | None = '') -> Config:
-    """From some directory, locate and parse the config files.
-
-    This then constructs and customises each object according to config
-    options.
+def find_conf(map_path: Path, game_folder: str | None = '') -> tuple[Path, Keyvalues]:
+    """From some directory, locate the config files.
 
     The first srctools.vdf file found in a parent directory is parsed.
     If none can be found, it tries to find the first subfolder of 'common/' and
     writes a default copy there. FileNotFoundError is raised if none can be
     found.
     """
-    opts = Options(globals())
 
     # If the path is a folder, add a dummy folder so parents yields it.
     # That way we check for a config in this folder.
@@ -144,38 +143,28 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
             LOGGER.info('Config path: "{}"', conf_path.absolute())
             with open(conf_path, encoding='utf8') as f:
                 kv = Keyvalues.parse(f, conf_path)
-            opts.path = conf_path
-            opts.load(kv)
+            return conf_path, kv
+
+    LOGGER.warning('Cannot find a valid config file!')
+
+    # Try to find the game root to place the config at.
+    # We look for the steam library folder or sourcemods folder above.
+    for folder in map_path.parents:
+        if folder.parent.stem in ('common', 'sourcemods'):
             break
     else:
-        LOGGER.warning('Cannot find a valid config file!')
-        # Apply all the defaults.
-        opts.load(Keyvalues(None, []))
+        # Give up, put next to the input path.
+        folder = map_path.parent
+    conf_path = folder / CONF_NAME
 
-        # Try to write out a default file in the game folder.
-        for folder in map_path.parents:
-            if folder.parent.stem in ('common', 'sourcemods'):
-                break
-        else:
-            # Give up, put next to the input path.
-            folder = map_path.parent
-        opts.path = folder / CONF_NAME
+    LOGGER.warning('Writing default to "{}"', conf_path)
+    return conf_path, Keyvalues.root()
 
-        LOGGER.warning('Writing default to "{}"', opts.path)
 
-    # Add in new pack tags to the config.
-    pack_tags = opts.get(PACK_TAGS)
-    for tag in USED_PACK_TAGS:
-        if tag not in pack_tags:
-            pack_tags[tag] = '0'
-    opts.set_opt(PACK_TAGS, pack_tags)
-
-    with AtomicWriter(opts.path) as f:
-        opts.save(f)
-
-    # Fetch the additional path config.
+def load_paths_config(conf_path: Path) -> dict[str, Path]:
+    """Load the srctools_paths config file."""
     path_roots: dict[str, Path] = {}
-    paths_conf_loc = opts.path.with_name(PATHS_NAME)
+    paths_conf_loc = conf_path.with_name(PATHS_NAME)
     LOGGER.info('Paths config: {}', paths_conf_loc)
     try:
         with open(paths_conf_loc, encoding='utf8') as f:
@@ -193,26 +182,23 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
                     path_roots[name] = Path(kv.value)
     except FileNotFoundError:
         paths_conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
+    return path_roots
 
-    if not game_folder:
-        game_folder = opts.get(GAMEINFO)
-    if not game_folder:
-        raise ValueError(
-            'No game folder specified!\n'
-            'Add -game $gamedir to the command line, or set it in '
-            f'"{opts.path}".'
-        )
 
-    expand_path = make_expander(path_roots, folder)
-    game = Game(expand_path(game_folder))
-    LOGGER.info('Game folder: {}', game.path)
-    # Now we located it, other definitions can use this loc.
-    path_roots[PATH_KEY_GAME] = game.path
-    path_roots[PATH_KEY_MAP] = map_path.parent
-
+def calc_searchpaths(
+    opts: Options, game: Game, expand_path: Expander,
+) -> tuple[FileSystemChain, set[FileSystem]]:
+    """Apply the searchpaths option to the loaded filesystem."""
     fsys_chain = game.get_filesystem()
 
     blacklist: set[FileSystem] = set()
+
+    # Add in new pack tags to the config.
+    pack_tags = opts.get(PACK_TAGS)
+    for tag in USED_PACK_TAGS:
+        if tag not in pack_tags:
+            pack_tags[tag] = '0'
+    opts.set_opt(PACK_TAGS, pack_tags)
 
     if not opts.get(PACK_VPK):
         for fsys, prefix in fsys_chain.systems:
@@ -240,7 +226,11 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
             fsys_chain.add_sys(fsys)
         else:
             raise ValueError(f'Unknown searchpath key "{kv.real_name}"!')
+    return fsys_chain, blacklist
 
+
+def parse_plugins(opts: Options, expand_path: Expander) -> PluginFinder:
+    """Parse and locate all plugins."""
     sources: dict[str, PluginSource] = {}
 
     if hasattr(sys, 'frozen'):
@@ -268,14 +258,66 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
 
     plugin_finder = PluginFinder('hammeraddons.plugins', sources)
     sys.meta_path.append(plugin_finder)
+    return plugin_finder
+
+
+def parse_plugin_confs(plugins: PluginFinder, kv: Keyvalues) -> dict[str, Options]:
+    """Parse configs for each plugin."""
+    confs = {}
+    for plugin_id, module in plugins.modules.items():
+        if not hasattr(module, 'CONFIG'):
+            continue
+        conf = module.CONFIG
+        if not isinstance(conf, Options):
+            LOGGER.warning('Non props-config CONFIG found for plugin "{}"', plugin_id)
+            continue
+        LOGGER.info('Loading config for plugin "{}" under key "{}"', plugin_id, conf.name)
+        conf.load(kv.find_block(conf.name, or_blank=True))
+        confs[plugin_id] = conf
+    return confs
+
+
+def parse(map_path: Path, game_folder: str | None = '') -> Config:
+    """Load the config, plugins, and parse."""
+    conf_path, conf_kv = find_conf(map_path, game_folder)
+
+    LOGGER.info('Loading main config options...')
+    opts = Options(MAIN_NAME, MAIN_VERSION, globals())
+    opts.load(conf_kv.find_block(MAIN_NAME, or_blank=True))
+
+    if not game_folder:
+        game_folder = opts.get(GAMEINFO)
+    if not game_folder:
+        raise ValueError(
+            'No game folder specified!\n'
+            'Add -game $gamedir to the command line, or set it in '
+            f'"{opts.path}".'
+        )
+
+    path_roots = load_paths_config(conf_path)
+    expand_path = make_expander(path_roots, conf_path.parent)
+    game = Game(expand_path(game_folder))
+    LOGGER.info('Game folder: {}', game.path)
+    # Now we located it, other definitions can use this loc.
+    path_roots[PATH_KEY_GAME] = game.path
+    path_roots[PATH_KEY_MAP] = map_path.parent
+
+    fsys, pack_blacklist = calc_searchpaths(opts, game, expand_path)
+    plugins = parse_plugins(opts, expand_path)
+
+    LOGGER.info('Loading plugins...')
+    plugins.load_all()
+
+    plugin_conf = parse_plugin_confs(plugins, conf_kv)
 
     return Config(
         opts=opts,
         game=game,
-        fsys=fsys_chain,
-        pack_blacklist=blacklist,
-        plugins=plugin_finder,
+        fsys=fsys,
+        pack_blacklist=pack_blacklist,
+        plugins=plugins,
         expand_path=expand_path,
+        plugin_conf=plugin_conf,
     )
 
 
@@ -293,6 +335,15 @@ def packfile_filters(block: Keyvalues, kind: str) -> Iterator[re.Pattern[str]]:
             yield re.compile(kv.value)
         else:
             raise ValueError(f'Invalid filter type "{kv.real_name}" for {kind}!')
+
+
+# Specially handled above.
+VERSION = Opt.string(
+    'version', '',
+    """A unique ID to identify the config version. 
+    If available options change, a new copy of the config is saved as srctools.new.vdf. Copy over
+    any changes to that file, then overwrite the original config."""
+)
 
 
 GAMEINFO = Opt.string_or_none(
