@@ -2,10 +2,11 @@
 
 A list of options are passed in, which parse each option to a basic type.
 """
-from typing import Any, IO, overload
-from collections.abc import Iterable
+from typing import Any, IO, overload, Protocol, assert_never
+from collections.abc import Iterable, Buffer
 from pathlib import Path
 import inspect
+import struct
 
 from srctools import Keyvalues, Vec, conv_bool, parse_vec_str
 from srctools.logger import get_logger
@@ -25,6 +26,15 @@ TYPE_NAMES: dict[type[Option], str] = {
     Vec: 'Vector',
     Keyvalues: 'Keyvalues Block',
 }
+# Unique byte for hashing.
+TYPE_BYTE = {typ: bytes([ind]) for ind, typ in enumerate(TYPE_NAMES)}
+
+
+class Hasher(Protocol):
+    """A hashlib hash object."""
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def update(self, data: Buffer, /) -> None: ...
 
 
 @attrs.define(init=False)
@@ -115,6 +125,13 @@ class Opt[OptionT: Option]:
         """Return a vector-type option."""
         return OptWithDefault(opt_id, Vec, default, doc, fallback)
 
+    def hash(self, digest: Hasher) -> None:
+        """Add in the state of this config."""
+        digest.update(TYPE_BYTE[self.kind])
+        digest.update(self.id.encode('utf8'))
+        if self.fallback:
+            digest.update(b'\xF0' + self.fallback.encode('utf8'))
+
 
 @attrs.define(init=False)  # __attrs_init__() is incompatible with the superclass.
 class OptWithDefault[OptionT: Option](Opt[OptionT]):  # type: ignore[override]
@@ -134,14 +151,37 @@ class OptWithDefault[OptionT: Option](Opt[OptionT]):  # type: ignore[override]
         if fallback is not None:
             self.doc.append(f'If unset, the default is read from `{default}`.')
 
+    def hash(self, digest: Hasher) -> None:
+        """Include the default value."""
+        super().hash(digest)
+        kv: Keyvalues
+        match self.default:
+            case str() as text:
+                digest.update(b'\xF1' + text.encode('utf8'))
+            case int() as ordinal:
+                digest.update(struct.pack('<Bq', 0xF2, ordinal))
+            case float() as number:
+                digest.update(struct.pack('<Bd', 0xF3, number))
+            case False:
+                digest.update(b'\xF4')
+            case True:
+                digest.update(b'\xF5')
+            case Vec(x, y, z):
+                digest.update(struct.pack('<Bddd', 0xF6, x, y, z))
+            case Keyvalues() as kv:
+                digest.update(b'\xF7' + kv.serialise().encode('utf8'))
+            case never:
+                assert_never(never)
+
 
 class Options:
     """Allows parsing a set of Keyvalues option blocks."""
+    version: int
     defaults: list[Opt]
     settings: dict[str, Option | None]
     path: Path | None
 
-    def __init__(self, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
+    def __init__(self,  name: str, version: int, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
         if isinstance(defaults, dict):
             self.defaults = [
                 opt for opt in defaults.values()
@@ -151,7 +191,15 @@ class Options:
             self.defaults = list(defaults)
 
         self.settings = {}
+        self.name = name
+        self.version = version
         self.path = None
+
+    def hash(self, digest: Hasher) -> None:
+        """Add in the shape of this config."""
+        digest.update(struct.pack('<IH', self.version, len(self.defaults)))
+        for opt in self.defaults:
+            opt.hash(digest)
 
     def load(self, opt_blocks: Keyvalues) -> None:
         """Read settings from the given keyvalues block."""
