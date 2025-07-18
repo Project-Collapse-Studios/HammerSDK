@@ -1,11 +1,27 @@
-"""Instance-related improvements."""
+"""Instance IO proxy improvements."""
 from srctools import Entity
 from srctools.logger import get_logger
 
-from hammeraddons.bsp_transform import Context, trans
+from hammeraddons.bsp_transform import Context, trans, Config, ConfOpt
 
 
 LOGGER = get_logger(__name__)
+CONFIG = Config('instancing', 1, [
+    CONF_MODE := ConfOpt.string(
+        'proxy_mode', 'collapse',
+        """Determines how to handle func_instance_io_proxy. 
+        - If set to "collapse", all proxies are entirely
+            removed, collapsed into their callers. This eliminates the
+            redundant entity use, but means you can't see the instance boundary in 'developer 2'
+            displays or ent_fire the command yourself. It also can duplicate outputs, if many entities
+            are triggering the instance.
+        - If set to "duplicate", proxies are kept, but duplicated if necessary to prevent them 
+            using more input/output pairs than are actually implemented in-game.
+        - If set to "unchanged", no changes are made. Proxies may fail if too many inputs/outputs 
+            are used.
+        """
+    )
+])
 
 # Number of OnProxyRelayX pairs we have, plus 1.
 RELAY_MAX = 30 + 1
@@ -26,10 +42,17 @@ def io_proxy_tweaks(ctx: Context) -> None:
     Options:
         * collapse: If set, remove func_instance_io_proxy entities from the map
     """
-    if ctx.config.bool('collapse'):
-        collapse_proxy_relays(ctx)
-    else:
-        duplicate_proxy_relays(ctx)
+    mode = CONFIG.get(CONF_MODE)
+    match CONFIG.get(CONF_MODE).casefold():
+        case 'collapse':
+            collapse_proxy_relays(ctx)
+        case 'duplicate':
+            duplicate_proxy_relays(ctx)
+        case 'unchanged':
+            pass
+        case invalid:
+            LOGGER.warning('Unknown func_instance_io_proxy tweak mode "{}"!', invalid)
+
 
 
 def collapse_proxy_relays(ctx: Context) -> None:
