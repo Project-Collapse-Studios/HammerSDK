@@ -338,7 +338,7 @@ class Options:
                 if isinstance(default, bool):
                     default = '1' if default else '0'
 
-                file.write(f'\t// Default Value: "{default}"\n')
+                file.write(f'\t// - Default Value: "{default}"\n')
 
             try:
                 value = self.settings[option.id]
@@ -348,6 +348,7 @@ class Options:
             match value:
                 case None:
                     # Comment out the unset value.
+                    file.write('\t// - Disabled by default, remove "//" to enable.\n')
                     file.write(f'\t// "{option.name}" ""\n')
                 case Keyvalues():
                     value.name = option.name
