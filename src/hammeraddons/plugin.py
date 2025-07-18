@@ -165,4 +165,4 @@ class PluginFinder(MetaPathFinder):
                 name = build_name(self.prefix, source.id, path.relative_to(source.folder))
                 LOGGER.info('Loading "{}" as "{}"', path, name)
                 # Do an import, which will call back to find_spec().
-                self.modules[source.id] = importlib.import_module(name)
+                self.modules[name] = importlib.import_module(name)

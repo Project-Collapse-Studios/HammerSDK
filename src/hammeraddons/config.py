@@ -16,11 +16,10 @@ from srctools.steam import find_app
 import attrs
 
 from .plugin import BUILTIN as BUILTIN_PLUGIN, PluginFinder, Source as PluginSource
-from .props_config import Opt as Opt, OptWithDefault, Options
+from .props_config import Opt, Options
 
 
 __all__ = [
-    "Opt", "OptWithDefault", "Options", # Re-export
     "Expander", "Config", "parse",
 
     # Options
@@ -310,16 +309,21 @@ def parse_plugins(opts: Options, expand_path: Expander) -> PluginFinder:
 def parse_plugin_confs(plugins: PluginFinder, kv: Keyvalues) -> dict[str, Options]:
     """Parse configs for each plugin."""
     confs = {}
-    for plugin_id, module in plugins.modules.items():
+    for module in plugins.modules.values():
         if not hasattr(module, 'CONFIG'):
             continue
         conf = module.CONFIG
         if not isinstance(conf, Options):
-            LOGGER.warning('Non props-config CONFIG found for plugin "{}"', plugin_id)
+            LOGGER.warning('Non props-config CONFIG found for plugin "{}"', module.__name__)
             continue
-        LOGGER.info('Loading config for plugin "{}" under key "{}"', plugin_id, conf.name)
-        conf.load(kv.find_block(conf.name, or_blank=True))
-        confs[plugin_id] = conf
+        LOGGER.info('Loading config for plugin "{}" under key "{}"', module.__name__, conf.name)
+        name = conf.name.casefold()
+        if name in {'precompiler', 'packer', 'postcompiler', 'hammeraddons', 'srctools'}:
+            raise ValueError(f'Config key "{conf.name}" is reserved for core configuration!')
+        if name in confs:
+            raise ValueError(f'Config key "{conf.name}" used twice!')
+        conf.load(kv.find_block(name, or_blank=True))
+        confs[name] = conf
     return confs
 
 
@@ -351,6 +355,9 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
     with AtomicWriter(write_path) as f:
         f.write('// Main Configuration:\n')
         main.save(f, 'Postcompiler')
+
+        if plugins:
+            f.write('\n\n// Plugin Configurations:\n')
 
         for plug_id, opt in sorted(plugins.items()):
             opt.save(f, plug_id)
@@ -668,7 +675,8 @@ TRANSFORM_OPTS = Opt.block(
     'transform_opts', Keyvalues('', []),
     """Specify additional options specific to transforms. Each key here is the name of the 
     transform, and the value is then decided by that transform.
-    """
+    """,
+    deprecated=True,
 )
 
 DISABLED_TRANSFORMS = Opt.string(
