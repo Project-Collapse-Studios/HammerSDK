@@ -1,5 +1,12 @@
 # Version (dev)
 
+## Enhancements
+* Upgraded config handling:
+  * Config files will no longer be rewitten. Instead any changes will produce a new file, which
+    should be merged with any comments in the old one, then copied over.
+  * Plugin scripts can now register their own config options, in addition to builtin ones.
+  * Searchpaths 'nopack' option now allows wildcards for disabling locations in bulk.
+
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
 * Automatically remove old generated vactube animation models.
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.

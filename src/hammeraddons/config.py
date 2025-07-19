@@ -1,5 +1,4 @@
 """Handles user configuration common to the different scripts."""
-
 from typing import Final, Literal
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -250,10 +249,20 @@ def calc_searchpaths(
             if isinstance(fsys, VPKFileSystem):
                 blacklist.add(fsys)
 
+    # Extract to apply after, so order does not matter.
+    blacklist_names = set()
+
     for kv in opts.get(SEARCHPATHS):
         if kv.has_children():
             raise ValueError('Config "searchpaths" value cannot have children.')
         assert isinstance(kv.value, str)
+        if kv.name == 'nopack':
+            search = expand_path(kv.value).as_posix()
+            # Put this back on the end, so we match folders.
+            if kv.value.endswith(('/', '\\')):
+                search += '/'
+            blacklist_names.add(search)
+            continue
 
         if kv.value.endswith('.vpk'):
             fsys = VPKFileSystem(str(expand_path(kv.value)))
@@ -263,14 +272,22 @@ def calc_searchpaths(
         if kv.name in ('prefix', 'priority'):
             LOGGER.debug('Added priority searchpath {}', fsys)
             fsys_chain.add_sys(fsys, priority=True)
-        elif kv.name == 'nopack':
-            LOGGER.debug('Added nopack searchpath {}', fsys)
-            blacklist.add(fsys)
         elif kv.name in ('path', 'pack'):
             LOGGER.debug('Added searchpath {}', fsys)
             fsys_chain.add_sys(fsys)
         else:
             raise ValueError(f'Unknown searchpath key "{kv.real_name}"!')
+
+    for search in blacklist_names:
+        LOGGER.debug('Disabling packing for "{}"...', search)
+        for fsys, prefix in fsys_chain.systems:
+            # Treat folders as ending with a slash, but not VPKs.
+            targ_path = Path(fsys.path).as_posix()
+            if isinstance(fsys, RawFileSystem):
+                targ_path += '/'
+            if fnmatch.fnmatch(targ_path, search):
+                LOGGER.debug('- Disabled {}', fsys)
+                blacklist.add(fsys)
     return fsys_chain, blacklist
 
 
@@ -546,8 +563,9 @@ SEARCHPATHS = Opt.block(
     The key defines the behaviour:
     * "prefix" "folder/" adds the path to the start, so it overrides all others.
     * "path" "vpk_path.vpk" adds the path to the end, so it is checked last.
-    * "nopack" "folder/" prohibits files in this path from being packed, 
-      you'll need to use one of the others also to add the path.
+    * "nopack" "somewhere*" matches against other definitions, disabling packing. Therefore you'll need
+      to use this alongside other options, or use it to modify gameinfo paths. 
+      It supports ?,* glob-style wildcards.
 """)
 
 SOUNDSCRIPT_MANIFEST = Opt.boolean(
