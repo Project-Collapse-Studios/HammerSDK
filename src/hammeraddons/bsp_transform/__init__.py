@@ -18,6 +18,7 @@ from hammeraddons.bsp_transform.common import (
     check_control_enabled, ent_description,
     parse_numeric_specifier, NumericSpecifier, NumericOp
 )
+from hammeraddons.props_config import Options as Config, Opt as ConfOpt
 
 LOGGER = get_logger(__name__, 'bsp_trans')
 type RemapFunc = Callable[[Entity, Output], list[Output]]
@@ -25,9 +26,10 @@ type RemapFunc = Callable[[Entity, Output], list[Output]]
 __all__ = [
     'Context', 'trans', 'run_transformations',
     'TransFunc', 'TRANSFORMS',
-    # Utils:
+    # Utils & re-exports:
     'check_control_enabled', 'ent_description',
     'parse_numeric_specifier', 'NumericOp', 'NumericSpecifier',
+    'Config', 'ConfOpt',
 ]
 
 
@@ -288,7 +290,8 @@ def _load() -> None:
     This loads the transformations. We do it in a function to allow discarding
     the output.
     """
-    from . import globals, instancing, packing  # noqa
+    # TODO: Make these standard external transforms
+    from . import globals, packing  # noqa
 
 
 _load()

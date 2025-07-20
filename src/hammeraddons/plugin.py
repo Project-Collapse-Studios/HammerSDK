@@ -115,6 +115,8 @@ class PluginFinder(MetaPathFinder):
     def __init__(self, prefix: str, sources: dict[str, Source]) -> None:
         self.prefix = prefix
         self.sources = sources
+        # Plugin -> module object.
+        self.modules: dict[str, types.ModuleType] = {}
         # All names in a package hierarchy need to exist, so we need to produce a module for
         # each source folder, and the root prefix. Using loader=None here gives a namespace
         # package which is all we need.
@@ -163,4 +165,4 @@ class PluginFinder(MetaPathFinder):
                 name = build_name(self.prefix, source.id, path.relative_to(source.folder))
                 LOGGER.info('Loading "{}" as "{}"', path, name)
                 # Do an import, which will call back to find_spec().
-                importlib.import_module(name)
+                self.modules[name] = importlib.import_module(name)

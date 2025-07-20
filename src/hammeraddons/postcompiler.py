@@ -142,9 +142,6 @@ async def main(argv: list[str]) -> None:
 
     conf = config.parse(path, args.game_folder)
 
-    LOGGER.info('Loading plugins...')
-    conf.plugins.load_all()
-
     packlist = PackList(conf.fsys)
 
     LOGGER.info('Gameinfo: {}', conf.game.path)

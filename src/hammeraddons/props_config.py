@@ -2,10 +2,11 @@
 
 A list of options are passed in, which parse each option to a basic type.
 """
-from typing import Any, IO, overload
-from collections.abc import Iterable
+from typing import Any, IO, overload, Protocol, assert_never
+from collections.abc import Iterable, Buffer
 from pathlib import Path
 import inspect
+import struct
 
 from srctools import Keyvalues, Vec, conv_bool, parse_vec_str
 from srctools.logger import get_logger
@@ -25,6 +26,17 @@ TYPE_NAMES: dict[type[Option], str] = {
     Vec: 'Vector',
     Keyvalues: 'Keyvalues Block',
 }
+# Unique byte for hashing.
+TYPE_BYTE: dict[type[object], bytes] = {
+    typ: bytes([ind]) for ind, typ in enumerate(TYPE_NAMES)
+}
+
+
+class Hasher(Protocol):
+    """A hashlib hash object."""
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def update(self, data: Buffer, /) -> None: ...
 
 
 @attrs.define(init=False)
@@ -34,7 +46,8 @@ class Opt[OptionT: Option]:
     id: str
     name: str
     kind: type[OptionT]
-    fallback: str | None
+    deprecated: bool  # Deprecated, don't write out in new configs if unset.
+    fallback: str | None  # If not set, copy from this other option.
     doc: list[str]
 
     def __init__(
@@ -43,11 +56,13 @@ class Opt[OptionT: Option]:
         kind: type[OptionT],
         doc: str,
         fallback: str | None,
+        deprecated: bool,
     ) -> None:
         self.kind = kind
         self.id = opt_id.casefold()
         self.name = opt_id
         self.fallback = fallback
+        self.deprecated = deprecated
         # Remove indentation, and trailing carriage return
         self.doc = inspect.cleandoc(doc).rstrip().splitlines()
 
@@ -58,62 +73,100 @@ class Opt[OptionT: Option]:
         default: Keyvalues,
         doc: str, *,
         fallback: str | None = None,
+        deprecated: bool = False,
     ) -> 'OptWithDefault[Keyvalues]':
         """Return an option giving the raw keyvalues block.
 
         These always use an empty block as the default.
         """
-        return OptWithDefault(opt_id, Keyvalues, default.copy(), doc, fallback)
+        return OptWithDefault(opt_id, Keyvalues, default.copy(), doc, fallback, deprecated)
 
     @classmethod
-    def string_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None) -> 'Opt[str]':
+    def string_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[str]':
         """Return a string-type option, with no default."""
-        return Opt(opt_id, str, doc, fallback)
+        return Opt(opt_id, str, doc, fallback, deprecated)
 
     @classmethod
-    def boolean_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None) -> 'Opt[bool]':
+    def boolean_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[bool]':
         """Return a boolean-type option, with no default."""
-        return Opt(opt_id, bool, doc, fallback)
+        return Opt(opt_id, bool, doc, fallback, deprecated)
 
     @classmethod
-    def integer_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None) -> 'Opt[int]':
+    def integer_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[int]':
         """Return an integer-type option, with no default."""
-        return Opt(opt_id, int, doc, fallback)
+        return Opt(opt_id, int, doc, fallback, deprecated)
 
     @classmethod
-    def floating_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None) -> 'Opt[float]':
+    def floating_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[float]':
         """Return a float-type option, with no default."""
-        return Opt(opt_id, float, doc, fallback)
+        return Opt(opt_id, float, doc, fallback, deprecated)
 
     @classmethod
-    def vector_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None) -> 'Opt[Vec]':
+    def vector_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[Vec]':
         """Return a vector-type option, with no default."""
-        return Opt(opt_id, Vec, doc, fallback)
+        return Opt(opt_id, Vec, doc, fallback, deprecated)
 
     @classmethod
-    def string(cls, opt_id: str, default: str, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[str]':
+    def string(
+        cls, opt_id: str, default: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[str]':
         """Return a string-type option."""
-        return OptWithDefault(opt_id, str, default, doc, fallback)
+        return OptWithDefault(opt_id, str, default, doc, fallback, deprecated)
 
     @classmethod
-    def boolean(cls, opt_id: str, default: bool, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[bool]':
+    def boolean(
+        cls, opt_id: str, default: bool, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[bool]':
         """Return a boolean-type option."""
-        return OptWithDefault(opt_id, bool, default, doc, fallback)
+        return OptWithDefault(opt_id, bool, default, doc, fallback, deprecated)
 
     @classmethod
-    def integer(cls, opt_id: str, default: int, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[int]':
+    def integer(
+        cls, opt_id: str, default: int, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[int]':
         """Return an integer-type option."""
-        return OptWithDefault(opt_id, int, default, doc, fallback)
+        return OptWithDefault(opt_id, int, default, doc, fallback, deprecated)
 
     @classmethod
-    def floating(cls, opt_id: str, default: float, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[float]':
+    def floating(
+        cls, opt_id: str, default: float, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[float]':
         """Return a float-type option."""
-        return OptWithDefault(opt_id, float, default, doc, fallback)
+        return OptWithDefault(opt_id, float, default, doc, fallback, deprecated)
 
     @classmethod
-    def vector(cls, opt_id: str, default: Vec, doc: str, *, fallback: str | None = None) -> 'OptWithDefault[Vec]':
+    def vector(
+        cls, opt_id: str, default: Vec, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[Vec]':
         """Return a vector-type option."""
-        return OptWithDefault(opt_id, Vec, default, doc, fallback)
+        return OptWithDefault(opt_id, Vec, default, doc, fallback, deprecated)
+
+    def hash(self, digest: Hasher) -> None:
+        """Add in the state of this config."""
+        digest.update(TYPE_BYTE[self.kind])
+        digest.update(self.id.encode('utf8', 'replace'))
+        if self.fallback is not None:
+            digest.update(b'\xF0' + self.fallback.encode('utf8', 'replace'))
 
 
 @attrs.define(init=False)  # __attrs_init__() is incompatible with the superclass.
@@ -128,20 +181,43 @@ class OptWithDefault[OptionT: Option](Opt[OptionT]):  # type: ignore[override]
         default: OptionT,
         doc: str,
         fallback: str | None,
+        deprecated: bool,
     ) -> None:
-        super().__init__(opt_id, kind, doc, fallback)
+        super().__init__(opt_id, kind, doc, fallback, deprecated)
         self.default = default
         if fallback is not None:
             self.doc.append(f'If unset, the default is read from `{default}`.')
 
+    def hash(self, digest: Hasher) -> None:
+        """Include the default value."""
+        super().hash(digest)
+        match self.default:
+            case str() as text:
+                digest.update(b'\xF1' + text.encode('utf8', 'replace'))
+            case int() as ordinal:
+                digest.update(struct.pack('<Bq', 0xF2, ordinal))
+            case float() as number:
+                digest.update(struct.pack('<Bd', 0xF3, number))
+            case False:
+                digest.update(b'\xF4')
+            case True:
+                digest.update(b'\xF5')
+            case Vec(x, y, z):
+                digest.update(struct.pack('<Bddd', 0xF6, x, y, z))
+            case Keyvalues() as kv:
+                digest.update(b'\xF7' + kv.serialise().encode('utf8', 'replace'))
+            case never:
+                assert_never(never)
+
 
 class Options:
     """Allows parsing a set of Keyvalues option blocks."""
+    version: int
     defaults: list[Opt]
     settings: dict[str, Option | None]
     path: Path | None
 
-    def __init__(self, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
+    def __init__(self, name: str, version: int, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
         if isinstance(defaults, dict):
             self.defaults = [
                 opt for opt in defaults.values()
@@ -151,15 +227,22 @@ class Options:
             self.defaults = list(defaults)
 
         self.settings = {}
+        self.name = name
+        self.version = version
         self.path = None
 
-    def load(self, opt_blocks: Keyvalues) -> None:
+    def hash(self, digest: Hasher) -> None:
+        """Add in the shape of this config."""
+        digest.update(struct.pack('<IH', self.version, len(self.defaults)))
+        for opt in self.defaults:
+            opt.hash(digest)
+
+    def load(self, keyvalues: Keyvalues) -> None:
         """Read settings from the given keyvalues block."""
         self.settings.clear()
         set_vals = {}
-        for opt_block in opt_blocks:
-            for prop in opt_block:
-                set_vals[prop.name] = prop
+        for child in keyvalues:
+            set_vals[child.name] = child
 
         options: dict[str, Opt] = {opt.id: opt for opt in self.defaults}
         if len(options) != len(self.defaults):
@@ -268,38 +351,44 @@ class Options:
             assert isinstance(val, option.kind)
             return val
 
-    def save(self, file: IO[str]) -> None:
+    def save(self, file: IO[str], block_name: str) -> None:
         """Write the current config out to the given file.
 
         Descriptions are written out as comments.
         """
-        file.write('"Config"\n\t{\n')
-        for ind, option in enumerate(self.defaults):
-            if ind != 0:
-                file.write('\n\n')
-            for line in option.doc:
-                file.write(f'\t// {line}\n')
-
+        file.write(f'"{block_name}"\n\t{{\n')
+        has_previous = False
+        for option in self.defaults:
             if isinstance(option, OptWithDefault):
                 default = option.default
             else:
                 default = None
+
+            try:
+                value = self.settings[option.id]
+            except KeyError:
+                if option.deprecated:
+                    # Never set and deprecated, omit from new configs.
+                    continue
+                value = default
+
+            if has_previous:
+                file.write('\n\n')
+            has_previous = True
+            for line in option.doc:
+                file.write(f'\t// {line}\n')
 
             # PROP types are "raw", so they don't have defaults.
             if option.kind is not Keyvalues and isinstance(option, OptWithDefault):
                 if isinstance(default, bool):
                     default = '1' if default else '0'
 
-                file.write(f'\t// Default Value: "{default}"\n')
-
-            try:
-                value = self.settings[option.id]
-            except KeyError:
-                value = default
+                file.write(f'\t// - Default Value: "{default}"\n')
 
             match value:
                 case None:
                     # Comment out the unset value.
+                    file.write('\t// - Disabled by default, remove "//" to enable.\n')
                     file.write(f'\t// "{option.name}" ""\n')
                 case Keyvalues():
                     value.name = option.name
