@@ -1,5 +1,7 @@
 """Handles configuration for the objects appearing inside vactubes."""
 from collections import defaultdict
+from operator import itemgetter
+
 from fractions import Fraction
 import os.path
 import math
@@ -126,7 +128,7 @@ def parse(vmf: VMF, pack: PackList) -> tuple[int, VacObjectDict, dict[str, str]]
     # Generate and pack the vactube object scripts.
     # Each group is the same, so it can be shared among them all.
     codes = {}
-    for group, objects in sorted(vac_objects.items(), key=lambda t: t[0]):
+    for group, objects in sorted(vac_objects.items(), key=itemgetter(0)):
         if (group_mult := group_multipliers[group]) != 1:
             for obj in objects:
                 obj.weight *= group_mult

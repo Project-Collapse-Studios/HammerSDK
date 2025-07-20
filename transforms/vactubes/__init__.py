@@ -24,7 +24,7 @@ from .sensors import Sensor
 LOGGER = srctools.logger.get_logger(__name__)
 # For culling, ignore points with normals offset more than this.
 ANG_THRESHOLD = math.cos(math.radians(30))
-# Arbitary location to place all the vactube ents.
+# Arbitrary location to place all the vactube ents.
 VAC_POS = FrozenVec(-16384, 0, 1024)
 
 QC_TEMPLATE = '''\
@@ -69,6 +69,8 @@ def find_closest(
 
     best_node: nodes.Node | None = None
     best_dist = math.inf
+    # Vactube radius, smaller if skybox.
+    radius = (64./16)**2 if node.is_skybox else 64.**2
 
     # We're looking for if the point is inside the cylinder projecting out
     # of the node.
@@ -87,7 +89,7 @@ def find_closest(
                 continue
             # Now project the point onto the target's plane.
             # If inside, we've found it.
-            if (off + dist * targ_norm).mag_sq() <= (64*64):
+            if (off + dist * targ_norm).mag_sq() <= radius:
                 best_node = targ
                 best_dist = dist
 
@@ -188,8 +190,7 @@ async def vactube_transform(ctx: Context) -> None:
         if isinstance(node, nodes.Destroyer):
             continue
         for dest_type in node.out_types:
-            override = node.ent[dest_type.manual_targ]
-            if override:
+            if isinstance(node, nodes.EntityNode) and (override := node.ent[dest_type.manual_targ]):
                 try:
                     target = name_to_node[override.casefold()]
                 except KeyError:
@@ -223,7 +224,7 @@ async def vactube_transform(ctx: Context) -> None:
         if not node.has_input:
             raise ValueError(
                 'No source found for junction '
-                f'{node.ent["targetname"]} at ({node.origin})!'
+                f'{node.name} at ({node.origin})!'
             )
 
     LOGGER.info('Generating animations...')

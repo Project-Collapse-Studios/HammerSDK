@@ -1366,7 +1366,7 @@ async def compile_rope(
 
         if vac_points and vac_node_mod is not None:
             for track in vac_points:
-                vac_node_mod.SPLINES.append(vac_node_mod.Spline(center, track))
+                vac_node_mod.SPLINES.append(vac_node_mod.Spline(center, model_name, track))
 
         # Compute the flags. Just pick a random node, from above.
         flags: StaticPropFlags = StaticPropFlags.NONE

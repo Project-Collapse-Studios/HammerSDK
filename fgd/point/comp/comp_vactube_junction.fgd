@@ -6,7 +6,8 @@
 	targetname(target_source): "Junction Name" : : "Although junctions are linked automatically, this can be used to precisely link two junctions. You can use also this to help with identifying problems since the compiler will output it."
 	// Not studio, we don't want to pack these.
 	model[engine](string) : "Type" : "models/editor/vactubes/straight.mdl"
-	model(choices) : "Type" : "models/editor/vactubes/straight.mdl" : "The size and type of junction. Splitters split the tube into multiple paths. You can simply overlap two junctions to join paths, however." = [
+	model(choices) : "Type" : "models/editor/vactubes/straight.mdl" : "The size and type of junction. Splitters split the tube into multiple paths. " +
+		"You can simply overlap two junctions to join paths, however. Skybox variants are 1/16 scaled." = [
 		"models/editor/vactubes/straight.mdl" : "Straight / Scanner"
 		"models/editor/vactubes/curve_1.mdl" : "Curve: 1"
 		"models/editor/vactubes/curve_2.mdl" : "Curve: 2"
@@ -19,6 +20,19 @@
 		"models/editor/vactubes/splitter_straight.mdl" : "Splitter: Straight"
 		"models/editor/vactubes/splitter_sides.mdl" : "Splitter: Left/Right"
 		"models/editor/vactubes/splitter_triple.mdl" : "Splitter: Triple"
+
+		"models/editor/vactubes/straight_sky.mdl" : "(Skybox) Straight / Scanner"
+		"models/editor/vactubes/curve_1_sky.mdl" : "(Skybox) Curve: 1"
+		"models/editor/vactubes/curve_2_sky.mdl" : "(Skybox) Curve: 2"
+		"models/editor/vactubes/curve_3_sky.mdl" : "(Skybox) Curve: 3"
+		"models/editor/vactubes/curve_4_sky.mdl" : "(Skybox) Curve: 4"
+		"models/editor/vactubes/curve_5_sky.mdl" : "(Skybox) Curve: 5"
+		"models/editor/vactubes/curve_6_sky.mdl" : "(Skybox) Curve: 6"
+		"models/editor/vactubes/diag_curve_sky.mdl" : "(Skybox) Curve: 45 Deg"
+		"models/editor/vactubes/diag_curve_mirror_sky.mdl" : "(Skybox) Curve: 45 Deg (Mirror)"
+		"models/editor/vactubes/splitter_straight_sky.mdl" : "(Skybox) Splitter: Straight"
+		"models/editor/vactubes/splitter_sides_sky.mdl" : "(Skybox) Splitter: Left/Right"
+		"models/editor/vactubes/splitter_triple_sky.mdl" : "(Skybox) Splitter: Triple"
 	]
 
 	skin[engine](boolean) : "Reverse Curve?" : 0
