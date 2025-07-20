@@ -42,7 +42,6 @@ def io_proxy_tweaks(ctx: Context) -> None:
     Options:
         * collapse: If set, remove func_instance_io_proxy entities from the map
     """
-    mode = CONFIG.get(CONF_MODE)
     match CONFIG.get(CONF_MODE).casefold():
         case 'collapse':
             collapse_proxy_relays(ctx)
@@ -52,7 +51,6 @@ def io_proxy_tweaks(ctx: Context) -> None:
             pass
         case invalid:
             LOGGER.warning('Unknown func_instance_io_proxy tweak mode "{}"!', invalid)
-
 
 
 def collapse_proxy_relays(ctx: Context) -> None:

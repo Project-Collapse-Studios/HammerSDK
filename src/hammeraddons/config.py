@@ -364,7 +364,7 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
         LOGGER.debug('Current:  {}', file_version)
         if file_version == runtime_version:
             LOGGER.info('Config up to date.')
-            return False # No update required.
+            return False  # No update required.
         write_path = conf_path.with_name(CONF_UPDATE_NAME)
         updated = True
         LOGGER.info('Saving updated config to {}...', write_path)

@@ -82,52 +82,82 @@ class Opt[OptionT: Option]:
         return OptWithDefault(opt_id, Keyvalues, default.copy(), doc, fallback, deprecated)
 
     @classmethod
-    def string_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'Opt[str]':
+    def string_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[str]':
         """Return a string-type option, with no default."""
         return Opt(opt_id, str, doc, fallback, deprecated)
 
     @classmethod
-    def boolean_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'Opt[bool]':
+    def boolean_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[bool]':
         """Return a boolean-type option, with no default."""
         return Opt(opt_id, bool, doc, fallback, deprecated)
 
     @classmethod
-    def integer_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'Opt[int]':
+    def integer_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[int]':
         """Return an integer-type option, with no default."""
         return Opt(opt_id, int, doc, fallback, deprecated)
 
     @classmethod
-    def floating_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'Opt[float]':
+    def floating_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[float]':
         """Return a float-type option, with no default."""
         return Opt(opt_id, float, doc, fallback, deprecated)
 
     @classmethod
-    def vector_or_none(cls, opt_id: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'Opt[Vec]':
+    def vector_or_none(
+        cls, opt_id: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'Opt[Vec]':
         """Return a vector-type option, with no default."""
         return Opt(opt_id, Vec, doc, fallback, deprecated)
 
     @classmethod
-    def string(cls, opt_id: str, default: str, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'OptWithDefault[str]':
+    def string(
+        cls, opt_id: str, default: str, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[str]':
         """Return a string-type option."""
         return OptWithDefault(opt_id, str, default, doc, fallback, deprecated)
 
     @classmethod
-    def boolean(cls, opt_id: str, default: bool, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'OptWithDefault[bool]':
+    def boolean(
+        cls, opt_id: str, default: bool, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[bool]':
         """Return a boolean-type option."""
         return OptWithDefault(opt_id, bool, default, doc, fallback, deprecated)
 
     @classmethod
-    def integer(cls, opt_id: str, default: int, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'OptWithDefault[int]':
+    def integer(
+        cls, opt_id: str, default: int, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[int]':
         """Return an integer-type option."""
         return OptWithDefault(opt_id, int, default, doc, fallback, deprecated)
 
     @classmethod
-    def floating(cls, opt_id: str, default: float, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'OptWithDefault[float]':
+    def floating(
+        cls, opt_id: str, default: float, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[float]':
         """Return a float-type option."""
         return OptWithDefault(opt_id, float, default, doc, fallback, deprecated)
 
     @classmethod
-    def vector(cls, opt_id: str, default: Vec, doc: str, *, fallback: str | None = None, deprecated: bool = False) -> 'OptWithDefault[Vec]':
+    def vector(
+        cls, opt_id: str, default: Vec, doc: str, *,
+        fallback: str | None = None, deprecated: bool = False,
+    ) -> 'OptWithDefault[Vec]':
         """Return a vector-type option."""
         return OptWithDefault(opt_id, Vec, default, doc, fallback, deprecated)
 
@@ -187,7 +217,7 @@ class Options:
     settings: dict[str, Option | None]
     path: Path | None
 
-    def __init__(self,  name: str, version: int, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
+    def __init__(self, name: str, version: int, defaults: Iterable[Opt] | dict[Any, Opt]) -> None:
         if isinstance(defaults, dict):
             self.defaults = [
                 opt for opt in defaults.values()
