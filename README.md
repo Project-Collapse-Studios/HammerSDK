@@ -98,7 +98,7 @@ Many features require the postcompiler, which is a Python application. Releases 
 build, but for development purposes it may be useful to build locally or run from source. This also
 creates the `gen_choreo` utility.
 
-Run `python -m PyInstaller postcompiler.spec` to freeze the application.
+Cd into `src/`, then run  `python -m PyInstaller ../postcompiler.spec` to freeze the application.
 Optionally pass `--workpath XXX` and `--distpath XXX` to specify a temp folder and the destination
 respectively.
 
