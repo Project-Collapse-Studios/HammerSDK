@@ -8,7 +8,7 @@ from hammeraddons.bsp_transform import Context, trans, Config, ConfOpt
 LOGGER = get_logger(__name__)
 CONFIG = Config('instancing', 1, [
     CONF_MODE := ConfOpt.string(
-        'proxy_mode', 'collapse',
+        'proxy_mode', 'duplicate',
         """Determines how to handle func_instance_io_proxy. 
         - If set to "collapse", all proxies are entirely
             removed, collapsed into their callers. This eliminates the
