@@ -38,32 +38,32 @@ def comp_flicker(ctx: Context) -> None:
         )
 
         for out in ent.outputs:
-            out_name = out.output.casefold()
-            if out_name.startswith('onuser'):
-                LOGGER.warning(
-                    'comp_flicker "{}" uses Fire/OnUserX outputs, which are being used by the '
-                    "entity logic! It probably won't work properly.",
-                    ent_name,
-                )
-            elif out_name == 'onturnedoff':
-                out.output = OUT_TURN_OFF
-            elif out_name == 'onturnedon':
-                out.output = OUT_TURN_ON
-            elif out_name == 'onflickeroffstart':
-                out.output = OUT_FLICK_OFF
-            elif out_name == 'onflickeronstart':
-                out.output = OUT_FLICK_ON
-            elif out_name == 'onflickeroffend':
-                out.output = OUT_FLICK_OFF
-                out.delay += total_time
-            elif out_name == 'onflickeronend':
-                out.output = OUT_FLICK_ON
-                out.delay += total_time
-            else:
-                LOGGER.warning(
-                    'Unknown comp_flicker output "{}" for "{}"',
-                    out.output, ent_name,
-                )
+            match out.output.casefold():
+                case 'onuser1' | 'onuser2' | 'onuser3' | 'onuser4':
+                    LOGGER.warning(
+                        'comp_flicker "{}" uses Fire/OnUserX outputs, which are being used by the '
+                        "entity logic! It probably won't work properly.",
+                        ent_name,
+                    )
+                case 'onturnedoff':
+                    out.output = OUT_TURN_OFF
+                case 'onturnedon':
+                    out.output = OUT_TURN_ON
+                case 'onflickeroffstart':
+                    out.output = OUT_FLICK_OFF
+                case 'onflickeronstart':
+                    out.output = OUT_FLICK_ON
+                case 'onflickeroffend':
+                    out.output = OUT_FLICK_OFF
+                    out.delay += total_time
+                case 'onflickeronend':
+                    out.output = OUT_FLICK_ON
+                    out.delay += total_time
+                case _:
+                    LOGGER.warning(
+                        'Unknown comp_flicker output "{}" for "{}"',
+                        out.output, ent_name,
+                    )
 
         mdl_name = ent['target_mdl']
         if mdl_name:

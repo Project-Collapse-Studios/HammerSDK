@@ -24,18 +24,18 @@ def kv_setter(ctx: Context) -> None:
             continue
         desc = ent_description(setter)
 
-        mode = setter['mode', 'kv']
-        if mode.casefold() == 'flags':
-            is_flags = True
-        elif mode.casefold() == 'kv':
-            is_flags = False
-        else:
-            LOGGER.warning(
-                'Unknown mode ({}) for {}!',
-                mode,
-                desc,
-            )
-            continue
+        match setter['mode', 'kv'].casefold():
+            case 'flags':
+                is_flags = True
+            case 'kv':
+                is_flags = False
+            case _:
+                LOGGER.warning(
+                    'Unknown mode ({}) for {}!',
+                    setter['mode'],
+                    desc,
+                )
+                continue
 
         kv_name = setter['kv_name']
         kv_value = get_multimode_value(setter, prefix='kv_value_', desc='value')

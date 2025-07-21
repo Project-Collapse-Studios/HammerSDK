@@ -1,5 +1,5 @@
 """Implements the various curve types for vactubes."""
-from typing import ClassVar, Final
+from typing import ClassVar, Final, assert_never
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from enum import Enum
@@ -47,13 +47,15 @@ class DestType(Enum):
     @property
     def manual_targ(self) -> str:
         """The name of the manual target keyvalue."""
-        v = self.value
-        if v == 'primary':
-            return 'target'
-        elif v == 'secondary':
-            return 'target_sec'
-        else:
-            return 'target_tri'
+        match self.value:
+            case 'primary':
+                return 'target'
+            case 'secondary':
+                return 'target_sec'
+            case 'tertiary':
+                return 'target_tri'
+            case never:
+                assert_never(never)
 
 
 def curve_point(radius: float, t: float) -> tuple[float, float]:

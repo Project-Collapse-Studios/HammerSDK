@@ -40,21 +40,22 @@ def collapse_case(ctx: Context, case: Entity) -> None:
     out_matched: list[Output] = []
     out_missed: list[Output] = []
     for out in case.outputs:
-        if out.output.casefold().startswith('oncase'):
-            try:
-                num = int(out.output[6:])
-            except ValueError:
-                LOGGER.warning('Unknown case output "{}" {}', out.output, desc)
-                continue
-            out_cases[num].append(out)
-        elif out.output.casefold() == 'ondefault':
-            out_default.append(out)
-        elif out.output.casefold() == 'onused':
-            out_used.append(out)
-        elif out.output.casefold() == 'onmatched':
-            out_matched.append(out)
-        elif out.output.casefold() == 'onmissed':
-            out_missed.append(out)
+        match out.output.casefold():
+            case 'ondefault':
+                out_default.append(out)
+            case 'onused':
+                out_used.append(out)
+            case 'onmatched':
+                out_matched.append(out)
+            case 'onmissed':
+                out_missed.append(out)
+            case name if name.startswith('oncase'):
+                try:
+                    num = int(out.output[6:])
+                except ValueError:
+                    LOGGER.warning('Unknown case output "{}" {}', out.output, desc)
+                    continue
+                out_cases[num].append(out)
 
     case_params: dict[int, str] = {}
     for k, v in case.items():

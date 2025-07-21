@@ -105,10 +105,10 @@ def parse(vmf: VMF, pack: PackList) -> tuple[int, VacObjectDict, dict[str, str]]
             ent['model'],
             ent['cube_model'],
             offset,
-            weight,
-            srctools.conv_int(ent['tv_skin']),
-            srctools.conv_int(ent['cube_skin']),
-            srctools.conv_int(ent['skin']),
+            weight=weight,
+            skin_tv=srctools.conv_int(ent['tv_skin']),
+            skin_drop=srctools.conv_int(ent['cube_skin']),
+            skin_vac=srctools.conv_int(ent['skin']),
         )
         vac_objects[group].append(obj)
         # Convert the ent into a precache ent, stripping the other keyvalues.
@@ -158,37 +158,43 @@ def find_for_cube(vac_objects: VacObjectDict, group: str, cube: Entity) -> VacOb
     if model not in ('', 'models/props/metal_box.mdl'):
         potentials.append((model, conv_int(cube['skin'])))
 
-    if cube['classname'] == 'prop_weighted_cube':
-        model = ''
-        clean = rusty = 0
-        if conv_bool(cube['newskins']):
-            cube_type = conv_int(cube['cubetype'])
-            if cube_type != 6:  # Used for custom cubes, no error.
+    # Then check for what the cube would spawn as.
+    match cube['classname']:
+        case 'prop_weighted_cube':
+            model = ''
+            clean = rusty = 0
+            if conv_bool(cube['newskins']):
+                cube_type = conv_int(cube['cubetype'])
+                if cube_type != 6:  # Used for custom cubes, no error.
+                    try:
+                        model, clean, rusty = CUBE_MODELS_FOR_TYPE[cube_type]
+                    except KeyError:
+                        LOGGER.warning(
+                            'Cube "{}" at ({}) has unknown cube type {}!',
+                            cube['targetname'], cube['origin'], cube_type,
+                        )
+            else:
+                # Old skin-based lookup
+                cube_skin = conv_int(cube['skin'])
                 try:
-                    model, clean, rusty = CUBE_MODELS_FOR_TYPE[cube_type]
+                    model, clean, rusty = CUBE_MODELS_FOR_SKIN[cube_skin]
                 except KeyError:
                     LOGGER.warning(
-                        'Cube "{}" at ({}) has unknown cube type {}!',
-                        cube['targetname'], cube['origin'], cube_type,
+                        'Cube "{}" at ({}) has unknown old-style cube skin {}!',
+                        cube['targetname'], cube['origin'], cube_skin,
                     )
-        else:
-            # Old skin-based lookup
-            cube_skin = conv_int(cube['skin'])
-            try:
-                model, clean, rusty = CUBE_MODELS_FOR_SKIN[cube_skin]
-            except KeyError:
-                LOGGER.warning(
-                    'Cube "{}" at ({}) has unknown old-style cube skin {}!',
-                    cube['targetname'], cube['origin'], cube_skin,
-                )
-        if model:
-            potentials.append((model, rusty if conv_bool(cube['skintype']) else clean))
-    elif cube['classname'] == 'prop_monster_box':
-        # Hardcoded model. Prefer box form.
-        potentials += [
-            ('models/npcs/monsters/monster_a_box.mdl', 0),
-            ('models/npcs/monsters/monster_a.mdl', 0),
-        ]
+            if model:
+                potentials.append((model, rusty if conv_bool(cube['skintype']) else clean))
+        case 'prop_monster_box':
+            # Hardcoded model. Prefer box form.
+            potentials += [
+                ('models/npcs/monsters/monster_a_box.mdl', 0),
+                ('models/npcs/monsters/monster_a.mdl', 0),
+            ]
+        case 'prop_scaled_cube':  # Why not check.
+            potentials += [("models/props/sixense/box/sixensebox.mdl", 0)]
+        case clsname:
+            LOGGER.warning('Cube "{}" at ({}) is not actually a cube?', cube['targetname'], cube['origin'])
 
     for model, skin in potentials:
         try:

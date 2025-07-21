@@ -30,13 +30,13 @@ def comp_trigger_coop(ctx: Context) -> None:
             parentname=trig_name,
         )
         for out in list(trig.outputs):
-            folded_out = out.output.casefold()
-            if folded_out == 'onstarttouchboth':
-                out.output = 'OnChangeToAllTrue'
-            elif folded_out == 'onendtouchboth':
-                out.output = 'OnChangeToAnyFalse'
-            else:
-                continue
+            match out.output.casefold():
+                case 'onstarttouchboth':
+                    out.output = 'OnChangeToAllTrue'
+                case 'onendtouchboth':
+                    out.output = 'OnChangeToAnyFalse'
+                case _:
+                    continue
             trig.outputs.remove(out)
             manager.add_out(out)
         trig.add_out(
