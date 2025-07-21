@@ -51,6 +51,8 @@ def format_bytesize(val: float) -> str:
 
 async def main(argv: list[str]) -> None:
     """Run the postcompiler."""
+    LOGGER.info('HammerAddons postcompiler, srctools=v{}, addons=v{}', SRCTOOLS_VER, HADDONS_VER)
+
     parser = argparse.ArgumentParser(
         description="Modifies the BSP file, allowing additional entities "
                     "and bugfixes.",
@@ -136,8 +138,6 @@ async def main(argv: list[str]) -> None:
         style='{',
     ))
     LOGGER.addHandler(handler)
-
-    LOGGER.info('HammerAddons postcompiler, srctools=v{}, addons=v{}', SRCTOOLS_VER, HADDONS_VER)
     LOGGER.info("Map path is {}", path)
 
     conf = config.parse(path, args.game_folder)
