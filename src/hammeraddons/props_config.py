@@ -367,10 +367,10 @@ class Options:
             try:
                 value = self.settings[option.id]
             except KeyError:
-                if option.deprecated:
-                    # Never set and deprecated, omit from new configs.
-                    continue
                 value = default
+            if value is default and option.deprecated:
+                # Never set and deprecated, omit from new configs.
+                continue
 
             if has_previous:
                 file.write('\n\n')
