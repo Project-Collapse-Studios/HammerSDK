@@ -83,7 +83,6 @@ class EntSet {
 	mover = null;
 	visual = null;
 	opt_skin = 0;
-	opt_localpos = "0 0 0";
 	opt_fast_reflection = false;
 	opt_no_rtt_shadow = true;
 	opt_no_rec_projtex = false;
@@ -92,7 +91,6 @@ class EntSet {
 		mover = mov;
 		visual = vis;
 		opt_skin = 0;
-		opt_localpos = "0 0 0";
 		opt_fast_reflection = false;
 		opt_no_rtt_shadow = true;
 		opt_no_rec_projtex = false;
@@ -213,10 +211,7 @@ function make_cube() {
 		EntFireByHandle(cargo.visual, "Skin", cargo_type.skin.tostring(), 0, self, self);
 		cargo.opt_skin = cargo_type.skin;
 	}
-	if (cargo.opt_localpos != cargo_type.localpos) {
-    	EntFireByHandle(cargo.visual, "SetLocalOrigin", cargo_type.localpos, 0, self, self);
-		cargo.opt_localpos = cargo_type.localpos;
-	}
+    EntFireByHandle(cargo.visual, "SetLocalOrigin", cargo_type.localpos, 0, self, self);
     EntFireByHandle(cargo.visual, "EnableDraw", "", 0, self, self);
     EntFireByHandle(cargo.mover, "SetAnimation", anim.name, 0, self, self);
     EntFireByHandle(cargo.visual, "DisableDraw", "", anim.duration, self, self);

@@ -8,8 +8,11 @@
   * Searchpaths 'nopack' option now allows wildcards for disabling locations in bulk.
 * Added 1/16 scale skybox mode for vactube system. You'll need to provide your own models or use prop scaling.
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
-* Automatically remove old generated vactube animation models.
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.
+
+## Bugfixes
+* Fix vactube objects appearing to rapidly move from end to start positions in some cases.
+* Automatically remove old generated vactube animation models.
 
 -----------------------
 
