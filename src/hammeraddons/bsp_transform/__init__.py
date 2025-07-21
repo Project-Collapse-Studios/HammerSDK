@@ -168,14 +168,16 @@ def trans(name: str, *, priority: int = 0) -> TransProto:
 
     def deco[Func: TransFuncOrSync](func: Func) -> Func:
         """Stores the transformation."""
+        if (key := name.casefold()) in TRANSFORMS:
+            raise ValueError(f'Duplicate transform {name!r}!')
         if inspect.iscoroutinefunction(func):
-            TRANSFORMS[name.casefold()] = Transform(func, name, priority)
+            TRANSFORMS[key] = Transform(func, name, priority)
         else:
             async def async_wrapper(ctx: Context) -> None:
                 """Just freeze all other tasks to run this."""
                 await trio.lowlevel.checkpoint()
                 func(ctx)
-            TRANSFORMS[name.casefold()] = Transform(async_wrapper, name, priority)
+            TRANSFORMS[key] = Transform(async_wrapper, name, priority)
         return func
     return deco
 
