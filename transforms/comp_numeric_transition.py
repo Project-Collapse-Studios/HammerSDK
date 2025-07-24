@@ -94,7 +94,7 @@ def apply_numeric_transition(vmf: VMF, ent: Entity) -> None:
             io_type = 'kv'
         else:
             LOGGER.warning(
-                'Classname {} has no keyvalue or input {}'
+                'Classname {} has no keyvalue or input {}!\n'
                 'You must manually specify '
                 'if it\'s a KV or IO for numeric transition "{}"!',
                 targ_cls.classname, input_name,
