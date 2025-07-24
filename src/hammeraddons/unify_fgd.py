@@ -29,24 +29,25 @@ GAMES_CHRONO: list[tuple[str, str]] = [
     ('EP1', 'Half-Life 2: Episode One'),
     ('EP2', 'Half-Life 2: Episode Two'),
 
-    ('TF2',   'Team Fortress 2'),
-    ('P1',    'Portal'),
-    ('L4D',   'Left 4 Dead'),
-    ('L4D2',  'Left 4 Dead 2'),
-    ('ASW',   'Alien Swarm'),
-    ('P2',    'Portal 2'),
-    ('CSGO',  'Counter-Strike: Global Offensive'),
+    ('TF2', 'Team Fortress 2'),
+    ('P1', 'Portal'),
+    ('L4D', 'Left 4 Dead'),
+    ('L4D2', 'Left 4 Dead 2'),
+    ('ASW', 'Alien Swarm'),
+    ('P2', 'Portal 2'),
+    ('CSGO', 'Counter-Strike: Global Offensive'),
+    ('STRATA',  'Strata Source'),
 
-    ('SFM',   'Source Filmmaker'),
+    ('SFM', 'Source Filmmaker'),
     ('DOTA2', 'Dota 2'),
 ]
 
 # Additional mods/games, which branched off of mainline ones.
 MODS_BRANCHED: dict[str, list[tuple[str, str]]] = {
     'HL2': [
-        ('HLS',  'Half-Life: Source'),
+        ('HLS', 'Half-Life: Source'),
         ('DODS', 'Day of Defeat: Source'),
-        ('CSS',  'Counter-Strike: Source'),
+        ('CSS', 'Counter-Strike: Source'),
     ],
     'EP2': [
         ('MESA', 'Black Mesa'),
@@ -71,6 +72,9 @@ MODS_BRANCHED: dict[str, list[tuple[str, str]]] = {
     ],
     'CSGO': [
         ('P2DES', 'Portal 2: Desolation'),
+    ],
+    'STRATA': [
+        ('P2CE', 'Portal 2: Community Edition'),
     ],
 }
 MOD_TO_BRANCH = {
@@ -104,6 +108,8 @@ FEATURES: dict[str, set[str]] = {
     'P2': {'INST_IO', 'VSCRIPT'},
     'CSGO': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'P2DES': {'P2', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
+    'STRATA': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
+    'P2CE': {'P2', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
 
     'PSA': {'P1'},
     'P2SIXENSE': {'P2'},
@@ -112,6 +118,7 @@ FEATURES: dict[str, set[str]] = {
     # who up epicing they edition
     'PEE15': {'P1', 'HL2', 'EP1', 'EP2', 'MBASE', 'VSCRIPT'},
     'PEE2': {'P2', 'HL2', 'EP1', 'EP2', 'INST_IO', 'VSCRIPT'},
+
 }
 
 ALL_FEATURES = {
@@ -1425,7 +1432,7 @@ def action_visgroup(dbase: Path, extra_loc: Path | None, dest: Path) -> None:
                 f.write(f'{child_indent}* `{child}`\n')
 
     print('Writing...')
-    with dest.open('w') as f:
+    with dest.open('w', encoding='utf8') as f:
         write_vis(AutoVisgroup('Auto', ''), '')
 
 
