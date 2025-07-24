@@ -214,6 +214,8 @@ async def run_transformations(
         LOGGER.debug('Config: {!r}', context.config)
         await transform.func(context)
 
+    apply_io_remaps(context)
+
     if context._ent_code:
         LOGGER.info('Injecting VScript code...')
         for ent, code in context._ent_code.items():
@@ -227,8 +229,6 @@ async def run_transformations(
                 code = 'OnPostSpawn<-Precache<-function(){}\n' + code
             init_scripts.append(pack.inject_vscript(code.replace('`', '"')))
             ent['vscripts'] = ' '.join(init_scripts)
-
-    apply_io_remaps(context)
 
 
 # noinspection PyProtectedMember
