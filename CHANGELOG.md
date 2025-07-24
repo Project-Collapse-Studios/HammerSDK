@@ -1,5 +1,8 @@
 # Version (dev)
 
+## New Features
+* Added `comp_movie_fitter`, which calculates UVs for `vgui_movie_display`.
+
 ## Enhancements
 * Upgraded config handling:
   * Config files will no longer be rewitten. Instead any changes will produce a new file, which
