@@ -2,7 +2,6 @@
 from pathlib import Path
 
 from PIL import Image, ImageChops
-from srctools import conv_bool
 from collections import namedtuple
 
 import sys
