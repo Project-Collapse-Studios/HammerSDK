@@ -16,6 +16,7 @@
 ## Bugfixes
 * Fix vactube objects appearing to rapidly move from end to start positions in some cases.
 * Automatically remove old generated vactube animation models.
+* Fix an issue where prop ropes generated with slight angles on straight sections.
 
 -----------------------
 
@@ -36,7 +37,7 @@ The postcompiler now requires Windows 8+.
 * Added a value mode option to `comp_kv_setter` and `comp_adv_output` to more clearly control which key is used.
 * Added textures for 4 rendertargets (camera, water reflection/refraction, full framebuffer). These give a nice preview in Hammer.
 * Added three keyvalues to `ambient_generic`, giving a more user friendly interface to the confusing spawnflags. This also allows them to be configured via fixup values easily.
-* Added line helpers to `env_microphone`, `scripted_sequence`, `path_track`, and `item_item_crate`
+* Added line helpers to `env_microphone`, `scripted_sequence`, `path_track`, and `item_item_crate`.
 * Added Source 2013's `SetModelScale` input to all animating entities,
 * Added undocumented `ChangeLevelPostFade` input to `point_changelevel`.
 * Added Portal: Still Alive features (not currently included in releases, but can be built by including the `PSA` tag),
