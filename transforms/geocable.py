@@ -16,6 +16,7 @@ from srctools import (
     FrozenVec, logger, conv_int, conv_float, conv_bool,
     Vec, Entity, Matrix, Angle, lerp, FileSystem,
 )
+from srctools.vmf import VMF
 from srctools.bsp import StaticProp, StaticPropFlags, VisLeaf, VisTree
 from srctools.smd import Mesh, Vertex, Triangle, Bone
 
@@ -589,37 +590,7 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
             await f.write(QC_TEMPLATE_PHYS.format(count=sum(node.next is not None for node in coll_nodes) + 8))
 
     if dump_debug_info:
-        # Dump some useful data to a VMF object.
-        from srctools.vmf import VMF, VisGroup
-        vmf = VMF()
-        debug_name = {
-            node: f'node_{i}'
-            for i, node in enumerate(nodes)
-        }
-        vmf.create_ent('prop_static', origin='0 0 0', model='models/' + mdl_name)
-        group_next = vmf.create_visgroup('points_next')
-        group_prev = vmf.create_visgroup('points_prev')
-        for node in nodes:
-            vmf.create_ent(
-                'path_track',
-                targetname=(name := debug_name[node]),
-                target=debug_name[node.next] if node.next is not None else '',
-                origin=node.pos,
-                angles=format(node.orient.to_angle(), '.20'),
-                radius=node.radius,
-            ).comments = repr(node.orient)
-            for point in node.points_next:
-                ent = vmf.create_ent(
-                    'info_target',
-                    origin=point.pos, name=name + '_next')
-                ent.vis_shown = False
-                ent.visgroup_ids.add(group_next.id)
-            for point in node.points_prev:
-                ent = vmf.create_ent(
-                    'info_target',
-                    origin=point.pos, name=name + '_prev')
-                ent.vis_shown = False
-                ent.visgroup_ids.add(group_prev.id)
+        vmf = dump_rope_nodes(nodes, mdl_name)
         LOGGER.info('Writing debug info to {}', temp_folder / 'debug.vmf')
         with (temp_folder / 'debug.vmf').open('w', encoding='utf8') as f2:
             vmf.export(f2)
@@ -632,6 +603,40 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     ]
 
     return (light_origin, coll_data, seg_props, vac_points)
+
+
+def dump_rope_nodes(nodes: Iterable[Node], mdl_name: str) -> VMF:
+    # Dump some useful data to a VMF object.
+    vmf = VMF()
+    debug_name = {
+        node: f'node_{i}'
+        for i, node in enumerate(nodes)
+    }
+    vmf.create_ent('prop_static', origin='0 0 0', model='models/' + mdl_name)
+    group_next = vmf.create_visgroup('points_next')
+    group_prev = vmf.create_visgroup('points_prev')
+    for node, name in debug_name.items():
+        vmf.create_ent(
+            'path_track',
+            targetname=name,
+            target=debug_name[node.next] if node.next is not None else '',
+            origin=node.pos,
+            angles=format(node.orient.to_angle(), '.20'),
+            radius=node.radius,
+        ).comments = repr(node.orient)
+        for point in node.points_next:
+            ent = vmf.create_ent(
+                'info_target',
+                origin=point.pos, name=name + '_next')
+            ent.vis_shown = False
+            ent.visgroup_ids.add(group_next.id)
+        for point in node.points_prev:
+            ent = vmf.create_ent(
+                'info_target',
+                origin=point.pos, name=name + '_prev')
+            ent.vis_shown = False
+            ent.visgroup_ids.add(group_prev.id)
+    return vmf
 
 
 def build_node_tree(
