@@ -27,7 +27,7 @@ LOGGER = logger.get_logger(__name__)
 NodeID = NewType('NodeID', str)
 
 try:
-    from .vactubes import nodes as vac_node_mod  # type: ignore
+    from .vactubes import nodes as vac_node_mod  # type: ignore  # noqa
 except ImportError:
     LOGGER.exception('No vactube transform:')
     vac_node_mod = None
@@ -438,7 +438,7 @@ def save_mesh(mesh: Mesh, path: Path) -> None:
 type RopeBuilder = ModelCompiler[CompKey, CompArgs, CompResult]
 
 # Key to allow reusing previous compiles. See make_key() below for definition.
-type CompKey = tuple[tuple[NodeEnt, ...], tuple[tuple[NodeID, NodeID], ...], tuple[str, ...], VactubeGenPartType]
+type CompKey = tuple[tuple[NodeEnt, ...], tuple[tuple[NodeID, NodeID], ...], tuple[str, ...], VactubeGenPartType, bool]
 # Additional parameters used during compile, provided new each time. We just pass the filesystem for lookups.
 type CompArgs = tuple[FileSystem]
 # Additional results of the compile, persisted to return later.
@@ -450,7 +450,9 @@ type CompResult = tuple[Vec, CollData, list[SegProp], list[list[Vec]]]
 def make_key(
     nodes: Iterable[NodeEnt],
     connections: Iterable[tuple[NodeID, NodeID]],
-    skins: Iterable[str], vac_type: VactubeGenPartType,
+    skins: Iterable[str],
+    vac_type: VactubeGenPartType,
+    dump_debug_info: bool,
 ) -> CompKey:
     """Create the key to allow deduplication.
 
@@ -459,6 +461,8 @@ def make_key(
     :param connections: Pairs of links between node IDs.
     :param skins: Skin materials to apply, with the first used in the nodes.
     :param vac_type: Specifies whether to include the frame/glass part, if separation is used.
+    :param dump_debug_info: Whether modelcompile_dump is set, and therefore should we dump
+        debugging information.
     """
     id_gen = itertools.count()
     id_remap: dict[NodeID, NodeID] = {}
@@ -471,7 +475,7 @@ def make_key(
         (id_remap[node1], id_remap[node2])
         for node1, node2 in connections
     )
-    return tuple(new_nodes), new_conns, tuple(skins), vac_type
+    return tuple(new_nodes), new_conns, tuple(skins), vac_type, dump_debug_info
 
 
 async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: CompArgs) -> CompResult:
@@ -483,7 +487,7 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     :param args: Information that is only required for this compile
     """
     LOGGER.info('Building rope {}', mdl_name)
-    [ents, connections, skins, vacgentype] = rope_key
+    [ents, connections, skins, vacgentype, dump_debug_info] = rope_key
     [fsys] = args
 
     mesh = Mesh.blank('root')
@@ -496,11 +500,13 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     compute_orients(nodes)
     compute_verts(nodes, bone, is_coll=False)
 
-    # compile_rope uses VactubeGenPartType.ALL for all other rope generation
-    # skip this when only generating frame
-    if vacgentype != VactubeGenPartType.FRAME:
-        mesh.triangles.extend(generate_straights(nodes))
-    generate_caps(nodes, mesh, is_coll=False)
+    # Skip generating the actual rope if side count is <3 (useful to place just the seg props.
+    if any(node.config.side_count >= 3 for node in nodes):
+        # compile_rope uses VactubeGenPartType.ALL for all other rope generation
+        # skip this when only generating frame
+        if vacgentype != VactubeGenPartType.FRAME:
+            mesh.triangles.extend(generate_straights(nodes))
+        generate_caps(nodes, mesh, is_coll=False)
     await trio.lowlevel.checkpoint()
 
     # All or nothing.
@@ -581,6 +587,42 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
             await f.write('}\n')
         if coll_nodes:
             await f.write(QC_TEMPLATE_PHYS.format(count=sum(node.next is not None for node in coll_nodes) + 8))
+
+    if dump_debug_info:
+        # Dump some useful data to a VMF object.
+        from srctools.vmf import VMF, VisGroup
+        vmf = VMF()
+        debug_name = {
+            node: f'node_{i}'
+            for i, node in enumerate(nodes)
+        }
+        vmf.create_ent('prop_static', origin='0 0 0', model='models/' + mdl_name)
+        group_next = vmf.create_visgroup('points_next')
+        group_prev = vmf.create_visgroup('points_prev')
+        for node in nodes:
+            vmf.create_ent(
+                'path_track',
+                targetname=(name := debug_name[node]),
+                target=debug_name[node.next] if node.next is not None else '',
+                origin=node.pos,
+                angles=format(node.orient.to_angle(), '.20'),
+                radius=node.radius,
+            ).comments = repr(node.orient)
+            for point in node.points_next:
+                ent = vmf.create_ent(
+                    'info_target',
+                    origin=point.pos, name=name + '_next')
+                ent.vis_shown = False
+                ent.visgroup_ids.add(group_next.id)
+            for point in node.points_prev:
+                ent = vmf.create_ent(
+                    'info_target',
+                    origin=point.pos, name=name + '_prev')
+                ent.vis_shown = False
+                ent.visgroup_ids.add(group_prev.id)
+        LOGGER.info('Writing debug info to {}', temp_folder / 'debug.vmf')
+        with (temp_folder / 'debug.vmf').open('w', encoding='utf8') as f2:
+            vmf.export(f2)
 
     # For visleaf computation, build a list of all the actual segments generated.
     coll_data = [
@@ -1339,6 +1381,7 @@ async def compile_rope(
             make_key(
                 local_nodes, connections, (),
                 VactubeGenPartType.FRAME if is_sep else VactubeGenPartType.ALL,
+                dump_debug_info=ctx.modelcompile_dump is not None,
             ),
             build_rope,
             (ctx.pack.fsys, ),
