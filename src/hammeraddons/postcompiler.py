@@ -193,9 +193,10 @@ async def main(argv: list[str]) -> None:
         studiomdl_loc = None
 
     modelcompile_dump_str = conf.opts.get(config.MODEL_COMPILE_DUMP)
-    modelcompile_dump = conf.expand_path(modelcompile_dump_str) if modelcompile_dump_str else None
+    modelcompile_dump = conf.expand_path(modelcompile_dump_str) / path.stem if modelcompile_dump_str else None
     if modelcompile_dump is not None:
         LOGGER.info('Clearing model compile dump folder {}', modelcompile_dump)
+        modelcompile_dump.mkdir(parents=True, exist_ok=True)
         try:
             for file in modelcompile_dump.iterdir():
                 if file.is_dir():

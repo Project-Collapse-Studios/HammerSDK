@@ -507,9 +507,11 @@ PACK_VPK = Opt.boolean(
 
 PACK_DUMP = Opt.string_or_none(
     'pack_dump',
-    """If set, copy all the packed resources to this additional location.
+    """If set, copy all the packed resources to this location.
     You can also prefix this with a # character to only copy to this 
     destination, not the BSP pakfile.
+    
+    A folder is made inside named after the map, and is emptied each compile.
 """)
 
 PACK_STRIP_CUBEMAPS = Opt.boolean(
