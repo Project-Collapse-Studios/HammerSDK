@@ -85,7 +85,8 @@ def comp_movie_fitter(ctx: Context) -> None:
                 screen_b.links[dir_b] = screen_a
             else:
                 # Warn and invalidate if either are linked to something else.
-                if (bad := screen_a.links[dir_a]) not in (None, screen_b):
+                bad = screen_a.links[dir_a]
+                if bad is not None and bad is not screen_b:
                     LOGGER.warning(
                         'Three screens overlap edges:\n{}\n{}\n{}',
                         ent_description(screen_a.ent),
@@ -93,7 +94,8 @@ def comp_movie_fitter(ctx: Context) -> None:
                         ent_description(bad.ent)
                     )
                     screen_a.invalid = screen_b.invalid = bad.invalid = True
-                if (bad := screen_b.links[dir_b]) not in (None, screen_a):
+                bad = screen_b.links[dir_b]
+                if bad is not None and bad is not screen_a:
                     LOGGER.warning(
                         'Three screens overlap edges:\n{}\n{}\n{}',
                         ent_description(screen_a.ent),

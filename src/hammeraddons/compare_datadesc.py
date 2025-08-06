@@ -63,7 +63,7 @@ def check_datadesc(filename: str, tags: frozenset[str]) -> None:
 
     filename_datamap = Path(repo_root, 'db', 'datamaps', filename + 'datamap.txt')
     filename_report = Path(repo_root, 'db', 'reports', filename + '.txt')
-    with open(filename_datamap, encoding='ascii') as f, open(filename_report, 'w', encoding='utf8') as msgfile:
+    with filename_datamap.open(encoding='ascii') as f, filename_report.open('w', encoding='utf8') as msgfile:
         cur_ent: EntityDef | None  # Deliberately uninitialised.
         for line in f:
             if line.startswith('//') or not line.strip():
