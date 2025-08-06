@@ -12,6 +12,7 @@
 * Added 1/16 scale skybox mode for vactube system. You'll need to provide your own models or use prop scaling.
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.
+* `env_tonemap_controller` options can be set by keyvalues, generating a `logic_auto` automatically.
 
 ## Bugfixes
 * Fix vactube objects appearing to rapidly move from end to start positions in some cases.
