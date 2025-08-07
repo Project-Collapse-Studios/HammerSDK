@@ -1,10 +1,10 @@
-@PointClass
+@PointClass base(StaticTargetName)
 	iconsprite("editor/comp_multi_command.vmt") 
-	color(100 100 100) 
+	color(100 100 100)
+    appliesto(srctools)
 = comp_multi_command: "Single entity for triggering a sequence of commands. Allows you to insert 16 individual commands."
 [
-    targetname(target_source) : "Name" : : "The name that other entities refer to this entity by."
-    
+    type[engine](string) : "Command Type" : "server"
     type(choices) : "Command Type" : "server" : "Client Command issues the commands as the point_clientcommand. "+
     "Server Command issues a command as the server. "+
     "Broadcast Command broadcasts the commands to each valid client's console, as if it was typed in by that player locally." =
@@ -14,6 +14,7 @@
         "multiplayer" : "Broadcast Command"
     ]
 
+    mode[engine](string) : "Mode" : "trigger"
 	mode(choices) : "Mode" : "trigger" : "If On Spawn, this will fire the commands immediately. " +
 		"If On Trigger, the Trigger input on this entity will fire the commands." =
 		[
@@ -40,4 +41,5 @@
 
     input Trigger(void) : "Fires the commands."
 
+    @resources []
 ]
