@@ -1,15 +1,15 @@
 """Specifies a list of commands, which will be bundled into inputs and fired on map spawn or on trigger."""
-from srctools import Entity, Output
+from srctools import Entity, Output, VMF
 
 from hammeraddons.bsp_transform import trans, Context
-from hammeraddons.bsp_transform.common import strip_cust_keys
+from hammeraddons.bsp_transform.common import strip_cust_keys, ent_description
 
 
 @trans('comp_multi_command')
 def comp_multi_command(ctx: Context) -> None:
     """Implement comp_multi_command."""
     for comp_ent in ctx.vmf.by_class['comp_multi_command']:
-        command_caller = get_command_executor(ctx, comp_ent["type"].casefold())
+        command_caller = get_command_executor(ctx.vmf, comp_ent)
 
         command_list: list[str] = [
             command for name, command in comp_ent.items()
@@ -26,28 +26,37 @@ def comp_multi_command(ctx: Context) -> None:
                 comp_ent['classname'] = 'logic_relay'
                 output = 'OnTrigger'
             case _:
-                raise ValueError(f'Invalid comp_multi_command mode "{comp_ent['mode']}"!')
+                raise ValueError(
+                    f'Invalid comp_multi_command mode "{comp_ent['mode']}" '
+                    f'for {ent_description(comp_ent)}'
+                )
 
-        comp_ent.add_out(Output(output, command_caller, "Command", joined_commands, 0))
+        comp_ent.add_out(Output(output, command_caller, "Command", joined_commands))
         strip_cust_keys(comp_ent)
 
 
-def get_command_executor(ctx:Context, type: str) -> Entity:
+def get_command_executor(vmf: VMF, comp_ent: Entity) -> Entity:
     """Locate a suitable point_*command entity. """
-    match type:
+    match comp_ent["type"].casefold():
         case 'client':
-            entity_name = 'point_clientcommand'
+            classname = 'point_clientcommand'
         case 'server':
-            entity_name = 'point_servercommand'
+            classname = 'point_servercommand'
         case 'multiplayer':
-            entity_name = 'point_broadcastclientcommand'
+            classname = 'point_broadcastclientcommand'
         case _:
-            raise ValueError(f'Invalid command entity type "{type}"!')
+            raise ValueError(
+                f'Invalid command entity type '
+                f'"{comp_ent['type']}" for {ent_description(comp_ent)}'
+            )
 
-    command = ctx.vmf.by_target[entity_name]
+    for command in vmf.by_class[classname]:
+        name = command['targetname']
+        if name and len(vmf.by_target[name]) == 1:
+            # It's named uniquely, use it.
+            return command
 
-    if(len(command) < 1): # If it doesn't exist, create one.
-        command = ctx.vmf.create_ent(entity_name)
-        command["targetname"] = f'cmp_multi_{entity_name}'
-
+    # It doesn't exist, create one.
+    command = vmf.create_ent(classname)
+    command.make_unique(f'cmp_multi_{classname}')
     return command
