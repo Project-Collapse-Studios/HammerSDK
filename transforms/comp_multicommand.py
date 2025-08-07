@@ -1,20 +1,19 @@
-"""Implements simple logic."""
-from srctools import conv_bool, conv_float, Entity, Output
-from srctools.logger import get_logger
+"""Specifies a list of commands, which will be bundled into inputs and fired on map spawn or on trigger."""
+from srctools import Entity, Output
 
 from hammeraddons.bsp_transform import trans, Context
 from hammeraddons.bsp_transform.common import strip_cust_keys
 
-@trans('comp_multi_command')
-def comp_multi_command(ctx: Context):
 
+@trans('comp_multi_command')
+def comp_multi_command(ctx: Context) -> None:
+    """Implement comp_multi_command."""
     multicommands = ctx.vmf.by_class['comp_multi_command']
 
     if(len(multicommands) < 1):
         return
 
     for comp_ent in multicommands:
-
         command_caller = get_command_executor(ctx, comp_ent["type"].casefold())
         command_list:list[str] = []
 
@@ -38,11 +37,10 @@ def comp_multi_command(ctx: Context):
 
         comp_ent.add_out(Output(output, command_caller, "Command", joined_commands, 0))
         strip_cust_keys(comp_ent)
- 
 
 
-def get_command_executor(ctx:Context, type:str) -> Entity:
-
+def get_command_executor(ctx:Context, type: str) -> Entity:
+    """Locate a suitable point_*command entity. """
     match type:
         case 'client':
             entity_name = 'point_clientcommand'
