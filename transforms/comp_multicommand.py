@@ -10,13 +10,11 @@ def comp_multi_command(ctx: Context) -> None:
     """Implement comp_multi_command."""
     for comp_ent in ctx.vmf.by_class['comp_multi_command']:
         command_caller = get_command_executor(ctx, comp_ent["type"].casefold())
-        command_list:list[str] = []
 
-        for i in range(16):
-            command = comp_ent['command_' + (str(i))]
-            if(len(command) < 1):
-                continue
-            command_list.append(command)
+        command_list: list[str] = [
+            command for name, command in comp_ent.items()
+            if name.startswith('command_')
+        ]
         joined_commands = "; ".join(command_list)
 
         match comp_ent['mode'].casefold():
