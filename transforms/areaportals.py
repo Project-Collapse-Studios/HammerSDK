@@ -22,7 +22,7 @@ def optimise_areaportals(ctx: Context) -> None:
                     case 'func_illusionary':
                         pass  # Already always non-solid.
                     case _:
-                        continue # Unknown behaviour, don't modify for safety.
+                        continue  # Unknown behaviour, don't modify for safety.
 
                 try:
                     bmodel = ctx.bsp.bmodels[fade_ent]

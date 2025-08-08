@@ -36,7 +36,7 @@ GAMES_CHRONO: list[tuple[str, str]] = [
     ('ASW', 'Alien Swarm'),
     ('P2', 'Portal 2'),
     ('CSGO', 'Counter-Strike: Global Offensive'),
-    ('STRATA',  'Strata Source'),
+    ('STRATA', 'Strata Source'),
 
     ('SFM', 'Source Filmmaker'),
     ('DOTA2', 'Dota 2'),

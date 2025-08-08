@@ -194,7 +194,10 @@ def find_for_cube(vac_objects: VacObjectDict, group: str, cube: Entity) -> VacOb
         case 'prop_scaled_cube':  # Why not check.
             potentials += [("models/props/sixense/box/sixensebox.mdl", 0)]
         case clsname:
-            LOGGER.warning('Cube "{}" at ({}) is not actually a cube?', cube['targetname'], cube['origin'])
+            LOGGER.warning(
+                'Cube "{}" at ({}) is a {}, not a cube?',
+                cube['targetname'], cube['origin'], clsname,
+            )
 
     for model, skin in potentials:
         try:
