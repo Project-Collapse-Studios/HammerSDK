@@ -2,6 +2,7 @@
 
 ## New Features
 * Added `comp_movie_fitter`, which calculates UVs for `vgui_movie_display`.
+* Added `comp_multi_command`, which allows executing console commands in bulk more conveniently.
 
 ## Enhancements
 * Upgraded config handling:
