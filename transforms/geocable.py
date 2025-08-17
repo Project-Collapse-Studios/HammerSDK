@@ -1335,6 +1335,7 @@ async def compile_rope(
     connections: set[tuple[NodeID, NodeID]],
 ) -> None:
     """Compile a single rope group."""
+    dump_debug_info = ctx.modelcompile_dump is not None
     for ent in dyn_ents:
         origin = Vec.from_str(ent['origin'])
         dyn_nodes = [
@@ -1356,7 +1357,7 @@ async def compile_rope(
                 origin,
             )
         model_name, _ = await compiler.get_model(
-            make_key(dyn_nodes, connections, skins, VactubeGenPartType.ALL),
+            make_key(dyn_nodes, connections, skins, VactubeGenPartType.ALL, dump_debug_info),
             build_rope,
             (ctx.pack.fsys, ),
             prefix='vac' if any(node.config.is_vactube for node in nodes) else 'rope',
@@ -1386,7 +1387,7 @@ async def compile_rope(
             make_key(
                 local_nodes, connections, (),
                 VactubeGenPartType.FRAME if is_sep else VactubeGenPartType.ALL,
-                dump_debug_info=ctx.modelcompile_dump is not None,
+                dump_debug_info,
             ),
             build_rope,
             (ctx.pack.fsys, ),
@@ -1401,7 +1402,10 @@ async def compile_rope(
         if is_sep:
             # Generate the glass only
             model_name, (light_origin, coll_data, seg_props, _) = await compiler.get_model(
-                make_key(local_nodes, connections, (), VactubeGenPartType.GLASS),
+                make_key(
+                    local_nodes, connections, (), VactubeGenPartType.GLASS,
+                    dump_debug_info,
+                ),
                 build_rope,
                 (ctx.pack.fsys, ),
                 prefix='vac_gls',

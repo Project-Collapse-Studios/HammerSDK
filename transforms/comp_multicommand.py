@@ -41,7 +41,7 @@ def comp_multi_command(ctx: Context) -> None:
                     f'for {ent_description(comp_ent)}'
                 )
 
-        buffer = []
+        buffer: list[str] = []
         buf_size = 0
         for _, _, command in command_list:
             size = len(command) + 1
