@@ -17,10 +17,8 @@ def comp_trigger_coop(ctx: Context) -> None:
         
         trig_name = trig['targetname']
         if not trig_name:
-            # Give it something unique
-            trig['targetname'] = trig_name = '_comp_trigger_coop_' + str(trig['hammer_id'])
-            
-        man_name = trig_name + '_man'
+            # If not named, make it unique. If named, that's the user's propblem.
+            trig.make_unique()
         
         manager = ctx.vmf.create_ent(
             classname='logic_coop_manager',
@@ -28,7 +26,7 @@ def comp_trigger_coop(ctx: Context) -> None:
             targetname=man_name,
             # Should make it die if the trigger does.
             parentname=trig_name,
-        )
+        ).make_unique(trig_name + '_man')
         for out in list(trig.outputs):
             match out.output.casefold():
                 case 'onstarttouchboth':
