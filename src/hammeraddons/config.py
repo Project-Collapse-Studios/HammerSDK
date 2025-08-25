@@ -353,11 +353,13 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
         hasher.update(plug_id.encode('utf8'))
         opt.hash(hasher)
     runtime_version = hasher.hexdigest()
-    updated = False
+    updated = new = False
     if not conf_path.exists():
         LOGGER.debug('Version: ', runtime_version)
         LOGGER.info('Writing new config to {}...', conf_path)
+        LOGGER.info('Please open this config and set options to match your game.')
         write_path = conf_path
+        new = True
     else:
         file_version = main.get(VERSION)
         LOGGER.debug('Expected: {}', runtime_version)
@@ -384,7 +386,7 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
             f'{write_path}\n'
             'Compare with your old configuration and update any settings, then overwrite srctools.vdf.'
         )
-    return updated
+    return updated or new
 
 
 def parse(map_path: Path, game_folder: str | None = '') -> Config:
