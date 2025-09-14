@@ -49,73 +49,6 @@
 
 	preventpropcombine[PROPCOMBINE](boolean) : "Disable Prop Combine" : 0 : "Prevent this static prop from combining with any other static props in vbsp."
 
-	linedivider_levels[!engine, +complete](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
-
-	mincpulevel[engine](integer): "Minimum CPU Level": 0
-	maxcpulevel[engine](integer): "Maximum CPU Level": 0
-	mingpulevel[engine](integer): "Minimum GPU Level": 0
-	maxgpulevel[engine](integer): "Maximum GPU Level": 0
-	mindxlevel[engine](integer): "Minimum DX Level": 0
-	maxdxlevel[engine](integer): "Maximum DX Level": 0
-
-	// DXlevel is used in v6 and 7 only, the replaced by cpu/gpu for 8+.
-
-	mindxlevel[+complete, since_TF2, until_L4D2, MESA](choices) : "Minimum DX Level" : 0 = 
-		[
-		0 : "default (lowest)"
-		70 : "dx7"
-		80 : "dx8.0 (4600Ti)"
-		81 : "dx8.1 (FX5200)"
-		90 : "dx9 SM2.0"
-		95 : "dx9 SM3.0"
-		]
-	maxdxlevel[+complete, since_TF2, until_L4D2, MESA](choices) : "Maximum DX Level" : 0 = 
-		[
-		0 : "default (highest)"
-		60 : "dx6"
-		70 : "dx7"
-		80 : "dx8.0 (4600Ti)"
-		81 : "dx8.1 (FX5200)"
-		90 : "dx9 SM2.0"
-		95 : "dx9 SM3.0"
-		]
-
-	mincpulevel[+complete, since_L4D2](choices) : "Minimum CPU Level" : 0 =
-		[
-		0: "default (low)"
-		1: "low"
-		2: "medium"
-		3: "high"
-		]
-
-	maxcpulevel[+complete, since_L4D2](choices) : "Maximum CPU Level" : 0 =
-		[
-		0: "default (high)"
-		1: "low"
-		2: "medium"
-		3: "high"
-		]
-
-	mingpulevel[+complete, since_L4D2](choices) : "Minimum GPU Level" : 0 =
-		[
-		0: "default (very low)"
-		1: "very low"
-		2: "low"
-		3: "medium"
-		4: "high"
-		]
-
-	maxgpulevel[+complete, since_L4D2](choices) : "Maximum GPU Level" : 0 =
-		[
-		0: "default (high)"
-		1: "very low"
-		2: "low"
-		3: "medium"
-		4: "high"
-		]
-
-	disablex360[+complete, since_L4D2](boolean) : "Disable on Xbox 360" : 0
-
 	linedivider_light[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
 
 	disableshadows(boolean) : "Disable Shadows" : 0 : "Prevent this prop from obstructing light to cast shadows."
@@ -153,4 +86,86 @@
 		"Using 0 here turns off the forcible fades. " +
 		"Numbers smaller than 1 cause the prop to fade out at further distances, " +
 		"and greater than 1 cause it to fade out at closer distances."
+
+
+	// Needs to appear post-L4D, or if complete mode is enabled
+	linedivider_levels[!engine, since_L4D, complete](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+
+	// DXlevel KVs were added in Orange Box (lump v6) and removed in L4D (lump v8).
+	// All pre-Orange Box games have since been updated.
+
+	// Basically obsolete at this point, even the slowest systems will support DX9.
+	// Black Mesa is deferred, these probably don't do anything there...
+	mindxlevel[+complete, until_L4D, !MESA](choices) : "Minimum DirectX Level" : 0 : "Prevents this entity from rendering if the user's DirectX level is lower than the specified value." = 
+		[
+		0 : "Default (Lowest)"
+		60 : "DirectX 6.0"
+		70 : "DirectX 7.0"
+		80 : "DirectX 8.0"
+		81 : "Directx 8.1"
+		90 : "DirectX 9.0"
+		92 : "Mac/Linux (''9.2'')"
+		95 : "DirectX 9.0c (''9.5'')"
+		// Only relevant in P2 and later which don't have this keyvalue
+		// 97 : "PlayStation 3 (''97'')"
+		98 : "Xbox 360 (''9.8'')"
+		]
+	maxdxlevel[+complete, until_L4D, !MESA](choices) : "Maximum DirectX Level" : 0 : "Prevents this entity from rendering if the user's DirectX level is higher than the specified value." = 
+		[
+		0 : "Default (Highest)"
+		60 : "DirectX 6.0"
+		70 : "DirectX 7.0"
+		80 : "DirectX 8.0"
+		81 : "Directx 8.1"
+		90 : "DirectX 9.0"
+		92 : "Mac/Linux (''9.2'')"
+		95 : "DirectX 9.0c (''9.5'')"
+		// 97 : "PlayStation 3 (''97'')"
+		98 : "Xbox 360 (''9.8'')"
+		]
+
+	mindxlevel[until_L4D, +engine](integer): "Minimum DirectX Level": 0
+	maxdxlevel[until_L4D, +engine](integer): "Maximum DirectX Level": 0
+
+	mincpulevel[since_L4D](choices) : "Minimum Effect Detail Level" : 0 : "Prevents this entity from rendering if the user's Effect Detail setting is lower than the specified value." =
+		[
+		0: "Default (Low)"
+		1: "Low"
+		2: "Medium"
+		3: "High"
+		]
+
+	maxcpulevel[since_L4D](choices) : "Maximum Effect Detail Level" : 0 : "Prevents this entity from rendering if the user's Effect Detail setting is higher than the specified value." =
+		[
+		0: "Default (High)"
+		1: "Low"
+		2: "Medium"
+		3: "High"
+		]
+
+	mingpulevel[since_L4D](choices) : "Minimum Shader Detail Level" : 0 : "Prevents this entity from rendering if the user's Shader Detail setting is lower than the specified value." =
+		[
+		0: "Default (Low)"
+		1: "Low"
+		2: "Medium"
+		3: "High"
+		4: "Very High"
+		]
+
+	maxgpulevel[since_L4D](choices) : "Maximum Shader Detail Level" : 0 : "Prevents this entity from rendering if the user's Shader Detail setting is higher than the specified value." =
+		[
+		0: "Default (Very High)"
+		1: "Low"
+		2: "Medium"
+		3: "High"
+		4: "Very High"
+		]
+
+	mincpulevel[since_L4D, +engine](integer): "Minimum Effect Detail Level": 0
+	maxcpulevel[since_L4D, +engine](integer): "Maximum Effect Detail Level": 0
+	mingpulevel[since_L4D, +engine](integer): "Minimum Shader Detail Level": 0
+	maxgpulevel[since_L4D, +engine](integer): "Maximum Shader Detail Level": 0
+
+	// Most modders won't need this...
+	disablex360[complete](boolean) : "Disable on Xbox 360" : 0 : "Prevents this entity from rendering if the game is running on Xbox 360."
 	]

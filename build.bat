@@ -25,7 +25,7 @@ SET filename.kz=kreedzclimbing
 SET filename.psa=portal_stillalive
 SET filename.asrd=reactivedrop
 SET filename.p2sixense=portal2_sixense
-:: No official name for this either
+:: Officially still just portal2.fgd, but we need it separate
 SET filename.p2edu=portal2_edu
 
 SET game=%1

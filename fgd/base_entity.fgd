@@ -30,10 +30,10 @@
 	gmod_allowphysgun(boolean) : "Allow Physics Gun" : 1
 	gmod_allowtools(string) : "Sandbox Tool Whitelist" : ""
 
-    mincpulevel(integer) : "Min CPU Level" : 0
-    maxcpulevel(integer) : "Max CPU Level" : 0
-    mingpulevel(integer) : "Min GPU Level" : 0
-    maxgpulevel(integer) : "Max GPU Level" : 0
+    mincpulevel(integer) : "Minimum Effect Detail Level" : 0
+    maxcpulevel(integer) : "Maximum Effect Detail Level" : 0
+    mingpulevel(integer) : "Minimum Shader Detail Level" : 0
+    maxgpulevel(integer) : "Maximum Shader Detail Level" : 0
 	fademindist(float) : "Fade Min Dist" : 0
 	fademaxdist(float) : "Fade Max Dist" : 0
 	fadescale(float) : "Fade Scale": 0
