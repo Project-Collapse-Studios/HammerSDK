@@ -16,7 +16,7 @@
 ]
 
 // The behaviour of light colour values.
-@snippet description LightColorBright = "Color and brightness scale of the light. Can be 1, 3, 4 or 8 values. " +
-	"If 8 values specified, the last 4 are for HDR mode, if the seperate HDR brightness key is not valid. " +
-	"If 3 or 1 values are applied, the brightness is equivalent to 255. " +
-	"If a single value is specified this is used for all colors."
+@snippet description LightColorBright = "Color and brightness scale of the light. Can be 1, 3, 4, or 8 values.     " +
+	"If 8, the last 4 are for HDR mode.     " +
+	"If 3 or 1, the brightness is equivalent to 255.     " +
+	"If 1, this is used for all colors."
