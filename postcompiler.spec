@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 import importlib.metadata
 
+from srctools.dmx import Element as DMXElem
 from PyInstaller.utils.hooks import collect_submodules
 import versioningit
 
@@ -88,6 +89,15 @@ for file in (root / 'transforms').rglob('*.py'):
     print(file, '->', dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, dest)
+
+# Resave the games config as a binary DMX.
+with open(root / 'games.dmx', 'rb') as f:
+    print('Reading: ', f.name)
+    games_conf, games_fmt_name, games_fmt_ver = DMXElem.parse(f)
+with open(app_folder / 'binaries' / 'games.dmx', 'wb') as f:
+    print('Writing: ', f.name)
+    games_conf.export_binary(f, fmt_name=games_fmt_name, fmt_ver=games_fmt_ver, unicode='format')
+
 
 gen_choreo = Analysis(
     ['src/hammeraddons/gen_choreo.py'],

@@ -2,7 +2,6 @@
 from typing import Final, Literal, Self
 from collections.abc import Callable, Iterator
 from pathlib import Path
-import importlib.resources
 import fnmatch
 import hashlib
 import re
@@ -16,6 +15,7 @@ from srctools.game import Game
 from srctools.steam import find_app
 import attrs
 
+from . import BINS_PATH
 from .plugin import BUILTIN as BUILTIN_PLUGIN, PluginFinder, Source as PluginSource
 from .props_config import Opt, Options
 
@@ -184,7 +184,7 @@ class GameConfig:
     # Whether the game supports VScript. A bunch of features are turned off if not.
     vscript: bool
     # If set, the game has an alternate character to use in RunScriptCode, so quotes can be used.
-    # MapBase uses double '', while TF2 uses `.
+    # MapBase uses double '', while TF2 uses ` A character of " indicates quoting is natively supported.
     vscript_quote: str
 
     # If set, the filename to use for packed particles manifest, where "<map name>" is replaced.
@@ -399,9 +399,9 @@ def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) ->
         else:
             return GameConfig.parse(mod_conf, expand_path)
     # No override file, load our own.
-    package = importlib.resources.files('hammeraddons')
-    with (package / 'games.dmx').open('rb') as f:
-        LOGGER.debug('Parsing inbuilt games configs')
+    loc = BINS_PATH / 'games.dmx'
+    LOGGER.debug('Parsing inbuilt games configs: {}', loc)
+    with loc.open('rb') as f:
         games_list, fmt_name, fmt_ver = Element.parse(f, unicode=True)
     assert fmt_name.casefold() == 'hagame' and fmt_ver == 1, (fmt_name, fmt_ver)
 
