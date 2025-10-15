@@ -7,7 +7,9 @@ import warnings
 
 import attrs
 import trio.lowlevel
+from typing_extensions import deprecated
 
+from hammeraddons.config import GameConfig
 from srctools import FGD, VMF, EmptyMapping, Entity, FileSystem, Keyvalues, Output
 from srctools.bsp import BSP
 from srctools.game import Game
@@ -45,8 +47,8 @@ class Context:
         pack: PackList,
         bsp: BSP,
         game: Game,
+        game_conf: GameConfig,
         *,
-        studiomdl_loc: Path | None = None,
         tags: frozenset[str] = frozenset(),
         modelcompile_dump: Path | None = None,
     ) -> None:
@@ -56,10 +58,9 @@ class Context:
         self.pack = pack
         self.bsp_path = Path(bsp.filename)
         self._fgd: FGD | None = None
-        self.tags = tags
         self.modelcompile_dump = modelcompile_dump
         self.game = game
-        self.studiomdl = studiomdl_loc
+        self.game_conf = game_conf
         self.config = Keyvalues.root()
 
         self._io_remaps: dict[tuple[str, str], tuple[list[Output | RemapFunc], bool]] = {}
@@ -67,11 +68,21 @@ class Context:
         self._ent_code: dict[Entity, str] = {}
 
     @property
+    @deprecated("Use EntityDef.engine_def() if possible.", category=DeprecationWarning)
     def fgd(self) -> FGD:
-        warnings.warn("Use EntityDef.engine_def() if possible.")
         if self._fgd is None:
             self._fgd = FGD.engine_dbase()
         return self._fgd
+
+    @property
+    @deprecated("Use ctx.game_conf.studiomdl_path, not ctx.studiomdl.", category=DeprecationWarning)
+    def studiomdl(self) -> Path | None:
+        return self.game_conf.studiomdl_path
+
+    @property
+    @deprecated("Use ctx.game_conf.tags, not ctx.tags", category=DeprecationWarning)
+    def tags(self) -> frozenset[str]:
+        return self.game_conf.tags
 
     def _add_io_remap(
         self, name: str, inp_name: str,
@@ -189,16 +200,15 @@ async def run_transformations(
     pack: PackList,
     bsp: BSP,
     game: Game,
-    studiomdl_loc: Path | None = None,
+    game_conf: GameConfig,
     config: Mapping[str, Keyvalues] = EmptyMapping,
-    tags: frozenset[str] = frozenset(),
     disabled: Container[str] = (),
     modelcompile_dump: Path | None = None,
 ) -> None:
     """Run all transformations."""
     context = Context(
         filesys, vmf, pack, bsp, game,
-        studiomdl_loc=studiomdl_loc, tags=tags,
+        game_conf=game_conf,
         modelcompile_dump=modelcompile_dump,
     )
 

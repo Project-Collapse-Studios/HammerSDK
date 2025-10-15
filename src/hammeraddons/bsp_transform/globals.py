@@ -28,7 +28,7 @@ def att_points(ctx: Context) -> None:
             )
             continue
 
-        ent['parentname'] = parent + ',' + ent['parent_attachment_point']
+        ent['parentname'] = f'{parent},{ent["parent_attachment_point"]}'
 
 
 @trans('VScript Init Code')
@@ -49,7 +49,7 @@ def vscript_init_code(ctx: Context) -> None:
             continue
 
         for i in itertools.count(2):
-            extra = ent.pop('vscript_init_code' + str(i), '')
+            extra = ent.pop(f'vscript_init_code{i}', '')
             if not extra:
                 break
             code += '\n' + extra
@@ -71,13 +71,15 @@ def vscript_runscript_inputs(ctx: Context) -> None:
     if not ctx.game_conf.vscript:
         LOGGER.debug('No VScript, skipping!')
         return
-    in_tf2 = 'TF2' in ctx.tags
+
+    quote_char = ctx.game_conf.vscript_quote
+
     for ent in ctx.vmf.entities:
         for out in ent.outputs:
             inp_name = out.input.casefold()
             if inp_name == 'runscriptfile':
                 ctx.pack.pack_file('scripts/vscripts/' + out.params, FileType.VSCRIPT_SQUIRREL)
-            elif inp_name == 'runscriptcode' and not in_tf2 and '`' in out.params:
+            elif inp_name == 'runscriptcode' and not quote_char and '`' in out.params:
                 out.params = ctx.pack.inject_vscript(out.params.replace('`', '"'))
                 out.input = 'RunScriptFile'
 
