@@ -38,6 +38,10 @@ def vscript_init_code(ctx: Context) -> None:
     The specified code is appended as a script file to the end of the scripts.
     vscript_init_code2, 3 etc will also be added in order if they exist.
     """
+    if not ctx.game_conf.vscript:
+        LOGGER.debug('No VScript, skipping!')
+        return
+
     for ent in ctx.vmf.entities:
         code = ent.pop('vscript_init_code', '')
 
@@ -64,6 +68,9 @@ def vscript_runscript_inputs(ctx: Context) -> None:
     then synthesising a script file and using RunScriptFile to execute it.
     For RunScriptFile, ensure the file is packed.
     """
+    if not ctx.game_conf.vscript:
+        LOGGER.debug('No VScript, skipping!')
+        return
     in_tf2 = 'TF2' in ctx.tags
     for ent in ctx.vmf.entities:
         for out in ent.outputs:

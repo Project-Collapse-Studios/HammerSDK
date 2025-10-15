@@ -128,6 +128,8 @@ async def vactube_transform(ctx: Context) -> None:
             'Vactubes present, but no studioMDL path provided! '
             'Set the path to studiomdl.exe in srctools.vdf.'
         )
+    if not ctx.game_conf.vscript:
+        raise ValueError('Vactubes currently require VScript to operate.')
 
     obj_count, vac_objects, objects_code = objects.parse(ctx.vmf, ctx.pack)
     groups = set(objects_code)

@@ -42,6 +42,10 @@ def io_proxy_tweaks(ctx: Context) -> None:
     Options:
         * collapse: If set, remove func_instance_io_proxy entities from the map
     """
+    if not ctx.game_conf.instance_proxies:
+        LOGGER.debug('Skipping, no IO proxies.')
+        return
+
     match CONFIG.get(CONF_MODE).casefold():
         case 'collapse':
             collapse_proxy_relays(ctx)

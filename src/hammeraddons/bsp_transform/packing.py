@@ -86,6 +86,9 @@ def comp_precache_sound(ctx: Context) -> None:
 
     if not sounds:
         return
+    if not ctx.game_conf.vscript:
+        # TODO: Just spawn ambient generics?
+        raise NotImplementedError("Needs VScript for now")
 
     # This VScript function forces a script to be precached.
     lines = SND_CACHE_FUNC % '\n'.join([

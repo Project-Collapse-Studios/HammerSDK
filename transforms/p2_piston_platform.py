@@ -158,7 +158,7 @@ def generate_platform(ctx: Context, motion_filter: Entity | None, logic_ent: Ent
     if ent_name := logic_ent['enable_motion_trig']:
         ents = list(ctx.vmf.search(ent_name))
         if len(ents) > 1:
-            raise ValueError(f'{desc} found multiple enalbe-motion triggers!')
+            raise ValueError(f'{desc} found multiple enable-motion triggers!')
         elif len(ents) == 1:
             [enable_motion_trig] = ents
 
@@ -188,7 +188,17 @@ def generate_platform(ctx: Context, motion_filter: Entity | None, logic_ent: Ent
                     'OnStartTouch', '!activator', 'ExitDisabledState',
                 ))
 
-    if conv_bool(logic_ent['use_vscript']):
+    use_vscript = conv_bool(logic_ent['use_vscript'])
+    if use_vscript and not ctx.game_conf.vscript:
+        LOGGER.error(
+            f'Piston {desc} is configured to use VScript, but this game does not '
+            f'support this! Attempting generation without...',
+            desc,
+        )
+        # Could still work if it's not actually necessary. If not, we'll error out.
+        use_vscript = False
+
+    if use_vscript:
         LOGGER.info('Generating VScript logic for piston {}', desc)
         gen_logic_vscript(
             ctx=ctx, logic_ent=logic_ent,
