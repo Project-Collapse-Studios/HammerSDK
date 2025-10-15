@@ -364,6 +364,69 @@ def calc_searchpaths(
     return fsys_chain, blacklist
 
 
+def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
+    """Locate the game configuration to use.
+
+    This can either use hammeraddons_game.vdf next to gameinfo, or lookup from an inbuilt file.
+    """
+    try:
+        with open(game_folder / GAMES_CONF_NAME, 'rb') as f:
+            LOGGER.info('Parsing game config {}', f.name)
+            mod_conf, fmt_name, fmt_ver = Element.parse(f, unicode=True)
+    except FileNotFoundError:
+        pass
+    else:
+        if fmt_name.casefold() != 'hagame' or fmt_ver != 1:
+            raise ValueError(
+                f'Invalid {GAMES_CONF_NAME} file. '
+                f'Expected a HAGame v1 format, '
+                f'got "{fmt_name}" version {fmt_ver}!'
+            )
+        if mod_conf.type.casefold() == 'gameslist':
+            # Allow a redundant list, if only one game is present.
+            names = mod_conf.keys() - {'name'}
+            if len(names) != 1:
+                raise ValueError(
+                    f'Invalid {GAMES_CONF_NAME} file. List should have exactly 1 game defined, '
+                    f'or have it as a root element.'
+                )
+            [name] = names
+            return GameConfig.parse(mod_conf[name].val_elem)
+        else:
+            return GameConfig.parse(mod_conf)
+    # No override file, load our own.
+    package = importlib.resources.files('hammeraddons')
+    with (package / 'games.dmx').open('rb') as f:
+        LOGGER.debug('Parsing inbuilt games configs')
+        games_list, fmt_name, fmt_ver = Element.parse(f, unicode=True)
+    assert fmt_name.casefold() == 'hagame' and fmt_ver == 1, (fmt_name, fmt_ver)
+
+    selected = opts.get(GAME_BRANCH).casefold()
+
+    # Go through all games, collecting the names while checking each. We only need to
+    # parse one.
+    name_report: list[tuple[str, list[str]]] = []
+    for name, elem_attr in games_list.items():
+        if name == 'name':
+            continue
+        elem = elem_attr.val_elem
+        if selected == name or any(
+            selected == alias.casefold() for alias in elem['aliases'].iter_string()
+        ):
+            LOGGER.info('Selected game: {}', name)
+            return GameConfig.parse(elem)
+        name_report.append((elem.name, list(elem['aliases'].iter_string())))
+
+    raise ValueError(
+        f'No game configuration defined. Set "game" in hammeraddons.vdf to a valid game,'
+        f' or define your own hammeraddons_game.vdf if this is a custom mod. Valid games:\n' +
+        '\n'.join(
+            f'- {name} ({", ".join(aliases)})' if aliases else f'- {name}'
+            for name, aliases in name_report
+        )
+    )
+
+
 def parse_plugins(opts: Options, expand_path: Expander) -> PluginFinder:
     """Parse and locate all plugins."""
     sources: dict[str, PluginSource] = {}
@@ -524,6 +587,9 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
         sys.exit(2)
     if updated:
         sys.exit(2)
+
+    # Identify which game we have.
+    game_conf = parse_games_conf(opts, game.path)
 
     return Config(
         opts=opts,
