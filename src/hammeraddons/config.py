@@ -1,7 +1,8 @@
 """Handles user configuration common to the different scripts."""
-from typing import Final, Literal
+from typing import Final, Literal, Self
 from collections.abc import Callable, Iterator
 from pathlib import Path
+import importlib.resources
 import fnmatch
 import hashlib
 import re
@@ -9,6 +10,7 @@ import struct
 import sys
 
 from srctools import AtomicWriter, Keyvalues, conv_int, logger, NoKeyError
+from srctools.dmx import Element
 from srctools.filesys import FileSystem, FileSystemChain, RawFileSystem, VPKFileSystem
 from srctools.game import Game
 from srctools.steam import find_app
@@ -34,10 +36,12 @@ __all__ = [
 
 LOGGER = logger.get_logger(__name__)
 MAIN_VERSION: Final = 1  # Ordinal version for the core configs.
-MAIN_NAME: Final = 'postcompiler'  # Name for the core config.
-CONF_NAME: Final = 'hammeraddons.vdf'
-CONF_UPDATE_NAME = 'hammeraddons.new.vdf'
-PATHS_NAME: Final = 'hammeraddons_paths.vdf'
+MAIN_SECTION_NAME: Final = 'postcompiler'  # Name for the core config.
+
+MAIN_CONF_NAME: Final = 'hammeraddons.vdf'
+MAIN_CONF_UPDATE_NAME = 'hammeraddons.new.vdf'
+PATHS_CONF_NAME: Final = 'hammeraddons_paths.vdf'
+GAMES_CONF_NAME: Final = 'hammeraddons_game.dmx'
 
 CONF_OLD_NAME: Final = 'srctools.vdf'
 PATHS_OLD_NAME: Final = 'srctools_paths.vdf'
@@ -56,7 +60,8 @@ USED_PACK_TAGS: set[str] = {
     'hl1', 'hl2', 'episodic',
     'tf2',
     'mapbase', 'entropyzero2',
-    'mesa', 'p2',
+    'mesa',
+    'p2', 'strata',
 }
 
 PATHS_CONF_STARTER: Final = f'''\
@@ -103,7 +108,7 @@ def make_expander(roots: ExpanderRoots, orig_root: Path) -> Expander:
                 except KeyError:
                     LOGGER.warning(
                         '|{}| is not defined in {}! Assuming {}\nKnown: {}',
-                        ref, PATHS_NAME, root,
+                        ref, PATHS_CONF_NAME, root,
                         ', '.join(sorted(roots)),
                     )
                 else:
@@ -152,6 +157,62 @@ def make_expander(roots: ExpanderRoots, orig_root: Path) -> Expander:
 
 
 @attrs.frozen(kw_only=True)
+class GameConfig:
+    """Special options defining the behaviour of the game itself.
+
+    Normally picked from shipped presets, only needs to be customised by mod devs.
+    """
+    # aliases: A list of additional names which can be used to refer to this game branch.
+
+    # The Steam ID for this branch, if unique. This allows gameinfo to be used to identify the branch.
+    # TODO: Good idea?
+    # steamid: str
+
+    # List of names which identify certain game branches. This is mainly used to tweak what
+    # resources specific entities require.
+    # See `USED_PACK_TAGS` further above for the possible values.
+    tags: frozenset[str]
+
+    # Before L4D, entity I/O used ',' to separate the different parts in VMFs/BSPs.
+    # After L4D, 0x1B is used. If the map already has I/O we can detect the correct value,
+    # but if not this is necessary to produce the right result.
+    io_comma_sep: bool
+
+    # All games support instances, but only post-L4D support instance I/O.
+    instance_proxies: bool
+
+    # Whether the game supports VScript. A bunch of features are turned off if not.
+    vscript: bool
+    # If set, the game has an alternate character to use in RunScriptCode, so quotes can be used.
+    # MapBase uses double '', while TF2 uses `.
+    vscript_quote: str
+
+    # If set, the filename to use for packed particles manifest, where "<map name>" is replaced.
+    # Examples:
+    # * particles/particles_manifest.txt
+    # * maps/<map name>_particles.txt (TF2, Portal 2)
+    # * particles/<map name>_manifest.txt (L4D2)
+    particles_manifest: str
+
+    # Location of StudioMDL, relative to the game root.
+    studiomdl_path: str
+
+    @classmethod
+    def parse(cls, root: Element) -> Self:
+        """Parse from a DMX element."""
+        # Only advanced users should need to change this, tracebacks are fine.
+        return cls(
+            tags=frozenset({tag.casefold() for tag in root['tags'].iter_string()}),
+            io_comma_sep=root['io_comma_sep'].val_bool,
+            instance_proxies=root['instance_proxies'].val_bool,
+            vscript=root['vscript'].val_bool,
+            vscript_quote=root['vscript_quote'].val_str,
+            particles_manifest=root['particles_manifest'].val_str,
+            studiomdl_path=root['studiomdl_path'].val_str,
+        )
+
+
+@attrs.frozen(kw_only=True)
 class Config:
     """Result of parse()."""
     opts: Options
@@ -185,7 +246,7 @@ def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
         map_path /= 'unused'
 
     for folder in map_path.parents:
-        conf_path = folder / CONF_NAME
+        conf_path = folder / MAIN_CONF_NAME
         if not conf_path.exists():
             conf_path = folder / CONF_OLD_NAME
         if conf_path.exists():
@@ -204,7 +265,7 @@ def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
     else:
         # Give up, put next to the input path.
         folder = map_path.parent
-    conf_path = folder / CONF_NAME
+    conf_path = folder / MAIN_CONF_NAME
 
     LOGGER.warning('Writing default to "{}"', conf_path)
     return conf_path, Keyvalues.root()
@@ -213,7 +274,7 @@ def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
 def load_paths_config(main_conf: Path) -> ExpanderRoots:
     """Load the hammeraddons_paths.vdf config file."""
     roots: ExpanderRoots = {}
-    conf_loc = main_conf.with_name(PATHS_NAME)
+    conf_loc = main_conf.with_name(PATHS_CONF_NAME)
     legacy_loc = main_conf.with_name(PATHS_OLD_NAME)
     for loc in [conf_loc, legacy_loc]:
         LOGGER.info('Paths config: {}', loc)
@@ -380,7 +441,7 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
         if file_version == runtime_version:
             LOGGER.info('Config up to date.')
             return False  # No update required.
-        write_path = conf_path.with_name(CONF_UPDATE_NAME)
+        write_path = conf_path.with_name(MAIN_CONF_UPDATE_NAME)
         updated = True
         LOGGER.info('Saving updated config to {}...', write_path)
     main.set_opt(VERSION, runtime_version)
@@ -407,10 +468,10 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
     conf_path, conf_kv = find_conf(map_path)
 
     LOGGER.info('Loading main config options...')
-    opts = Options(MAIN_NAME, MAIN_VERSION, globals())
+    opts = Options(MAIN_SECTION_NAME, MAIN_VERSION, globals())
     # "Config" {} is the old location
     try:
-        main_kv = conf_kv.find_block(MAIN_NAME)
+        main_kv = conf_kv.find_block(MAIN_SECTION_NAME)
     except NoKeyError:
         # Legacy location.
         main_kv = conf_kv.find_block('config', or_blank=True)
