@@ -195,33 +195,8 @@ async def main(argv: list[str]) -> None:
         except FileNotFoundError:
             pass  # Already empty.
 
-    use_comma_sep = conf.opts.get(config.USE_COMMA_SEP)
-    if use_comma_sep is None:
-        # Guess the format, by checking existing outputs.
-        used_comma_sep = {
-            out.comma_sep
-            for ent in bsp_file.ents.entities
-            for out in ent.outputs
-        }
-        try:
-            [bsp_file.out_comma_sep] = used_comma_sep
-        except ValueError:
-            if used_comma_sep:
-                LOGGER.warning("Both BSP I/O formats in map? This shouldn't be possible.")
-            else:
-                LOGGER.warning('No outputs in map, could not determine BSP I/O format!')
-            LOGGER.warning('Set "use_comma_sep" in srctools.vdf.')
-            bsp_file.out_comma_sep = False  # Kinda arbitrary.
-    else:
-        bsp_file.out_comma_sep = use_comma_sep
+    bsp_file.out_comma_sep = conf.game_conf.io_comma_sep
     transform_conf = {prop.name: prop for prop in conf.opts.get(config.TRANSFORM_OPTS)}
-
-    pack_tags = frozenset({
-        prop.name.upper()
-        for prop in
-        conf.opts.get(config.PACK_TAGS)
-        if conv_bool(prop.value)
-    })
 
     LOGGER.info('Running transforms...')
     await run_transformations(
@@ -229,9 +204,8 @@ async def main(argv: list[str]) -> None:
         conf.fsys, packlist,
         bsp_file,
         conf.game,
-        studiomdl_loc,
+        conf.game_conf,
         transform_conf,
-        pack_tags,
         disabled={name.strip().casefold() for name in conf.opts.get(config.DISABLED_TRANSFORMS).split(',')},
         modelcompile_dump=modelcompile_dump,
     )
@@ -300,7 +274,7 @@ async def main(argv: list[str]) -> None:
         packlist.pack_from_ents(
             bsp_file.ents,
             mapname=Path(bsp_file.filename).stem,  # TODO: Include directories?
-            tags=pack_tags,
+            tags=conf.game_conf.tags,
         )
 
         packlist.pack_from_bsp(bsp_file)
@@ -308,9 +282,13 @@ async def main(argv: list[str]) -> None:
         packlist.eval_dependencies()
         if conf.opts.get(config.SOUNDSCRIPT_MANIFEST):
             packlist.write_soundscript_manifest()
-        man_name = conf.opts.get(config.PARTICLES_MANIFEST)
-        if man_name:
-            man_name = man_name.replace('<map name>', path.stem)
+        if conf.opts.get(config.PARTICLES_MANIFEST):
+            man_name = conf.game_conf.particles_manifest.replace('<map name>', path.stem)
+            if not man_name:
+                raise ValueError(
+                    'Packing particle manifest requested, but filename not known. '
+                    'Update hammeraddons_game.vdf, or report as a bug!'
+                )
             LOGGER.info('Writing particle manifest "{}"...', man_name)
             packlist.write_particles_manifest(man_name)
     if auto_pack and not args.allow_pack:

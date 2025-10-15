@@ -6,6 +6,7 @@ import sys
 import pytest
 
 from hammeraddons.bsp_transform import Context, TRANSFORMS
+from hammeraddons.config import GameConfig
 from srctools.bsp import BSP
 from srctools.filesys import FileSystemChain
 from srctools.game import Game
@@ -17,6 +18,15 @@ def blank_ctx(shared_datadir: Path) -> Context:
     """Build a blank context."""
     bsp = BSP(shared_datadir / 'blank.bsp')
     game = Game(shared_datadir)
+    game_conf = GameConfig(
+        tags=frozenset(),
+        io_comma_sep=False,
+        instance_proxies=True,
+        vscript=True,
+        vscript_quote='',
+        particles_manifest='',
+        studiomdl_path=None,
+    )
     fsys = FileSystemChain()
     return Context(
         fsys,
@@ -24,6 +34,7 @@ def blank_ctx(shared_datadir: Path) -> Context:
         PackList(fsys),
         bsp,
         game,
+        game_conf,
     )
 
 
