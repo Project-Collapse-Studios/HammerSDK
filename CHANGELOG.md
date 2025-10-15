@@ -6,6 +6,7 @@
 
 ## Enhancements
 * Upgraded config handling:
+  * Files have been renamed to `hammeraddons.vdf` etc, instead of `srctools`. Old names are still loaded.
   * Config files will no longer be rewitten. Instead any changes will produce a new file, which
     should be merged with any comments in the old one, then copied over.
   * Plugin scripts can now register their own config options, in addition to builtin ones.

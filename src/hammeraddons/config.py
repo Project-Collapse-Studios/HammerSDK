@@ -35,9 +35,12 @@ __all__ = [
 LOGGER = logger.get_logger(__name__)
 MAIN_VERSION: Final = 1  # Ordinal version for the core configs.
 MAIN_NAME: Final = 'postcompiler'  # Name for the core config.
-CONF_NAME: Final = 'srctools.vdf'
-CONF_UPDATE_NAME = 'srctools.new.vdf'
-PATHS_NAME: Final = 'srctools_paths.vdf'
+CONF_NAME: Final = 'hammeraddons.vdf'
+CONF_UPDATE_NAME = 'hammeraddons.new.vdf'
+PATHS_NAME: Final = 'hammeraddons_paths.vdf'
+
+CONF_OLD_NAME: Final = 'srctools.vdf'
+PATHS_OLD_NAME: Final = 'srctools_paths.vdf'
 
 PATH_KEY_GAME: Final = 'gameinfo_path'
 PATH_KEY_MAP: Final = 'mapdir_path'
@@ -170,7 +173,7 @@ class Config:
 def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
     """From some directory, locate the config files.
 
-    The first srctools.vdf file found in a parent directory is parsed.
+    The first hammeraddons.vdf file found in a parent directory is parsed.
     If none can be found, it tries to find the first subfolder of 'common/' and
     writes a default copy there. FileNotFoundError is raised if none can be
     found.
@@ -183,6 +186,8 @@ def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
 
     for folder in map_path.parents:
         conf_path = folder / CONF_NAME
+        if not conf_path.exists():
+            conf_path = folder / CONF_OLD_NAME
         if conf_path.exists():
             LOGGER.info('Config path: "{}"', conf_path.absolute())
             with open(conf_path, encoding='utf8') as f:
@@ -205,28 +210,35 @@ def find_conf(map_path: Path) -> tuple[Path, Keyvalues]:
     return conf_path, Keyvalues.root()
 
 
-def load_paths_config(conf_path: Path) -> ExpanderRoots:
-    """Load the srctools_paths config file."""
-    path_roots: ExpanderRoots = {}
-    paths_conf_loc = conf_path.with_name(PATHS_NAME)
-    LOGGER.info('Paths config: {}', paths_conf_loc)
-    try:
-        with open(paths_conf_loc, encoding='utf8') as f:
-            for kv in Keyvalues.parse(f).find_children('Paths'):
-                if kv.has_children():
-                    LOGGER.warning('Paths configs may not be blocks!')
-                else:
-                    name = kv.name.strip('|')
-                    if name in PREDEFINED_PATHS:
-                        LOGGER.warning(
-                            '|{}| cannot be defined in the path config - '
-                            'the following names are builtin: {}',
-                            kv.name, sorted(PREDEFINED_PATHS),
-                        )
-                    path_roots[name] = Path(kv.value)
-    except FileNotFoundError:
-        paths_conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
-    return path_roots
+def load_paths_config(main_conf: Path) -> ExpanderRoots:
+    """Load the hammeraddons_paths.vdf config file."""
+    roots: ExpanderRoots = {}
+    conf_loc = main_conf.with_name(PATHS_NAME)
+    legacy_loc = main_conf.with_name(PATHS_OLD_NAME)
+    for loc in [conf_loc, legacy_loc]:
+        LOGGER.info('Paths config: {}', loc)
+        try:
+            with open(loc, encoding='utf8') as f:
+                for kv in Keyvalues.parse(f).find_children('Paths'):
+                    if kv.has_children():
+                        LOGGER.warning('Paths configs may not be blocks!')
+                    else:
+                        name = kv.name.strip('|')
+                        if name in PREDEFINED_PATHS:
+                            LOGGER.warning(
+                                '|{}| cannot be defined in the path config - '
+                                'the following names are builtin: {}',
+                                kv.name, sorted(PREDEFINED_PATHS),
+                            )
+                        roots[name] = path = Path(kv.value).resolve()
+                        LOGGER.info('Path |{}| = {}', name, path)
+            break  # Found
+        except FileNotFoundError:
+            pass
+    else:
+        LOGGER.info('Writing initial paths config to {}', conf_loc)
+        conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
+    return roots
 
 
 def calc_searchpaths(
@@ -335,6 +347,7 @@ def parse_plugin_confs(plugins: PluginFinder, kv: Keyvalues) -> dict[str, Option
             continue
         LOGGER.info('Loading config for plugin "{}" under key "{}"', module.__name__, conf.name)
         name = conf.name.casefold()
+        # Most of these aren't used, but reserve them for if we do.
         if name in {'precompiler', 'packer', 'postcompiler', 'hammeraddons', 'srctools'}:
             raise ValueError(f'Config key "{conf.name}" is reserved for core configuration!')
         if name in confs:
@@ -384,7 +397,7 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
         LOGGER.warning(
             'Hammeraddons configurations have updated. A new file has been saved as:\n'
             f'{write_path}\n'
-            'Compare with your old configuration and update any settings, then overwrite srctools.vdf.'
+            'Compare with your old configuration and update any settings, then save as hammeraddons.vdf.'
         )
     return updated or new
 
@@ -482,7 +495,7 @@ def packfile_filters(block: Keyvalues, kind: str) -> Iterator[re.Pattern[str]]:
 VERSION = Opt.string(
     'version', '',
     """A unique ID to identify the config version. 
-    If available options change, a new copy of the config is saved as srctools.new.vdf. Copy over
+    If available options change, a new copy of the config is saved as hammeraddons.new.vdf. Copy over
     any changes to that file, then overwrite the original config."""
 )
 
