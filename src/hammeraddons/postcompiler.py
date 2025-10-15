@@ -181,17 +181,6 @@ async def main(argv: list[str]) -> None:
     LOGGER.info('Mounting BSP packfile...')
     conf.fsys.add_sys(ZipFileSystem('<BSP pakfile>', bsp_file.pakfile))
 
-    studiomdl_path = conf.opts.get(config.STUDIOMDL)
-    studiomdl_loc: Path | None
-    if studiomdl_path:
-        studiomdl_loc = conf.expand_path(studiomdl_path)
-        if not studiomdl_loc.exists():
-            LOGGER.warning('No studiomdl found at "{}"!', studiomdl_loc)
-            studiomdl_loc = None
-    else:
-        LOGGER.warning('No studiomdl path provided.')
-        studiomdl_loc = None
-
     modelcompile_dump_str = conf.opts.get(config.MODEL_COMPILE_DUMP)
     modelcompile_dump = conf.expand_path(modelcompile_dump_str) / path.stem if modelcompile_dump_str else None
     if modelcompile_dump is not None:
@@ -247,7 +236,7 @@ async def main(argv: list[str]) -> None:
         modelcompile_dump=modelcompile_dump,
     )
 
-    if studiomdl_loc is not None and args.propcombine:
+    if conf.game_conf.studiomdl_path is not None and args.propcombine:
         decomp_cache_path = conf.opts.get(config.PROPCOMBINE_CACHE)
         decomp_cache_loc: Path | None
         crowbar_loc: Path | None
@@ -275,7 +264,7 @@ async def main(argv: list[str]) -> None:
             bsp_file.ents,
             packlist,
             conf.game,
-            studiomdl_loc,
+            conf.game_conf.studiomdl_path,
             qc_folders=conf.opts.get(config.PROPCOMBINE_QC_FOLDER).as_array(conv=conf.expand_path),
             decomp_cache_loc=decomp_cache_loc,
             crowbar_loc=crowbar_loc,

@@ -21,7 +21,7 @@ from .props_config import Opt, Options
 
 
 __all__ = [
-    "Expander", "Config", "parse",
+    "Expander", "Config", "GameConfig", "parse",
 
     # Options
     "VERSION", "GAMEINFO", "AUTO_PACK", "PACK_VPK", "PACK_DUMP", "PACK_STRIP_CUBEMAPS",
@@ -195,20 +195,31 @@ class GameConfig:
     particles_manifest: str
 
     # Location of StudioMDL, relative to the game root.
-    studiomdl_path: str
+    studiomdl_path: Path | None
 
     @classmethod
-    def parse(cls, root: Element) -> Self:
+    def parse(cls, root: Element, expand_path: Expander) -> Self:
         """Parse from a DMX element."""
         # Only advanced users should need to change this, tracebacks are fine.
+        studiomdl_raw = root['studiomdl_path'].val_str
+
+        if studiomdl_raw:
+            studiomdl_path = expand_path(studiomdl_raw)
+            if not studiomdl_path.exists():
+                LOGGER.warning('No studiomdl found at "{}"!', studiomdl_path)
+                studiomdl_path = None
+        else:
+            LOGGER.warning('No studiomdl path provided.')
+            studiomdl_path = None
+
         return cls(
-            tags=frozenset({tag.casefold() for tag in root['tags'].iter_string()}),
+            tags=frozenset({tag.upper() for tag in root['tags'].iter_string()}),
             io_comma_sep=root['io_comma_sep'].val_bool,
             instance_proxies=root['instance_proxies'].val_bool,
             vscript=root['vscript'].val_bool,
             vscript_quote=root['vscript_quote'].val_str,
             particles_manifest=root['particles_manifest'].val_str,
-            studiomdl_path=root['studiomdl_path'].val_str,
+            studiomdl_path=studiomdl_path,
         )
 
 
@@ -217,6 +228,7 @@ class Config:
     """Result of parse()."""
     opts: Options
     game: Game
+    game_conf: GameConfig
     fsys: FileSystemChain
     pack_blacklist: set[FileSystem]
     plugins: PluginFinder
@@ -356,7 +368,7 @@ def calc_searchpaths(
     return fsys_chain, blacklist
 
 
-def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
+def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) -> GameConfig:
     """Locate the game configuration to use.
 
     This can either use hammeraddons_game.vdf next to gameinfo, or lookup from an inbuilt file.
@@ -383,9 +395,9 @@ def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
                     f'or have it as a root element.'
                 )
             [name] = names
-            return GameConfig.parse(mod_conf[name].val_elem)
+            return GameConfig.parse(mod_conf[name].val_elem, expand_path)
         else:
-            return GameConfig.parse(mod_conf)
+            return GameConfig.parse(mod_conf, expand_path)
     # No override file, load our own.
     package = importlib.resources.files('hammeraddons')
     with (package / 'games.dmx').open('rb') as f:
@@ -406,7 +418,7 @@ def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
             selected == alias.casefold() for alias in elem['aliases'].iter_string()
         ):
             LOGGER.info('Selected game: {}', name)
-            return GameConfig.parse(elem)
+            return GameConfig.parse(elem, expand_path)
         name_report.append((elem.name, list(elem['aliases'].iter_string())))
 
     raise ValueError(
@@ -581,11 +593,12 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
         sys.exit(2)
 
     # Identify which game we have.
-    game_conf = parse_games_conf(opts, game.path)
+    game_conf = parse_games_conf(opts, game.path, expand_path)
 
     return Config(
         opts=opts,
         game=game,
+        game_conf=game_conf,
         fsys=fsys,
         pack_blacklist=pack_blacklist,
         plugins=plugins,
