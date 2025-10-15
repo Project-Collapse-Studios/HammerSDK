@@ -25,8 +25,8 @@ __all__ = [
 
     # Options
     "VERSION", "GAMEINFO", "AUTO_PACK", "PACK_VPK", "PACK_DUMP", "PACK_STRIP_CUBEMAPS",
-    "PACK_TAGS", "PACK_ALLOWLIST", "PACK_BLOCKLIST", "SEARCHPATHS", "SOUNDSCRIPT_MANIFEST",
-    "PARTICLES_MANIFEST", "STUDIOMDL", "MODEL_COMPILE_DUMP", "USE_COMMA_SEP",
+    "PACK_ALLOWLIST", "PACK_BLOCKLIST", "SEARCHPATHS", "SOUNDSCRIPT_MANIFEST",
+    "PARTICLES_MANIFEST", "MODEL_COMPILE_DUMP",
     "PROPCOMBINE_QC_FOLDER", "PROPCOMBINE_CROWBAR", "PROPCOMBINE_CACHE",
     "PROPCOMBINE_VOLUME_TOLERANCE", "PROPCOMBINE_MIN_AUTO_RANGE", "PROPCOMBINE_MAX_AUTO_RANGE",
     "PROPCOMBINE_MIN_CLUSTER", "PROPCOMBINE_MIN_CLUSTER_AUTO", "PROPCOMBINE_BLACKLIST",
@@ -307,15 +307,7 @@ def calc_searchpaths(
 ) -> tuple[FileSystemChain, set[FileSystem]]:
     """Apply the searchpaths option to the loaded filesystem."""
     fsys_chain = game.get_filesystem()
-
     blacklist: set[FileSystem] = set()
-
-    # Add in new pack tags to the config.
-    pack_tags = opts.get(PACK_TAGS)
-    for tag in USED_PACK_TAGS:
-        if tag not in pack_tags:
-            pack_tags[tag] = '0'
-    opts.set_opt(PACK_TAGS, pack_tags)
 
     if not opts.get(PACK_VPK):
         for fsys, prefix in fsys_chain.systems:
@@ -629,9 +621,16 @@ VERSION = Opt.string(
 
 GAMEINFO = Opt.string_or_none(
     'gameinfo',
-    """The main game folder. portal2/ for Portal 2, csgo/ for CSGO, etc.
+    """The main game folder. portal2/ for Portal 2, episodic/ for Episode 1, etc.
     This is relative to the config file.
     """,
+)
+
+GAME_BRANCH = Opt.string(
+    'game', "",
+    """The name of the game/mod, used to idenfity various game behaviours like VScript support.
+    If a hammeraddons_game.dmx file is found next to gameinfo.txt, that is used instead of this.
+    """
 )
 
 AUTO_PACK = Opt.boolean(
@@ -663,14 +662,6 @@ PACK_STRIP_CUBEMAPS = Opt.boolean(
     
     This is equivalent to adding {CUBEMAP_REGEX!r} as a regex "pack_blocklist".
     """
-)
-
-PACK_TAGS = Opt.block(
-    'pack_tags', Keyvalues('', [Keyvalues(tag, '0') for tag in sorted(USED_PACK_TAGS)]),
-    """\
-    Specify various tags to indicate what features this game branch includes. This is used
-    to accurately include resources for entities that have changed over time.
-    """,
 )
 
 PACK_ALLOWLIST = Opt.block(
@@ -720,23 +711,9 @@ SOUNDSCRIPT_MANIFEST = Opt.boolean(
     """,
 )
 
-PARTICLES_MANIFEST = Opt.string(
-    'particles_manifest', '',
-    """If set to a path, generate and pack a particles manifest under this name.     
-    This is needed to make packing particles work. "<map name>" is replaced with the map name.
-    Depending on your game, these are some of the correct paths:
-    * particles/particles_manifest.txt
-    * maps/<map name>_particles.txt (TF2, Portal 2)
-    * particles/<map name>_manifest.txt (L4D2)
-    """,
-)
-
-STUDIOMDL = Opt.string(
-    'studiomdl', 'bin/studiomdl.exe',
-    """Set the path to StudioMDL so the compiler can generate props.
-    If blank these features are disabled.
-    This is relative to the game root.
-    """,
+PARTICLES_MANIFEST = Opt.boolean(
+    'particles_manifest', False,
+    """If enabled, generate and pack a particles manifest automatically.""",
 )
 
 MODEL_COMPILE_DUMP = Opt.string(
@@ -746,15 +723,6 @@ MODEL_COMPILE_DUMP = Opt.string(
     prevent it filling up with old model sources. Move things out that you want to keep.
 """)
 
-USE_COMMA_SEP = Opt.boolean_or_none(
-    'use_comma_sep',
-    """Before L4D, entity I/O used ',' to separate the different parts.
-
-   Later games used a special symbol to delimit the sections, allowing
-   commas to be used in outputs. The compiler will guess which to use
-   based on existing outputs in the map, but if this is incorrect 
-   (or if there aren't any in the map), use this to override.
-""")
 
 PROPCOMBINE_QC_FOLDER = Opt.block(
     'propcombine_qc_folder',
