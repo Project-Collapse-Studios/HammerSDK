@@ -61,8 +61,8 @@ def vscript_init_code(ctx: Context) -> None:
 def vscript_runscript_inputs(ctx: Context) -> None:
     """Handle RunScript* inputs.
 
-    For RunScriptCode, allow using quotes in the parameter.  TF2 implements this in game code,
-    so we don't need to do it there.
+    For RunScriptCode, allow using quotes in the parameter. TF2 and Strata implements this
+    in game code, so we don't need to do it there.
 
     This is done by using ` as a replacement for double-quotes,
     then synthesising a script file and using RunScriptFile to execute it.
@@ -79,7 +79,26 @@ def vscript_runscript_inputs(ctx: Context) -> None:
             inp_name = out.input.casefold()
             if inp_name == 'runscriptfile':
                 ctx.pack.pack_file('scripts/vscripts/' + out.params, FileType.VSCRIPT_SQUIRREL)
-            elif inp_name == 'runscriptcode' and not quote_char and '`' in out.params:
+            elif inp_name == 'runscriptcode':
+                if quote_char == '`':
+                    # Our syntax is natively supported (TF2), so we don't need to do anything.
+                    continue
+                if '`' not in out.params and len(out.params) < 255:
+                    # No backticks, and the parameter is a safe size, leave it alone.
+                    continue
+
+                if quote_char:
+                    # Try using the native syntax.
+                    native = out.params.replace('`', quote_char)
+                    # Mapbase uses '', don't let us overflow the max entity parameter size.
+                    if len(native) < 255:
+                        out.params = native
+                        continue
+                    else:
+                        # Failed, need to pack. Convert the replacement char into real quotes.
+                        # If quote char is ` or " this is redundant, but that's fine.
+                        out.params = out.params.replace(quote_char, '"')
+
                 out.params = ctx.pack.inject_vscript(out.params.replace('`', '"'))
                 out.input = 'RunScriptFile'
 
