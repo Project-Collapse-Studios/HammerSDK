@@ -7,11 +7,27 @@ from srctools.dmx import Element as DMXElem
 from PyInstaller.utils.hooks import collect_submodules
 import versioningit
 
+from hammeraddons.config import GameConfig
+
 # PyInstaller-injected.
 SPECPATH: str
 workpath: str
 
 root = Path(SPECPATH)  # noqa
+
+# Resave the games config as a binary DMX.
+with open(root / 'games.dmx', 'rb') as f:
+    print('Reading: ', f.name)
+    games_conf, games_fmt_name, games_fmt_ver = DMXElem.parse(f)
+
+# Validate all the options, by parsing them.
+for game_attr in games_conf.values():
+    if game_attr.name != 'name':
+        try:
+            GameConfig.parse(game_attr.val_elem, Path)
+        except Exception as exc:
+            exc.add_note(f'Bad config: {game_attr!r}')
+            raise
 
 version = versioningit.get_version(SPECPATH, {
     'vcs': {'method': 'git'},
@@ -90,10 +106,6 @@ for file in (root / 'transforms').rglob('*.py'):
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(file, dest)
 
-# Resave the games config as a binary DMX.
-with open(root / 'games.dmx', 'rb') as f:
-    print('Reading: ', f.name)
-    games_conf, games_fmt_name, games_fmt_ver = DMXElem.parse(f)
 with open(app_folder / 'binaries' / 'games.dmx', 'wb') as f:
     print('Writing: ', f.name)
     games_conf.export_binary(f, fmt_name=games_fmt_name, fmt_ver=games_fmt_ver, unicode='format')
