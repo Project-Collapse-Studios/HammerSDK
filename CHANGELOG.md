@@ -11,6 +11,8 @@
     should be merged with any comments in the old one, then copied over.
   * Plugin scripts can now register their own config options, in addition to builtin ones.
   * Searchpaths 'nopack' option now allows wildcards for disabling locations in bulk.
+* Moved options specifying the behaviour of the current game branch to a dedicated file, 
+  so users only need to pick from presets.
 * Added 1/16 scale skybox mode for vactube system. You'll need to provide your own models or use prop scaling.
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.
