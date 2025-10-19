@@ -80,11 +80,11 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
     @classmethod
     def from_ctx(cls, ctx: Context, folder_name: str, version: object = 0) -> 'ModelCompiler':
         """Convenience method to construct from the context's data."""
-        if ctx.studiomdl is None:
+        if ctx.game_conf.studiomdl_path is None:
             raise ValueError('No StudioMDL!')
         return cls(
             ctx.game,
-            ctx.studiomdl,
+            ctx.game_conf.studiomdl_path,
             ctx.pack,
             ctx.bsp_path.stem,
             folder_name,
@@ -102,6 +102,7 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
         os.makedirs(self.model_folder_abs, exist_ok=True)
 
         if force_regen:
+            LOGGER.error('Forcing regen!!')
             return self  # Skip loading.
 
         data: list[tuple[ModelKey, str, OutT]]
@@ -114,6 +115,7 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
                 else:  # V0, no number.
                     data = result
         except FileNotFoundError:
+            LOGGER.info('No such file: models/{}/manifest.bin', self.model_folder)
             return self
         except Exception:
             LOGGER.warning(
@@ -126,6 +128,7 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
 
         if version != self.version:
             # Different version, ignore the data.
+            LOGGER.info('Version mismatch: {} != {}', version, self.version)
             return self
 
         for mdl_name in self.model_folder_abs.glob('*.mdl'):
@@ -135,11 +138,14 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
             try:
                 key, name, mdl_result = tup
                 if not isinstance(name, str):
+                    LOGGER.warning('tup[2] (name) is not a string in existing model: {}', tup)
                     continue
             except ValueError:
+                LOGGER.warning('Invalid existing model: {}', tup)
                 continue  # Malformed, ignore.
             if name in self._mdl_names:
                 self._built_models.load(key, GenModel(name, mdl_result))
+                LOGGER.debug('Existing model: {} = {!r}', name, key)
             else:
                 LOGGER.warning('Model in manifest but not present: {}', name)
 
