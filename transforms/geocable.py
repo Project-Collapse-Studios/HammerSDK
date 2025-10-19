@@ -439,7 +439,7 @@ def save_mesh(mesh: Mesh, path: Path) -> None:
 class CompKey:
     """Key to allow reusing previous compiles."""
     entities: tuple[NodeEnt, ...]
-    connections: tuple[tuple[NodeID, NodeID], ...]
+    connections: frozenset[tuple[NodeID, NodeID]]
     skins: tuple[str, ...]
     vac_type: VactubeGenPartType
     dump_debug_info: bool
@@ -469,7 +469,7 @@ class CompKey:
         for node in node_list:
             id_remap[node.id] = new_id = NodeID(format(next(id_gen), 'x'))
             new_nodes.append(attrs.evolve(node, id=new_id))
-        new_conns = tuple([
+        new_conns = frozenset([
             (id_remap[node1], id_remap[node2])
             for node1, node2 in connections
         ])
@@ -1581,7 +1581,7 @@ async def comp_prop_rope(ctx: Context) -> None:
     # all connections from it to other nodes.
     todo = set(all_nodes.values())
     compiler: RopeBuilder
-    with ModelCompiler.from_ctx(ctx, 'ropes', version=4) as compiler:
+    with ModelCompiler.from_ctx(ctx, 'ropes', version=5) as compiler:
         async with trio.open_nursery() as nursery:
             while todo:
                 dyn_ents: list[Entity] = []

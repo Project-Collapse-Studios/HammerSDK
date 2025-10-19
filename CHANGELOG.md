@@ -20,6 +20,7 @@
 * Fix vactube objects appearing to rapidly move from end to start positions in some cases.
 * Automatically remove old generated vactube animation models.
 * Fix an issue where prop ropes generated with slight angles on straight sections.
+* Fix prop ropes not reusing existing compiled versions.
 * Fix `trigger_vphysics_motion`/`trigger_wind` having `OnStartTouch` etc outputs, which they don't have.
 
 -----------------------
