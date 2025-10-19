@@ -442,7 +442,9 @@ class CompKey:
     connections: frozenset[tuple[NodeID, NodeID]]
     skins: tuple[str, ...]
     vac_type: VactubeGenPartType
+    # TODO: Pass these as a single shared value?
     dump_debug_info: bool
+    translucent_needs_mostlyopaque: bool
 
     @classmethod
     def create(
@@ -450,7 +452,9 @@ class CompKey:
         nodes: Iterable[NodeEnt],
         connections: Iterable[tuple[NodeID, NodeID]],
         skins: Iterable[str], vac_type: VactubeGenPartType,
+        *,
         dump_debug_info: bool,
+        set_mostlyopaque: bool,
     ) -> 'CompKey':
         """Create the key to allow deduplication.
 
@@ -461,6 +465,7 @@ class CompKey:
         :param vac_type: Specifies whether to include the frame/glass part, if separation is used.
         :param dump_debug_info: Whether modelcompile_dump is set, and therefore should we dump
             debugging information.
+        :param set_mostlyopaque: Whether to set $mostlyopaque for translucent models.
         """
         id_gen = itertools.count()
         id_remap: dict[NodeID, NodeID] = {}
@@ -479,6 +484,7 @@ class CompKey:
             skins=tuple(skins),
             vac_type=vac_type,
             dump_debug_info=dump_debug_info,
+            translucent_needs_mostlyopaque=set_mostlyopaque,
         )
 
 # The compiler for ropes.
@@ -581,8 +587,7 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
 
     async with await trio.Path(temp_folder / 'model.qc').open('w') as f:
         if is_vactube:
-            # Desolation needs this hint.
-            if hasattr(Mesh, 'NEED_TRANSLUCENT_MOSTLYOPAQUE') and rope_key.vac_type is VactubeGenPartType.ALL:
+            if rope_key.translucent_needs_mostlyopaque and rope_key.vac_type is VactubeGenPartType.ALL:
                 await f.write('$mostlyopaque\n')
             elif rope_key.vac_type is VactubeGenPartType.FRAME:
                 await f.write('$opaque\n')
@@ -1354,6 +1359,7 @@ async def compile_rope(
 ) -> None:
     """Compile a single rope group."""
     dump_debug_info = ctx.modelcompile_dump is not None
+    set_mostlyopaque = ctx.game_conf.translucent_needs_mostlyopaque
     for ent in dyn_ents:
         origin = Vec.from_str(ent['origin'])
         dyn_nodes = [
@@ -1375,7 +1381,10 @@ async def compile_rope(
                 origin,
             )
         model_name, _ = await compiler.get_model(
-            CompKey.create(dyn_nodes, connections, skins, VactubeGenPartType.ALL, dump_debug_info),
+            CompKey.create(
+                dyn_nodes, connections, skins, VactubeGenPartType.ALL,
+                dump_debug_info=dump_debug_info, set_mostlyopaque=set_mostlyopaque,
+            ),
             build_rope,
             (ctx.pack.fsys, ),
             prefix='vac' if any(node.config.is_vactube for node in nodes) else 'rope',
@@ -1405,7 +1414,7 @@ async def compile_rope(
             CompKey.create(
                 local_nodes, connections, (),
                 VactubeGenPartType.FRAME if is_sep else VactubeGenPartType.ALL,
-                dump_debug_info,
+                dump_debug_info=dump_debug_info, set_mostlyopaque=set_mostlyopaque,
             ),
             build_rope,
             (ctx.pack.fsys, ),
@@ -1422,7 +1431,7 @@ async def compile_rope(
             model_name, (light_origin, coll_data, seg_props, _) = await compiler.get_model(
                 CompKey.create(
                     local_nodes, connections, (), VactubeGenPartType.GLASS,
-                    dump_debug_info,
+                    dump_debug_info=dump_debug_info, set_mostlyopaque=set_mostlyopaque,
                 ),
                 build_rope,
                 (ctx.pack.fsys, ),

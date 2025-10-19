@@ -187,6 +187,9 @@ class GameConfig:
     # MapBase uses double '', while TF2 uses ` A character of " indicates quoting is natively supported.
     vscript_quote: str
 
+    # Whether we need to use $mostlyopaque in all translucent models.
+    translucent_needs_mostlyopaque: bool
+
     # If set, the filename to use for packed particles manifest, where "<map name>" is replaced.
     # Examples:
     # * particles/particles_manifest.txt
@@ -202,6 +205,7 @@ class GameConfig:
         """Parse from a DMX element."""
         # Only advanced users should need to change this, tracebacks are fine.
         studiomdl_raw = root['studiomdl_path'].val_str
+        studiomdl_path: Path | None
 
         if studiomdl_raw:
             studiomdl_path = expand_path(studiomdl_raw)
@@ -216,6 +220,7 @@ class GameConfig:
             tags=frozenset({tag.upper() for tag in root['tags'].iter_string()}),
             io_comma_sep=root['io_comma_sep'].val_bool,
             instance_proxies=root['instance_proxies'].val_bool,
+            translucent_needs_mostlyopaque=root['translucent_needs_mostlyopaque'].val_bool,
             vscript=root['vscript'].val_bool,
             vscript_quote=root['vscript_quote'].val_str,
             particles_manifest=root['particles_manifest'].val_str,
@@ -422,8 +427,8 @@ def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) ->
         name_report.append((elem.name, list(elem['aliases'].iter_string())))
 
     raise ValueError(
-        f'No game configuration defined. Set "game" in hammeraddons.vdf to a valid game,'
-        f' or define your own hammeraddons_game.vdf if this is a custom mod. Valid games:\n' +
+        'No game configuration defined. Set "game" in hammeraddons.vdf to a valid game, '
+        'or define your own hammeraddons_game.vdf if this is a custom mod. Valid games:\n' +
         '\n'.join(
             f'- {name} ({", ".join(aliases)})' if aliases else f'- {name}'
             for name, aliases in name_report

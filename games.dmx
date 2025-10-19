@@ -15,13 +15,14 @@
 		"aliases" "string_array"
 			[
 			"HL2",
-			"Half Life 2",
+			"Half Life 2"
 			]
 
 		"tags" "string_array" ["hl2"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -39,13 +40,14 @@
 			"Episode1",
 			"Episode2",
 			"Episode 1",
-			"Episode 2",
+			"Episode 2"
 			]
 
 		"tags" "string_array" ["hl2", "episodic"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -61,6 +63,7 @@
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -72,13 +75,14 @@
 		"name" "string" "Team Fortress 2"
 		"aliases" "string_array"
 			[
-			"TF2",
+			"TF2"
 			]
 
 		"tags" "string_array" ["tf2"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "`"
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
@@ -90,13 +94,14 @@
 		"name" "string" "Portal 2"
 		"aliases" "string_array"
 			[
-			"Portal2", "P2",
+			"Portal2", "P2"
 			]
 
 		"tags" "string_array" ["p2"]
 
 		"io_comma_sep" "bool" "0"
 		"instance_proxies" "bool" "1"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
@@ -113,13 +118,14 @@
 		"aliases" "string_array"
 			[
 			"MapBase Half Life 2",
-			"MapBase Half-Life 2",
+			"MapBase Half-Life 2"
 			]
 
 		"tags" "string_array" ["mapbase", "hl2"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -134,13 +140,14 @@
 			"MapBase Ep1", 
 			"MapBase Ep2",
 			"MapBase Episode 1",
-			"MapBase Episode 2",
+			"MapBase Episode 2"
 			]
 
 		"tags" "string_array" ["mapbase", "hl2", "episodic"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -160,6 +167,7 @@
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
@@ -175,6 +183,7 @@
 
 		"io_comma_sep" "bool" "0"
 		"instance_proxies" "bool" "1"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "" // Not sure.
@@ -190,6 +199,7 @@
 
 		"io_comma_sep" "bool" "0"
 		"instance_proxies" "bool" "1"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
@@ -208,6 +218,7 @@
 
 		"io_comma_sep" "bool" "0"
 		"instance_proxies" "bool" "1"
+		"translucent_needs_mostlyopaque" "bool" "0"
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "\""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
