@@ -435,48 +435,61 @@ def save_mesh(mesh: Mesh, path: Path) -> None:
         mesh.export(fb)
 
 
+@attrs.frozen(kw_only=True, hash=True)
+class CompKey:
+    """Key to allow reusing previous compiles."""
+    entities: tuple[NodeEnt, ...]
+    connections: tuple[tuple[NodeID, NodeID], ...]
+    skins: tuple[str, ...]
+    vac_type: VactubeGenPartType
+    dump_debug_info: bool
+
+    @classmethod
+    def create(
+        cls,
+        nodes: Iterable[NodeEnt],
+        connections: Iterable[tuple[NodeID, NodeID]],
+        skins: Iterable[str], vac_type: VactubeGenPartType,
+        dump_debug_info: bool,
+    ) -> 'CompKey':
+        """Create the key to allow deduplication.
+
+        We have to recalculate the IDs, as the originals are the hammer IDs.
+        :param nodes: All nodes in the model, relative to a model origin.
+        :param connections: Pairs of links between node IDs.
+        :param skins: Skin materials to apply, with the first used in the nodes.
+        :param vac_type: Specifies whether to include the frame/glass part, if separation is used.
+        :param dump_debug_info: Whether modelcompile_dump is set, and therefore should we dump
+            debugging information.
+        """
+        id_gen = itertools.count()
+        id_remap: dict[NodeID, NodeID] = {}
+        node_list = sorted(nodes, key=lambda node: tuple(node.pos))
+        new_nodes = []
+        for node in node_list:
+            id_remap[node.id] = new_id = NodeID(format(next(id_gen), 'x'))
+            new_nodes.append(attrs.evolve(node, id=new_id))
+        new_conns = tuple([
+            (id_remap[node1], id_remap[node2])
+            for node1, node2 in connections
+        ])
+        return cls(
+            entities=tuple(new_nodes),
+            connections=new_conns,
+            skins=tuple(skins),
+            vac_type=vac_type,
+            dump_debug_info=dump_debug_info,
+        )
+
 # The compiler for ropes.
 type RopeBuilder = ModelCompiler[CompKey, CompArgs, CompResult]
 
-# Key to allow reusing previous compiles. See make_key() below for definition.
-type CompKey = tuple[tuple[NodeEnt, ...], tuple[tuple[NodeID, NodeID], ...], tuple[str, ...], VactubeGenPartType, bool]
 # Additional parameters used during compile, provided new each time. We just pass the filesystem for lookups.
 type CompArgs = tuple[FileSystem]
 # Additional results of the compile, persisted to return later.
 # Returns the lighting origin, collision shape, segments to place, and for vactubes a list of
 # points for each curve, to produce the functional version.
 type CompResult = tuple[Vec, CollData, list[SegProp], list[list[Vec]]]
-
-
-def make_key(
-    nodes: Iterable[NodeEnt],
-    connections: Iterable[tuple[NodeID, NodeID]],
-    skins: Iterable[str],
-    vac_type: VactubeGenPartType,
-    dump_debug_info: bool,
-) -> CompKey:
-    """Create the key to allow deduplication.
-
-    We have to recalculate the IDs, as the originals are the hammer IDs.
-    :param nodes: All nodes in the model, relative to a model origin.
-    :param connections: Pairs of links between node IDs.
-    :param skins: Skin materials to apply, with the first used in the nodes.
-    :param vac_type: Specifies whether to include the frame/glass part, if separation is used.
-    :param dump_debug_info: Whether modelcompile_dump is set, and therefore should we dump
-        debugging information.
-    """
-    id_gen = itertools.count()
-    id_remap: dict[NodeID, NodeID] = {}
-    node_list = sorted(nodes, key=lambda node: tuple(node.pos))
-    new_nodes = []
-    for node in node_list:
-        id_remap[node.id] = new_id = NodeID(format(next(id_gen), 'x'))
-        new_nodes.append(attrs.evolve(node, id=new_id))
-    new_conns = tuple(
-        (id_remap[node1], id_remap[node2])
-        for node1, node2 in connections
-    )
-    return tuple(new_nodes), new_conns, tuple(skins), vac_type, dump_debug_info
 
 
 async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: CompArgs) -> CompResult:
@@ -488,14 +501,13 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     :param args: Information that is only required for this compile
     """
     LOGGER.info('Building rope {}', mdl_name)
-    [ents, connections, skins, vacgentype, dump_debug_info] = rope_key
     [fsys] = args
 
     mesh = Mesh.blank('root')
     coll_mesh = Mesh.blank('root')
     [bone] = mesh.bones.values()
 
-    nodes, coll_nodes = build_node_tree(ents, connections)
+    nodes, coll_nodes = build_node_tree(rope_key.entities, rope_key.connections)
 
     interpolate_all(nodes)
     compute_orients(nodes)
@@ -505,7 +517,7 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     if any(node.config.side_count >= 3 for node in nodes):
         # compile_rope uses VactubeGenPartType.ALL for all other rope generation
         # skip this when only generating frame
-        if vacgentype != VactubeGenPartType.FRAME:
+        if rope_key.vac_type != VactubeGenPartType.FRAME:
             mesh.triangles.extend(generate_straights(nodes))
         generate_caps(nodes, mesh, is_coll=False)
     await trio.lowlevel.checkpoint()
@@ -513,12 +525,15 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     # All or nothing.
     is_vactube = next(iter(nodes)).config.is_vactube
     vac_points: list[list[Vec]] = []
-    if is_vactube and (vacgentype == VactubeGenPartType.FRAME or vacgentype == VactubeGenPartType.ALL):
+    if is_vactube and (
+        rope_key.vac_type == VactubeGenPartType.FRAME or
+        rope_key.vac_type == VactubeGenPartType.ALL
+    ):
         mesh.triangles.extend(generate_vac_beams(nodes, bone, vac_points))
 
     # appends rings to the tube model
     # skip this when only generating glass
-    if vacgentype != VactubeGenPartType.GLASS:
+    if rope_key.vac_type != VactubeGenPartType.GLASS:
         seg_props = list(place_seg_props(nodes, fsys, mesh))
     else:
         seg_props = []
@@ -567,13 +582,13 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
     async with await trio.Path(temp_folder / 'model.qc').open('w') as f:
         if is_vactube:
             # Desolation needs this hint.
-            if hasattr(Mesh, 'NEED_TRANSLUCENT_MOSTLYOPAQUE') and vacgentype is VactubeGenPartType.ALL:
+            if hasattr(Mesh, 'NEED_TRANSLUCENT_MOSTLYOPAQUE') and rope_key.vac_type is VactubeGenPartType.ALL:
                 await f.write('$mostlyopaque\n')
-            elif vacgentype is VactubeGenPartType.FRAME:
+            elif rope_key.vac_type is VactubeGenPartType.FRAME:
                 await f.write('$opaque\n')
 
         await f.write(QC_TEMPLATE.format(path=mdl_name, light_origin=light_origin))
-        if skins:
+        if rope_key.skins:
             await f.write('$texturegroup "skinfamilies" {\n')
             try:
                 [first_mat] = {node.config.material for node in nodes}
@@ -583,13 +598,16 @@ async def build_rope(rope_key: CompKey, temp_folder: Path, mdl_name: str, args: 
                     'for different segments is not supported.'
                 ) from None
             await f.write(f'    {{ "{first_mat}" }}\n')
-            for mat in skins:
+            for mat in rope_key.skins:
                 await f.write(f'    {{ "{mat}" }}\n')
             await f.write('}\n')
         if coll_nodes:
-            await f.write(QC_TEMPLATE_PHYS.format(count=sum(node.next is not None for node in coll_nodes) + 8))
+            # Convex count should be one item per segment, but add a buffer just in case.
+            await f.write(QC_TEMPLATE_PHYS.format(
+                count=sum(node.next is not None for node in coll_nodes) + 8
+            ))
 
-    if dump_debug_info:
+    if rope_key.dump_debug_info:
         vmf = dump_rope_nodes(nodes, mdl_name)
         LOGGER.info('Writing debug info to {}', temp_folder / 'debug.vmf')
         with (temp_folder / 'debug.vmf').open('w', encoding='utf8') as f2:
@@ -1357,7 +1375,7 @@ async def compile_rope(
                 origin,
             )
         model_name, _ = await compiler.get_model(
-            make_key(dyn_nodes, connections, skins, VactubeGenPartType.ALL, dump_debug_info),
+            CompKey.create(dyn_nodes, connections, skins, VactubeGenPartType.ALL, dump_debug_info),
             build_rope,
             (ctx.pack.fsys, ),
             prefix='vac' if any(node.config.is_vactube for node in nodes) else 'rope',
@@ -1384,7 +1402,7 @@ async def compile_rope(
         is_sep = conf.vac_separate_glass == VactubeGenType.SEPARATE
         # First do the frame, or everything if we're not separating them.
         model_name, (light_origin, coll_data, seg_props, vac_points) = await compiler.get_model(
-            make_key(
+            CompKey.create(
                 local_nodes, connections, (),
                 VactubeGenPartType.FRAME if is_sep else VactubeGenPartType.ALL,
                 dump_debug_info,
@@ -1402,7 +1420,7 @@ async def compile_rope(
         if is_sep:
             # Generate the glass only
             model_name, (light_origin, coll_data, seg_props, _) = await compiler.get_model(
-                make_key(
+                CompKey.create(
                     local_nodes, connections, (), VactubeGenPartType.GLASS,
                     dump_debug_info,
                 ),
@@ -1539,7 +1557,7 @@ async def comp_prop_rope(ctx: Context) -> None:
     if not all_nodes:
         return
     LOGGER.info('{} rope nodes found.', len(all_nodes))
-    if ctx.studiomdl is None:
+    if ctx.game_conf.studiomdl_path is None:
         LOGGER.warning('Ropes cannot be compiled, no StudioMDL.exe found!')
         return
 
