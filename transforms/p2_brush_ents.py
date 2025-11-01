@@ -23,10 +23,10 @@ def comp_trigger_coop(ctx: Context) -> None:
         manager = ctx.vmf.create_ent(
             classname='logic_coop_manager',
             origin=trig['origin'],
-            targetname=man_name,
             # Should make it die if the trigger does.
             parentname=trig_name,
-        ).make_unique(trig_name + '_man')
+        ).make_unique(trig['targetname'] + '_man')
+        man_name = manager['targetname']
         for out in list(trig.outputs):
             match out.output.casefold():
                 case 'onstarttouchboth':
