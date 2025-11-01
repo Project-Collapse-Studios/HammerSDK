@@ -13,14 +13,13 @@ LOGGER = init_logging(Path(sys.argv[0]).with_name('postcompiler.log'))
 warnings.filterwarnings(category=DeprecationWarning, module='srctools', action='once')
 
 from collections import defaultdict
-from logging import FileHandler, StreamHandler
+from logging import FileHandler, StreamHandler, shutdown as logging_shutdown
 import argparse
 import math
 import os
 import re
 import shutil
 
-from srctools import conv_bool
 from srctools.bsp import BSP, BSP_LUMPS
 from srctools.filesys import ZipFileSystem
 from srctools.packlist import PackList
@@ -271,7 +270,7 @@ async def main(argv: list[str]) -> None:
         LOGGER.warning('No propcombine allowed, --propcombine not passed on the command line!')
 
     auto_pack = conf.opts.get(config.AUTO_PACK)
-    if auto_pack and args.allow_pack:
+    if should_pack := (auto_pack and args.allow_pack):
         LOGGER.info('Analysing packable resources...')
         packlist.pack_from_ents(
             bsp_file.ents,
@@ -293,6 +292,14 @@ async def main(argv: list[str]) -> None:
                 )
             LOGGER.info('Writing particle manifest "{}"...', man_name)
             packlist.write_particles_manifest(man_name)
+        fsys_blocklist = conf.pack_blacklist
+    else:
+        # Disallow all systems. We still execute the packing logic to include generated files.
+        fsys_blocklist = {
+            sys for sys, _ in packlist.fsys.systems
+            if sys.path != '<BSP pakfile>'
+        }
+
     if auto_pack and not args.allow_pack:
         # Warn if packing was enabled by config but not by command line.
         # May be intentional, but can be confusing.
@@ -320,7 +327,7 @@ async def main(argv: list[str]) -> None:
     if dump_path:
         packlist.pack_into_zip(
             bsp_file,
-            blacklist=conf.pack_blacklist,
+            blacklist=fsys_blocklist,
             ignore_vpk=False,
             callback=pack_callback,
             dump_loc=conf.expand_path(dump_path.lstrip('#')).absolute().resolve(),
@@ -329,7 +336,7 @@ async def main(argv: list[str]) -> None:
     else:
         packlist.pack_into_zip(
             bsp_file,
-            blacklist=conf.pack_blacklist,
+            blacklist=fsys_blocklist,
             ignore_vpk=False,
             callback=pack_callback,
         )
@@ -393,4 +400,7 @@ async def main(argv: list[str]) -> None:
 
 
 if __name__ == '__main__':
-    trio.run(main, sys.argv[1:])
+    try:
+        trio.run(main, sys.argv[1:])
+    finally:
+        logging_shutdown()
