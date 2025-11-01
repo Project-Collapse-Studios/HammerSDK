@@ -123,7 +123,7 @@ async def vactube_transform(ctx: Context) -> None:
     LOGGER.info('{} vactube nodes found.', len(all_nodes))
     LOGGER.debug('Nodes: {}', all_nodes)
 
-    if ctx.game_conf.studiomdl_path is None:
+    if ctx.studiomdl is None:
         raise ValueError(
             'Vactubes present, but no studioMDL path provided! '
             'Update hammeraddons_game.vdf.'
@@ -277,7 +277,7 @@ async def vactube_transform(ctx: Context) -> None:
                     anim.mesh.export(mesh_file)
 
         args = [
-            str(ctx.game_conf.studiomdl_path),
+            str(ctx.studiomdl),
             '-nop4', '-i',  # Ignore warnings.
             '-game', str(ctx.game.path),
             temp_dir + '/prop.qc',

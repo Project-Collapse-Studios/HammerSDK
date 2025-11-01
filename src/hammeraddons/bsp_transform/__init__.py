@@ -2,12 +2,11 @@
 from typing import Protocol
 from collections.abc import Awaitable, Callable, Container, Mapping
 from pathlib import Path
+from warnings import deprecated
 import inspect
-import warnings
 
 import attrs
 import trio.lowlevel
-from typing_extensions import deprecated
 
 from hammeraddons.config import GameConfig
 from srctools import FGD, VMF, EmptyMapping, Entity, FileSystem, Keyvalues, Output
@@ -49,7 +48,7 @@ class Context:
         game: Game,
         game_conf: GameConfig,
         *,
-        tags: frozenset[str] = frozenset(),
+        studiomdl_loc: Path | None = None,
         modelcompile_dump: Path | None = None,
     ) -> None:
         self.sys = filesys
@@ -59,6 +58,7 @@ class Context:
         self.bsp_path = Path(bsp.filename)
         self._fgd: FGD | None = None
         self.modelcompile_dump = modelcompile_dump
+        self.studiomdl = studiomdl_loc
         self.game = game
         self.game_conf = game_conf
         self.config = Keyvalues.root()
@@ -73,11 +73,6 @@ class Context:
         if self._fgd is None:
             self._fgd = FGD.engine_dbase()
         return self._fgd
-
-    @property
-    @deprecated("Use ctx.game_conf.studiomdl_path, not ctx.studiomdl.", category=DeprecationWarning)
-    def studiomdl(self) -> Path | None:
-        return self.game_conf.studiomdl_path
 
     @property
     @deprecated("Use ctx.game_conf.tags, not ctx.tags", category=DeprecationWarning)
@@ -203,13 +198,16 @@ async def run_transformations(
     game_conf: GameConfig,
     config: Mapping[str, Keyvalues] = EmptyMapping,
     disabled: Container[str] = (),
+    *,
     modelcompile_dump: Path | None = None,
+    studiomdl_path: Path | None = None,
 ) -> None:
     """Run all transformations."""
     context = Context(
         filesys, vmf, pack, bsp, game,
         game_conf=game_conf,
         modelcompile_dump=modelcompile_dump,
+        studiomdl_loc=studiomdl_path,
     )
 
     for transform in sorted(TRANSFORMS.values(), key=lambda trans: trans.priority):

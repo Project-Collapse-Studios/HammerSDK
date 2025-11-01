@@ -487,9 +487,9 @@ class CompKey:
             translucent_needs_mostlyopaque=set_mostlyopaque,
         )
 
+
 # The compiler for ropes.
 type RopeBuilder = ModelCompiler[CompKey, CompArgs, CompResult]
-
 # Additional parameters used during compile, provided new each time. We just pass the filesystem for lookups.
 type CompArgs = tuple[FileSystem]
 # Additional results of the compile, persisted to return later.

@@ -24,7 +24,7 @@ with open(root / 'games.dmx', 'rb') as f:
 for game_attr in games_conf.values():
     if game_attr.name != 'name':
         try:
-            GameConfig.parse(game_attr.val_elem, Path)
+            GameConfig.parse(game_attr.val_elem)
         except Exception as exc:
             exc.add_note(f'Bad config: {game_attr!r}')
             raise

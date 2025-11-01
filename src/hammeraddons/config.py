@@ -6,6 +6,7 @@ import fnmatch
 import hashlib
 import re
 import struct
+import os
 import sys
 
 from srctools import AtomicWriter, Keyvalues, conv_int, logger, NoKeyError
@@ -164,9 +165,8 @@ class GameConfig:
     """
     # aliases: A list of additional names which can be used to refer to this game branch.
 
-    # The Steam ID for this branch, if unique. This allows gameinfo to be used to identify the branch.
-    # TODO: Good idea?
-    # steamid: str
+    # The Steam ID for this branch, if known. This allows gameinfo to be used to identify the branch.
+    steamid: int | None
 
     # List of names which identify certain game branches. This is mainly used to tweak what
     # resources specific entities require.
@@ -197,35 +197,52 @@ class GameConfig:
     # * particles/<map name>_manifest.txt (L4D2)
     particles_manifest: str
 
-    # Location of StudioMDL, relative to the game root.
-    studiomdl_path: Path | None
+    # Configured location of StudioMDL, relative to the game root.
+    studiomdl_path: str
 
     @classmethod
-    def parse(cls, root: Element, expand_path: Expander) -> Self:
+    def parse(cls, root: Element) -> Self:
         """Parse from a DMX element."""
         # Only advanced users should need to change this, tracebacks are fine.
-        studiomdl_raw = root['studiomdl_path'].val_str
-        studiomdl_path: Path | None
-
-        if studiomdl_raw:
-            studiomdl_path = expand_path(studiomdl_raw)
-            if not studiomdl_path.exists():
-                LOGGER.warning('No studiomdl found at "{}"!', studiomdl_path)
-                studiomdl_path = None
-        else:
-            LOGGER.warning('No studiomdl path provided.')
-            studiomdl_path = None
-
+        try:
+            steamid: int | None = root['steamid'].val_int
+        except KeyError:
+            steamid = None
         return cls(
             tags=frozenset({tag.upper() for tag in root['tags'].iter_string()}),
+            steamid=steamid,
             io_comma_sep=root['io_comma_sep'].val_bool,
             instance_proxies=root['instance_proxies'].val_bool,
             translucent_needs_mostlyopaque=root['translucent_needs_mostlyopaque'].val_bool,
             vscript=root['vscript'].val_bool,
             vscript_quote=root['vscript_quote'].val_str,
             particles_manifest=root['particles_manifest'].val_str,
-            studiomdl_path=studiomdl_path,
+            studiomdl_path=root['studiomdl_path'].val_str,
         )
+
+    def resolve_studiomdl(self, expand_path: Expander) -> Path | None:
+        """Locate studioMDL, either from the game root, or by checking the game's steam folder."""
+        if not self.studiomdl_path:
+            LOGGER.warning('No studiomdl path provided.')
+            return None
+        # First, try direct.
+        direct = expand_path(self.studiomdl_path)
+        LOGGER.debug('Checking for studiomdl @ "{}"', direct)
+        if direct.exists():
+            return direct
+        # Otherwise, if the steam folder exists, try there.
+        if self.steamid is not None:
+            steam = expand_path(f'<{self.steamid}>{self.studiomdl_path}')
+            LOGGER.debug('Checking for studiomdl @ "{}"', steam)
+            if steam.exists():
+                return steam
+        else:
+            steam = direct
+        if steam != direct:
+            LOGGER.warning('No studiomdl found at "{}" or "{}"!', direct, steam)
+        else:
+            LOGGER.warning('No studiomdl found at "{}"!', direct)
+        return None
 
 
 @attrs.frozen(kw_only=True)
@@ -373,7 +390,7 @@ def calc_searchpaths(
     return fsys_chain, blacklist
 
 
-def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) -> GameConfig:
+def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
     """Locate the game configuration to use.
 
     This can either use hammeraddons_game.vdf next to gameinfo, or lookup from an inbuilt file.
@@ -400,9 +417,9 @@ def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) ->
                     f'or have it as a root element.'
                 )
             [name] = names
-            return GameConfig.parse(mod_conf[name].val_elem, expand_path)
+            return GameConfig.parse(mod_conf[name].val_elem)
         else:
-            return GameConfig.parse(mod_conf, expand_path)
+            return GameConfig.parse(mod_conf)
     # No override file, load our own.
     loc = BINS_PATH / 'games.dmx'
     LOGGER.debug('Parsing inbuilt games configs: {}', loc)
@@ -423,7 +440,7 @@ def parse_games_conf(opts: Options, game_folder: Path, expand_path: Expander) ->
             selected == alias.casefold() for alias in elem['aliases'].iter_string()
         ):
             LOGGER.info('Selected game: {}', name)
-            return GameConfig.parse(elem, expand_path)
+            return GameConfig.parse(elem)
         name_report.append((elem.name, list(elem['aliases'].iter_string())))
 
     raise ValueError(
@@ -585,7 +602,7 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
     plugins.load_all()
 
     plugin_conf = parse_plugin_confs(plugins, conf_kv)
-    updated = update_check(conf_path, opts, plugin_conf)
+    updated = 'HA_NO_CONF_CHECK' not in os.environ and update_check(conf_path, opts, plugin_conf)
 
     if game is None or fsys is None:
         LOGGER.error(
@@ -598,7 +615,7 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
         sys.exit(2)
 
     # Identify which game we have.
-    game_conf = parse_games_conf(opts, game.path, expand_path)
+    game_conf = parse_games_conf(opts, game.path)
 
     return Config(
         opts=opts,

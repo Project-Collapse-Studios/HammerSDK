@@ -143,6 +143,7 @@ async def main(argv: list[str]) -> None:
     conf = config.parse(path, args.game_folder)
 
     packlist = PackList(conf.fsys)
+    studiomdl_path = conf.game_conf.resolve_studiomdl(conf.expand_path)
 
     LOGGER.info('Gameinfo: {}', conf.game.path)
     LOGGER.info(
@@ -208,9 +209,10 @@ async def main(argv: list[str]) -> None:
         transform_conf,
         disabled={name.strip().casefold() for name in conf.opts.get(config.DISABLED_TRANSFORMS).split(',')},
         modelcompile_dump=modelcompile_dump,
+        studiomdl_path=studiomdl_path,
     )
 
-    if conf.game_conf.studiomdl_path is not None and args.propcombine:
+    if studiomdl_path is not None and args.propcombine:
         decomp_cache_path = conf.opts.get(config.PROPCOMBINE_CACHE)
         decomp_cache_loc: Path | None
         crowbar_loc: Path | None
@@ -238,7 +240,7 @@ async def main(argv: list[str]) -> None:
             bsp_file.ents,
             packlist,
             conf.game,
-            conf.game_conf.studiomdl_path,
+            studiomdl_path,
             qc_folders=conf.opts.get(config.PROPCOMBINE_QC_FOLDER).as_array(conv=conf.expand_path),
             decomp_cache_loc=decomp_cache_loc,
             crowbar_loc=crowbar_loc,

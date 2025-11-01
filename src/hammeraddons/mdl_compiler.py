@@ -80,11 +80,11 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
     @classmethod
     def from_ctx(cls, ctx: Context, folder_name: str, version: object = 0) -> 'ModelCompiler':
         """Convenience method to construct from the context's data."""
-        if ctx.game_conf.studiomdl_path is None:
+        if ctx.studiomdl is None:
             raise ValueError('No StudioMDL!')
         return cls(
             ctx.game,
-            ctx.game_conf.studiomdl_path,
+            ctx.studiomdl,
             ctx.pack,
             ctx.bsp_path.stem,
             folder_name,

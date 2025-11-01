@@ -20,13 +20,14 @@ def blank_ctx(shared_datadir: Path) -> Context:
     game = Game(shared_datadir)
     game_conf = GameConfig(
         tags=frozenset(),
+        steamid=None,
         io_comma_sep=False,
         instance_proxies=True,
         translucent_needs_mostlyopaque=False,
         vscript=True,
         vscript_quote='',
         particles_manifest='',
-        studiomdl_path=None,
+        studiomdl_path='',
     )
     fsys = FileSystemChain()
     return Context(
