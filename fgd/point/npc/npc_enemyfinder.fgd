@@ -14,7 +14,7 @@
 		524288: "Can be an enemy" : 0
 		]
 
-	rendermode(choices) readonly : "Render Mode" : 1 : "This must be set to Color for Hammer to render the sprite correctly. It is not used in the engine." = 
+	rendermode(choices) readonly editor: "Render Mode" : 1 : "This must be set to Color for Hammer to render the sprite correctly. It is not used in the engine." = 
 		[
 		1: "Color"
 		]

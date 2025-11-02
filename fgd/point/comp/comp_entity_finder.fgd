@@ -40,7 +40,7 @@
 	rotatetarget(boolean): "Alter Target Rotation" : 0 : "Rotate the found entity to match the rotation of this entity or that of the reference."
 	makeunique(boolean): "Make Target Unique" : 0 : "Append a numeric suffix to the target's name to make it unique."
 
-	sep1[!engine](string) readonly: "----------------------------------------------------------------------------------------------------------" : ""
+	sep1[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	kv1_mode[engine](string): "1 - Mode"
 	kv1_mode(choices): "1 - Mode": : #snippet mode_desc = #snippet mode_list
@@ -50,7 +50,7 @@
 
 	output AnyOutputsCopiedToTarget(void): "Dummy output. Any output defined on the finder is copied to the target entity, but at least one must be defined for Hammer to allow adding outputs."
 
-	sep2[!engine](string) readonly: "----------------------------------------------------------------------------------------------------------" : ""
+	sep2[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	// Same as above, up to kv5.
 	kv2_mode[engine](string): "2 - Mode"
@@ -59,7 +59,7 @@
 	kv2_src(string): "2 - Source" : : #snippet source_desc
 	kv2_dest(string): "2 - Destination" : : #snippet dest_desc
 
-	sep3[!engine](string) readonly: "----------------------------------------------------------------------------------------------------------" : ""
+	sep3[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	kv3_mode[engine](string): "3 - Mode"
 	kv3_mode(choices): "3 - Mode": : #snippet mode_desc = #snippet mode_list
@@ -67,7 +67,7 @@
 	kv3_src(string): "3 - Source" : : #snippet source_desc
 	kv3_dest(string): "3 - Destination" : : #snippet dest_desc
 
-	sep4[!engine](string) readonly: "----------------------------------------------------------------------------------------------------------" : ""
+	sep4[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	kv4_mode[engine](string): "4 - Mode"
 	kv4_mode(choices): "4 - Mode": : #snippet mode_desc = #snippet mode_list
@@ -75,7 +75,7 @@
 	kv4_src(string): "4 - Source" : : #snippet source_desc
 	kv4_dest(string): "4 - Destination" : : #snippet dest_desc
 
-	sep5[!engine](string) readonly: "----------------------------------------------------------------------------------------------------------" : ""
+	sep5[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	kv5_mode[engine](string): "5 - Mode"
 	kv5_mode(choices): "5 - Mode": : #snippet mode_desc = #snippet mode_list

@@ -9,7 +9,7 @@
 		[
 		256: "Start with collision disabled" : 0
 		]
-	angles(angle) readonly: "Orientation" : "0 0 0" : "The starting orientation can't be changed, simply move the nodes."
+	angles(angle) readonly editor: "Orientation" : "0 0 0" : "The starting orientation can't be changed, simply move the nodes."
 
 	group(target_source) report: "Rope Group" : : "Specify the same group name as in a comp_prop_rope/comp_prop_cable. The ropes will be compiled with this entity as their origin."
 
