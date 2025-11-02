@@ -14,6 +14,7 @@
 * Moved options specifying the behaviour of the current game branch to a dedicated file, 
   so users only need to pick from presets.
 * Added 1/16 scale skybox mode for vactube system. You'll need to provide your own models or use prop scaling.
+* Added vactube curves 7-16. You'll need to provide your own models though.
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.
 * `env_tonemap_controller` options can be set by keyvalues, generating a `logic_auto` automatically.

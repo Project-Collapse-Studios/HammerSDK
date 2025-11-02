@@ -1,18 +1,2 @@
-$modelname "editor/vactubes/curve_3_sky.mdl"
-$scale 0.0625 // 1/16
-
-$staticprop
-
-$model "studio" "curve_3.smd"
-
-$surfaceprop "default"
-$contents "solid"
-
-$cdmaterials "models/editor/"
-
-$texturegroup "skinfamilies" {
-	{ "vactube_arrow" }
-	{ "vactube_arrow_rev" }
-}
-
-$sequence "idle" "curve_3.smd"
+$definevariable ind 3
+$include "sky_curve_common.qci"
