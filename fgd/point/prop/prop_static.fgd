@@ -49,7 +49,7 @@
 
 	preventpropcombine[PROPCOMBINE](boolean) : "Disable Prop Combine" : 0 : "Prevent this static prop from combining with any other static props in vbsp."
 
-	linedivider_light[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+	linedivider_light[!engine](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	disableshadows(boolean) : "Disable Shadows" : 0 : "Prevent this prop from obstructing light to cast shadows."
 	// Doesn't appear to work?
@@ -65,7 +65,7 @@
 	
 	lightingorigin(target_destination) : "Lighting Origin" : : "Select an info_lighting to specify a location to sample lighting from, instead of using this entity's origin."
 
-	linedivider_lmap[TF2, MESA, KZ, !engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+	linedivider_lmap[TF2, MESA, KZ, !engine](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	generatelightmaps[TF2, MESA, KZ, GMOD](boolean) : "Generate (and use) lightmaps for this static prop" : 0
 	lightmapresolutionx[TF2, MESA, KZ, GMOD](integer) : "Lightmap Resolution X" : 32 : "The resolution of the generated lightmap in the X (or U) direction (only used if Generate Lightmaps is Yes) "
@@ -89,7 +89,7 @@
 
 
 	// Needs to appear post-L4D, or if complete mode is enabled
-	linedivider_levels[!engine, since_L4D, complete](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+	linedivider_levels[!engine, since_L4D, complete](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	// DXlevel KVs were added in Orange Box (lump v6) and removed in L4D (lump v8).
 	// All pre-Orange Box games have since been updated.

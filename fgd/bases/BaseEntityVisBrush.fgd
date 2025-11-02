@@ -32,7 +32,7 @@
 	_minlight(float) : "Minimum Light Level" : 0 : "The minimum level of ambient light that hits this brush."
 	#snippet keyvalue TextureFrameIndex
 	#snippet keyvalue ShadowControl
-	linedivider_visbrush[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+	linedivider_visbrush[!engine](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	// Inputs
 	input DisableShadow(void) : "Allows the entity to draw a render target (dynamic) shadow."

@@ -58,7 +58,7 @@
 	sequence[engine](integer) : "Sequence Number" : 0 : "Stores the index of the currently playing animation. Can be set manually via AddOutput, but care must be used."
 	suppressanimsounds[engine](boolean) : "Suppress Anim Sounds" : 0 : "If set, the prop will not play any sounds that are embedded in animations it plays."
 
-	linedivider_phys[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
+	linedivider_phys[!engine](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	// Inputs
 	input Skin(integer) : "Changes the model skin to the specified number."
