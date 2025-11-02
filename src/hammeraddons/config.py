@@ -220,6 +220,10 @@ class GameConfig:
             studiomdl_path=root['studiomdl_path'].val_str,
         )
 
+    def check_tag(self, tag: str) -> bool:
+        """Check a tag is present, doing the correct uppercasing."""
+        return tag.upper() in self.tags
+
     def resolve_studiomdl(self, expand_path: Expander) -> Path | None:
         """Locate studioMDL, either from the game root, or by checking the game's steam folder."""
         if not self.studiomdl_path:
@@ -349,6 +353,7 @@ def calc_searchpaths(
                 blacklist.add(fsys)
 
     # Extract to apply after, so order does not matter.
+    whitelist_names = set()
     blacklist_names = set()
 
     for kv in opts.get(SEARCHPATHS):

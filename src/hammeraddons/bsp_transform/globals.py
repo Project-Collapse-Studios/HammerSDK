@@ -76,31 +76,35 @@ def vscript_runscript_inputs(ctx: Context) -> None:
 
     for ent in ctx.vmf.entities:
         for out in ent.outputs:
-            inp_name = out.input.casefold()
-            if inp_name == 'runscriptfile':
-                ctx.pack.pack_file('scripts/vscripts/' + out.params, FileType.VSCRIPT_SQUIRREL)
-            elif inp_name == 'runscriptcode':
-                if quote_char == '`':
-                    # Our syntax is natively supported (TF2), so we don't need to do anything.
-                    continue
-                if '`' not in out.params and len(out.params) < 255:
-                    # No backticks, and the parameter is a safe size, leave it alone.
-                    continue
-
-                if quote_char:
-                    # Try using the native syntax.
-                    native = out.params.replace('`', quote_char)
-                    # Mapbase uses '', don't let us overflow the max entity parameter size.
-                    if len(native) < 255:
-                        out.params = native
+            match out.input.casefold():
+                case 'runscriptfile':
+                    ctx.pack.pack_file('scripts/vscripts/' + out.params, FileType.VSCRIPT_SQUIRREL)
+                case 'runscriptcode' | 'runscriptcodequotable':
+                    if quote_char == '`':
+                        # Our syntax is natively supported (TF2), so we don't need to do anything.
                         continue
-                    else:
-                        # Failed, need to pack. Convert the replacement char into real quotes.
-                        # If quote char is ` or " this is redundant, but that's fine.
-                        out.params = out.params.replace(quote_char, '"')
+                    if '`' not in out.params and len(out.params) < 255:
+                        # No backticks, and the parameter is a safe size, leave it alone.
+                        continue
 
-                out.params = ctx.pack.inject_vscript(out.params.replace('`', '"'))
-                out.input = 'RunScriptFile'
+                    if quote_char:
+                        # Try using the native syntax.
+                        native = out.params.replace('`', quote_char)
+                        # Mapbase uses '', don't let us overflow the max entity parameter size.
+                        if len(native) < 255:
+                            out.params = native
+                            if ctx.game_conf.check_tag('mapbase'):
+                                out.input = 'RunScriptCodeQuotable'
+                            continue
+                        else:
+                            # Failed, need to pack. Convert the replacement char into real quotes.
+                            # If quote char is ` or " this is redundant, but that's fine.
+                            out.params = out.params.replace(quote_char, '"')
+
+                    out.params = ctx.pack.inject_vscript(out.params.replace('`', '"'))
+                    out.input = 'RunScriptFile'
+                case _:
+                    pass
 
 
 @trans('Optimise logic_auto', priority=50)
