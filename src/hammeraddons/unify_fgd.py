@@ -11,6 +11,7 @@ from pathlib import Path
 import argparse
 import itertools
 import sys
+import re
 
 from srctools import fgd
 from srctools.fgd import (
@@ -1179,6 +1180,12 @@ def action_export(
                             for (mask, name, default, tags) in value.flags_list
                             if '-ENGINE' not in tags and '!ENGINE' not in tags
                         ]
+                    if (
+                        isinstance(value, KVDef) and value.editor_only
+                        and re.fullmatch("-{4,}", value.disp_name) is not None
+                    ):
+                        # It's a divider, set a specific length, or blank it in engine mode.
+                        value.disp_name = '-' if engine_mode else ('-' * 80)
 
                     # Check if this is a shared property among all ents,
                     # and if so skip exporting.
