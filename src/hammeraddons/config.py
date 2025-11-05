@@ -157,6 +157,77 @@ def make_expander(roots: ExpanderRoots, orig_root: Path) -> Expander:
     return expander
 
 
+@attrs.frozen
+class SearchpathEntry:
+    """An entry used to configure searchpaths for the game.
+
+    This is parsed from configs, then processed in calc_searchpaths().
+    """
+    type Kind = Literal['folder', 'vpk']
+    type Mode = Literal['prepend', 'append', 'optional']
+    path: str
+    kind: Kind
+    mode: Mode
+    pack: bool | None
+
+    @classmethod
+    def parse_dmx(cls, elem: Element, allow_optional: bool) -> Self:
+        """Parse from a DMX element."""
+        kind: SearchpathEntry.Kind
+        mode: SearchpathEntry.Mode
+        match elem.type.casefold():
+            case 'searchfolder':
+                kind = 'folder'
+            case 'searchvpk':
+                kind = 'vpk'
+            case _:
+                raise ValueError(f'Unknown searchpath type {elem.type}!')
+        try:
+            mode = 'prepend' if elem['priority'].val_bool else 'append'
+        except KeyError:
+            mode = 'optional' if allow_optional else 'append'
+        try:
+            pack = elem['pack'].val_bool
+        except KeyError:
+            pack = None
+        path = elem['path'].val_str
+        return cls(path, kind, mode, pack)
+
+    @classmethod
+    def parse_kv(cls, kv: Keyvalues, allow_optional: bool) -> Self:
+        """Parse from keyvalues."""
+        kind: SearchpathEntry.Kind
+        mode: SearchpathEntry.Mode = 'optional' if allow_optional else 'append'
+        if kv.has_children():
+            path = kv['path']
+            kind = 'vpk' if path.casefold().endswith('.vpk') else 'folder'
+            if 'priority' in kv:
+                mode = 'prepend' if kv.bool('priority') else 'append'
+            return cls(
+                path, kind, mode,
+                kv.bool('pack', None),
+            )
+        assert isinstance(kv.value, str)
+
+        pack: bool | None = None
+        match kv.name:
+            case 'nopack':
+                pack = False
+            case 'pack':
+                pack = True
+            case 'prefix' | 'priority':
+                mode = 'prepend'
+            case 'path':
+                mode = 'append'
+            case _:
+                raise ValueError(f'Unknown searchpath key "{kv.real_name}"!')
+
+        if kv.value.casefold().endswith('.vpk'):
+            return cls(kv.value, 'vpk', mode, pack)
+        else:
+            return cls(kv.value, 'folder', mode, pack)
+
+
 @attrs.frozen(kw_only=True)
 class GameConfig:
     """Special options defining the behaviour of the game itself.
