@@ -24,6 +24,7 @@ def blank_ctx(shared_datadir: Path) -> Context:
         io_comma_sep=False,
         instance_proxies=True,
         translucent_needs_mostlyopaque=False,
+        searchpaths=(),
         vscript=True,
         vscript_quote='',
         particles_manifest='',

@@ -1,6 +1,6 @@
 """Handles user configuration common to the different scripts."""
 from typing import Final, Literal, Self
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from pathlib import Path
 import fnmatch
 import hashlib
@@ -25,7 +25,7 @@ __all__ = [
     "Expander", "Config", "GameConfig", "parse",
 
     # Options
-    "VERSION", "GAMEINFO", "AUTO_PACK", "PACK_VPK", "PACK_DUMP", "PACK_STRIP_CUBEMAPS",
+    "VERSION", "GAMEINFO", "AUTO_PACK", "PACK_DUMP", "PACK_STRIP_CUBEMAPS",
     "PACK_ALLOWLIST", "PACK_BLOCKLIST", "SEARCHPATHS", "SOUNDSCRIPT_MANIFEST",
     "PARTICLES_MANIFEST", "MODEL_COMPILE_DUMP",
     "PROPCOMBINE_QC_FOLDER", "PROPCOMBINE_CROWBAR", "PROPCOMBINE_CACHE",
@@ -258,6 +258,18 @@ class GameConfig:
     # MapBase uses double '', while TF2 uses ` A character of " indicates quoting is natively supported.
     vscript_quote: str
 
+    # If false, default all VPK searchpaths to be no-pack. Usually these are the shipped content for a
+    # game, so do not need to be included.
+    pack_vpk: bool
+
+    # Defines additional searchpaths to mount, overriding gameinfo but before user configurations.
+    # Each should be a DMX element with the types 'SearchFolder' or 'SearchVPK'.
+    # The following attributes should be set:
+    # * A path string, determining the location
+    # * A 'priority' boolean (optional), if set this is prioritised over gameinfo entries.
+    # * A 'pack' boolean (optional), to set the default state.
+    searchpaths: Sequence[SearchpathEntry]
+
     # Whether we need to use $mostlyopaque in all translucent models.
     translucent_needs_mostlyopaque: bool
 
@@ -279,9 +291,20 @@ class GameConfig:
             steamid: int | None = root['steamid'].val_int
         except KeyError:
             steamid = None
+        searchpaths: list[SearchpathEntry] = []
+        try:
+            search_attr = root['searchpaths']
+        except KeyError:
+            pass
+        else:
+            for elem in search_attr.iter_elem():
+                searchpaths.append(SearchpathEntry.parse_dmx(elem, True))
+
         return cls(
             tags=frozenset({tag.upper() for tag in root['tags'].iter_string()}),
             steamid=steamid,
+            searchpaths=searchpaths,
+            pack_vpk=root['pack_vpk'].val_bool,
             io_comma_sep=root['io_comma_sep'].val_bool,
             instance_proxies=root['instance_proxies'].val_bool,
             translucent_needs_mostlyopaque=root['translucent_needs_mostlyopaque'].val_bool,
@@ -412,16 +435,21 @@ def load_paths_config(main_conf: Path) -> ExpanderRoots:
 
 
 def calc_searchpaths(
-    opts: Options, game: Game, expand_path: Expander,
+    opts: Options,
+    game: Game,
+    game_conf: GameConfig,
+    expand_path: Expander,
 ) -> tuple[FileSystemChain, set[FileSystem]]:
-    """Apply the searchpaths option to the loaded filesystem."""
+    """Modify searchpaths, applying the game and user configs."""
     fsys_chain = game.get_filesystem()
     blacklist: set[FileSystem] = set()
 
-    if not opts.get(PACK_VPK):
+    if not game_conf.pack_vpk:
         for fsys, prefix in fsys_chain.systems:
             if isinstance(fsys, VPKFileSystem):
                 blacklist.add(fsys)
+
+    # Process game config options first, so user configs override it.
 
     # Extract to apply after, so order does not matter.
     whitelist_names = set()
@@ -652,8 +680,6 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
         game_folder = opts.get(GAMEINFO)
 
     game: Game | None = None
-    pack_blacklist: set[FileSystem] = set()
-    fsys: FileSystemChain | None = None
 
     if game_folder:
         # Marker to ensure gameinfo doesn't try to recurse.
@@ -662,8 +688,6 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
         LOGGER.info('Game folder: {}', game.path)
         # Now we located it, other definitions can use this loc.
         path_roots[PATH_KEY_GAME] = game.path
-
-        fsys, pack_blacklist = calc_searchpaths(opts, game, expand_path)
     else:
         LOGGER.error('No game folder specified.')
         # Chicken and egg problem. We may need the game folder to locate plugins,
@@ -680,7 +704,7 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
     plugin_conf = parse_plugin_confs(plugins, conf_kv)
     updated = 'HA_NO_CONF_CHECK' not in os.environ and update_check(conf_path, opts, plugin_conf)
 
-    if game is None or fsys is None:
+    if game is None:
         LOGGER.error(
             'No game folder specified!\n'
             'Add -game $gamedir to the command line, or set it in "{}".',
@@ -692,6 +716,7 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
 
     # Identify which game we have.
     game_conf = parse_games_conf(opts, game.path)
+    fsys, pack_blacklist = calc_searchpaths(opts, game, game_conf, expand_path)
 
     return Config(
         opts=opts,
@@ -749,12 +774,6 @@ AUTO_PACK = Opt.boolean(
     """Automatically find and pack files in the map. 
     If this is disabled, specifically-indicated files will still be 
     added as well as their dependencies.
-""")
-
-PACK_VPK = Opt.boolean(
-    'pack_vpk', False,
-    """Allow files in VPKs to be packed into the map. 
-    This is disabled by default since these are usually default files.
 """)
 
 PACK_DUMP = Opt.string_or_none(
