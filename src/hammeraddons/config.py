@@ -1,6 +1,6 @@
 """Handles user configuration common to the different scripts."""
 from typing import Final, Literal, Self
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence, Iterable
 from pathlib import Path
 import fnmatch
 import hashlib
@@ -281,8 +281,10 @@ class GameConfig:
     # Each should be a DMX element with the types 'SearchFolder' or 'SearchVPK'.
     # The following attributes should be set:
     # * A path string, determining the location
-    # * A 'priority' boolean (optional), if set this is prioritised over gameinfo entries.
-    # * A 'pack' boolean (optional), to set the default state.
+    # * A 'priority' boolean (optional) If set this determines if the path is added as a higher
+    #   or lower priority than all existing ones. If not set, pack must be - then this modifies
+    #   folders mounted by gameinfo, and does nothing if they're not set there.
+    # * A 'pack' boolean (optional), to set the default state. If unset, this is left alone.
     searchpaths: Sequence[SearchpathEntry]
 
     # Whether we need to use $mostlyopaque in all translucent models.
@@ -453,17 +455,26 @@ def calc_searchpaths(
     opts: Options,
     game: Game,
     game_conf: GameConfig,
+    binary_game: Path | None,
     expand_path: Expander,
 ) -> tuple[FileSystemChain, set[FileSystem]]:
     """Modify searchpaths, applying the game and user configs."""
     fsys_chain = game.get_filesystem()
+
+    def expand_game_path(path: str) -> Path:
+        """Expand paths for the game config."""
+        if (direct := expand_path(path)).exists():
+            return direct
+        if (steam := Path(binary_game, path)).exists():
+            return steam
+        return direct
 
     user_entries = [
         SearchpathEntry.parse_kv(kv, False)
         for kv in opts.get(SEARCHPATHS)
     ]
     fsys_pack: dict[FileSystem, bool] = {}
-    game_pack = _apply_searchpath_entries(fsys_chain, expand_path, game_conf.searchpaths, 'Game Config')
+    game_pack = _apply_searchpath_entries(fsys_chain, expand_game_path, game_conf.searchpaths, 'Game Config')
     user_pack = _apply_searchpath_entries(fsys_chain, expand_path, user_entries, 'User Searchpaths')
 
     if not game_conf.pack_vpk:
@@ -796,7 +807,22 @@ def parse(map_path: Path, game_folder: str | None = '') -> Config:
 
     # Identify which game we have.
     game_conf = parse_games_conf(opts, game.path)
-    fsys, pack_blacklist = calc_searchpaths(opts, game, game_conf, expand_path)
+
+    # Try and mount the game referenced by the game conf, for resolving locations.
+    binary_game: Path | None = None
+    if game_conf.steamid is not None:
+        try:
+            binary_app = find_app(game_conf.steamid)
+        except KeyError:
+            LOGGER.warning(
+                'Game config set to appID {}, but this is not installed! '
+                'Will not be able to mount content.',
+                game_conf.steamid,
+            )  # We will try direct paths, this could work if the mod includes all content.
+        else:
+            binary_game = binary_app.path
+
+    fsys, pack_blacklist = calc_searchpaths(opts, game, game_conf, binary_game, expand_path)
 
     return Config(
         opts=opts,
@@ -911,6 +937,8 @@ SEARCHPATHS = Opt.block(
     * "nopack" "somewhere*" matches against other definitions, disabling packing. Therefore you'll need
       to use this alongside other options, or use it to modify gameinfo paths. 
       It supports ?,* glob-style wildcards.
+    * "pack" "somewhere" does the same, but re-enables packing. This is used to override configuration
+      from the 'game' option.
 """)
 
 SOUNDSCRIPT_MANIFEST = Opt.boolean(

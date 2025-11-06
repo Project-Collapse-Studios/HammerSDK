@@ -28,6 +28,42 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
+		"searchpaths" "element_array" [
+			"SearchFolder" {
+				"path" "string" "hl2_complete/"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "hl2_complete/hl2_complete_misc.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "platform/platform_misc.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "hl2/"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "hl2/hl2_sound_vo_*.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "hl2/hl2_pak.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "hl2/hl2_textures.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "hl2/hl2_misc.vpk"
+				"pack" "bool" "0"
+			},
+			]
 		}
 
 	"Half-Life 2 Episodic" "Game" // Both episodes are the same code.
@@ -54,6 +90,8 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Portal 1" "Game" // Both episodes are the same code.
@@ -71,6 +109,8 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Team Fortress 2" "Game"
@@ -91,6 +131,8 @@
 		"vscript_quote"      "string" "`"
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
 		"studiomdl_path"     "string" "<440>bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Portal 2" "Game"
@@ -111,6 +153,45 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
+		"searchpaths" "element_array" 
+			[
+			"SearchFolder" {
+				"path" "string" "update/"
+				"pack" "bool" "0"
+				"priority" "bool" "1"
+			},
+
+			"SearchVPK" {
+				"path" "string" "portal2_dlc2/pak01_dir.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "portal2_dlc1/pak01_dir.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "portal2/pak01_dir.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "portal2_dlc2/"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "portal2_dlc1/"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "portal2/"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "platform/"
+				"pack" "bool" "0"
+			},
+			]
 		}
 
 	// --------------------------------------------
@@ -136,6 +217,8 @@
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Mapbase Episodic" "Game"
@@ -159,6 +242,8 @@
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Entropy Zero 2" "Game"
@@ -180,6 +265,8 @@
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"Black Mesa" "Game"
@@ -197,6 +284,8 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "" // Not sure.
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 
 	"INFRA" "Game"
@@ -214,6 +303,27 @@
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
 		"studiomdl_path"     "string" "bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
+		"searchpaths" "element_array" 
+			[
+			"SearchVPK" {
+				"path" "string" "infra/pak01_dir.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchVPK" {
+				"path" "string" "infra/pak02_dir.vpk"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "infra/"
+				"pack" "bool" "0"
+			},
+			"SearchFolder" {
+				"path" "string" "platform/"
+				"pack" "bool" "0"
+			},
+			]
 		}
 
 	"Portal 2 Community Edition" "Game"
@@ -234,5 +344,7 @@
 		"vscript_quote"      "string" "\""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
 		"studiomdl_path"     "string" "win64/bin/studiomdl.exe"
+
+		"pack_vpk" "bool" "0"
 		}
 	}
