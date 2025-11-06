@@ -162,6 +162,10 @@ class SearchpathEntry:
     """An entry used to configure searchpaths for the game.
 
     This is parsed from configs, then processed in calc_searchpaths().
+    Modes:
+    * prepend: Add the entry to the start of the fsys (priority)
+    * append: Add the entry to the end of the systems (normal)
+    * optional: The path allows wildcards - if not found, skip.
     """
     type Kind = Literal['folder', 'vpk']
     type Mode = Literal['prepend', 'append', 'optional']
@@ -191,6 +195,11 @@ class SearchpathEntry:
         except KeyError:
             pack = None
         path = elem['path'].val_str
+        if pack is None and mode == 'optional':
+            raise ValueError(
+                f'Searchpath for "{path}" is missing both priority and pack options, '
+                f'will do nothing!'
+            )
         return cls(path, kind, mode, pack)
 
     @classmethod
@@ -198,18 +207,24 @@ class SearchpathEntry:
         """Parse from keyvalues."""
         kind: SearchpathEntry.Kind
         mode: SearchpathEntry.Mode = 'optional' if allow_optional else 'append'
+        pack: bool | None = None
         if kv.has_children():
             path = kv['path']
             kind = 'vpk' if path.casefold().endswith('.vpk') else 'folder'
             if 'priority' in kv:
                 mode = 'prepend' if kv.bool('priority') else 'append'
+            pack = kv.bool('pack', None)
+            if pack is None and mode == 'optional':
+                raise ValueError(
+                    f'Searchpath for "{path}" is missing both priority and pack options, '
+                    f'will do nothing!'
+                )
             return cls(
                 path, kind, mode,
                 kv.bool('pack', None),
             )
         assert isinstance(kv.value, str)
 
-        pack: bool | None = None
         match kv.name:
             case 'nopack':
                 pack = False
@@ -442,56 +457,121 @@ def calc_searchpaths(
 ) -> tuple[FileSystemChain, set[FileSystem]]:
     """Modify searchpaths, applying the game and user configs."""
     fsys_chain = game.get_filesystem()
-    blacklist: set[FileSystem] = set()
+
+    user_entries = [
+        SearchpathEntry.parse_kv(kv, False)
+        for kv in opts.get(SEARCHPATHS)
+    ]
+    fsys_pack: dict[FileSystem, bool] = {}
+    game_pack = _apply_searchpath_entries(fsys_chain, expand_path, game_conf.searchpaths, 'Game Config')
+    user_pack = _apply_searchpath_entries(fsys_chain, expand_path, user_entries, 'User Searchpaths')
 
     if not game_conf.pack_vpk:
+        # Default VPKs to not be packed. We're running after apply_searchpath_entries, so this
+        # affects filesystems added by either config. But this is overridden by both configs.
         for fsys, prefix in fsys_chain.systems:
             if isinstance(fsys, VPKFileSystem):
-                blacklist.add(fsys)
+                fsys_pack[fsys] = False
 
-    # Process game config options first, so user configs override it.
+    # Check for conflicts between the two configs, and log any that exist.
+    # Users are allowed to override game config, but we want to note such cases for debugging.
+    for fsys in game_pack.keys() & user_pack.keys():
+        match (game_pack[fsys], user_pack[fsys]):
+            case (False, True):
+                LOGGER.info(
+                    '{}: Game specified no-pack, but user config overrides - will pack',
+                    fsys,
+                )
+            case (True, False):
+                LOGGER.info(
+                    '{}: Game specified packing, but user config overrides - will not pack',
+                    fsys,
+                )
+            case _:
+                pass
 
-    # Extract to apply after, so order does not matter.
-    whitelist_names = set()
-    blacklist_names = set()
+    # Now merge everything.
+    fsys_pack |= game_pack
+    fsys_pack |= user_pack
+    return fsys_chain, {
+        fsys for fsys, pack in fsys_pack.items()
+        if not pack
+    }
 
-    for kv in opts.get(SEARCHPATHS):
-        if kv.has_children():
-            raise ValueError('Config "searchpaths" value cannot have children.')
-        assert isinstance(kv.value, str)
-        if kv.name == 'nopack':
-            search = expand_path(kv.value).as_posix()
-            # Put this back on the end, so we match folders.
-            if kv.value.endswith(('/', '\\')):
-                search += '/'
-            blacklist_names.add(search)
+
+def _apply_searchpath_entries(
+    fsys_chain: FileSystemChain, expand_path: Expander,
+    entries: Iterable[SearchpathEntry], conf_name: str,
+) -> dict[FileSystem, bool]:
+    """Apply a sequence of searchpath entries, warning if they conflict.
+
+    This is executed seperately for game configs and user configs.
+    """
+    fsys: FileSystem
+    can_pack: dict[FileSystem, bool] = {}
+    # Extract optional entries to handle after.
+    optional = []
+    # for entry in sorted(entries, key=lambda entry: entry.mode == 'optional'):
+    for entry in entries:
+        if entry.mode == 'optional':
+            optional.append(entry)
             continue
-
-        if kv.value.endswith('.vpk'):
-            fsys = VPKFileSystem(str(expand_path(kv.value)))
+        match entry.kind:
+            case 'vpk':
+                fsys = VPKFileSystem(expand_path(entry.path))
+            case 'folder':
+                fsys = RawFileSystem(expand_path(entry.path))
+        # Check for existing matching systems.
+        try:
+            existing_ind = fsys_chain.systems.index((fsys, ''))
+        except ValueError:
+            # Nope, just add.
+            match entry.mode:
+                case 'prepend':
+                    LOGGER.debug('{}: Added priority searchpath {}', conf_name, fsys)
+                    fsys_chain.add_sys(fsys, priority=True)
+                case 'append':
+                    LOGGER.debug('{}: Added searchpath {}', conf_name, fsys)
+                    fsys_chain.add_sys(fsys, priority=False)
         else:
-            fsys = RawFileSystem(str(expand_path(kv.value)))
+            # Already exists, grab that one, don't add. We ignore any priority settings in this case.
+            fsys = fsys_chain.systems[existing_ind][0]
+        if entry.pack is not None:
+            # If not present, apply our config. If present, check for mismatches.
+            exist_pack = can_pack.setdefault(fsys, entry.pack)
+            if exist_pack is not entry.pack:
+                raise ValueError(
+                    f'Filesystem packing conflict! {conf_name} explicitly set filesystem '
+                    f'{fsys} to both packing and no-packing modes!'
+                )
+    # Now handle optional entries.
+    for entry in optional:
+        # Awkward mismatch - Path() strips trailing slashes.
+        # Put them back on the end, so we match folders.
+        search = expand_path(entry.path).as_posix()
+        if entry.path.endswith(('/', '\\')):
+            search += '/'
 
-        if kv.name in ('prefix', 'priority'):
-            LOGGER.debug('Added priority searchpath {}', fsys)
-            fsys_chain.add_sys(fsys, priority=True)
-        elif kv.name in ('path', 'pack'):
-            LOGGER.debug('Added searchpath {}', fsys)
-            fsys_chain.add_sys(fsys)
-        else:
-            raise ValueError(f'Unknown searchpath key "{kv.real_name}"!')
-
-    for search in blacklist_names:
-        LOGGER.debug('Disabling packing for "{}"...', search)
         for fsys, prefix in fsys_chain.systems:
             # Treat folders as ending with a slash, but not VPKs.
             targ_path = Path(fsys.path).as_posix()
             if isinstance(fsys, RawFileSystem):
                 targ_path += '/'
-            if fnmatch.fnmatch(targ_path, search):
-                LOGGER.debug('- Disabled {}', fsys)
-                blacklist.add(fsys)
-    return fsys_chain, blacklist
+            if not fnmatch.fnmatch(targ_path, search):
+                continue
+            match entry.pack:
+                # We don't care about mismatches here - as wildcards users might want to have
+                # later entries to fine-tune earlier ones.
+                case True:
+                    LOGGER.debug('{}: Enable packing', fsys)
+                    can_pack[fsys] = True
+                case False:
+                    LOGGER.debug('{}: Disable packing', fsys)
+                    can_pack[fsys] = False
+                case None:
+                    # Parse functions disallow this.
+                    raise AssertionError(f'Useless {entry!r}, should be impossible!')
+    return can_pack
 
 
 def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
