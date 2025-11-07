@@ -860,7 +860,6 @@ VERSION = Opt.string(
     any changes to that file, then overwrite the original config."""
 )
 
-
 GAMEINFO = Opt.string_or_none(
     'gameinfo',
     """The main game folder. portal2/ for Portal 2, episodic/ for Episode 1, etc.
@@ -961,7 +960,6 @@ MODEL_COMPILE_DUMP = Opt.string(
     prevent it filling up with old model sources. Move things out that you want to keep.
 """)
 
-
 PROPCOMBINE_QC_FOLDER = Opt.block(
     'propcombine_qc_folder',
     Keyvalues('', [Keyvalues('Path', f'|{PATH_KEY_GAME}|../content')]),
@@ -1039,15 +1037,47 @@ PLUGINS = Opt.block(
     loaded, under the name "builtin".
 """)
 
-TRANSFORM_OPTS = Opt.block(
-    'transform_opts', Keyvalues('', []),
-    """Specify additional options specific to transforms. Each key here is the name of the 
-    transform, and the value is then decided by that transform.
-    """,
-    deprecated=True,
-)
-
 DISABLED_TRANSFORMS = Opt.string(
     'transform_disable', '',
     """Specify transforms to disable as a comma-separated string."""
+)
+
+
+# Deprecated options:
+
+
+PACK_VPK = Opt.boolean(
+    'pack_vpk', False,
+    """This is now defined by the 'game' option, configure there.""",
+    deprecated=True,
+)
+
+PACK_TAGS = Opt.block(
+    'pack_tags', Keyvalues('', []),
+    """This is now defined by the 'game' option, configure there.""",
+    deprecated=True,
+)
+
+
+STUDIOMDL = Opt.string(
+    'studiomdl', 'bin/studiomdl.exe',
+    """This is now defined by the 'game' option, configure there.""",
+    deprecated=True,
+)
+
+
+USE_COMMA_SEP = Opt.boolean_or_none(
+    'use_comma_sep',
+    """This is now defined by the 'game' option, configure there.""",
+    deprecated=True,
+)
+
+
+TRANSFORM_OPTS = Opt.block(
+    'transform_opts', Keyvalues('', []),
+    """\
+    Specified additional options for transforms. 
+    These should be updated to define their own option section, where they can be handled normally.
+    """,
+    deprecated=True,
 )
