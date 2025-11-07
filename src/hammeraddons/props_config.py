@@ -328,6 +328,8 @@ class Options:
 
     def get[OptionT: Option](self, option: Opt[OptionT]) -> Option | None:
         """Fetch the given option, or return None if not present and no default is defined."""
+        if option.deprecated:
+            raise ValueError('\n'.join(['Option was removed:', *option.doc]))
         try:
             val = self.settings[option.id]
         except KeyError:
