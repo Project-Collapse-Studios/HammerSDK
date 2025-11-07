@@ -465,7 +465,7 @@ def calc_searchpaths(
         """Expand paths for the game config."""
         if (direct := expand_path(path)).exists():
             return direct
-        if (steam := Path(binary_game, path)).exists():
+        if binary_game is not None and (steam := binary_game / path).exists():
             return steam
         return direct
 
