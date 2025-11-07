@@ -151,6 +151,8 @@ ALL_TAGS = {
 
 # If the tag is present, run to backport newer FGD syntax to older engines.
 POLYFILLS: list[tuple[frozenset[str], Callable[[FGD], None]]] = []
+# Ones which should run in the engine dump
+POLYFILLS_ENGINE: list[Callable[[FGD], None]] = []
 
 # This ends up being the C1 Reverse Line Feed in CP1252,
 # which Hammer displays as nothing. We can suffix visgroups with this to
@@ -184,11 +186,13 @@ SNIPPET_KINDS = [
 SNIPPET_USED: set[str] = set()
 
 
-def _polyfill[Func: Callable[[FGD], None]](*tags: str) -> Callable[[Func], Func]:
+def _polyfill[Func: Callable[[FGD], None]](*tags: str, engine: bool=False) -> Callable[[Func], Func]:
     """Register a polyfill, which backports newer FGD syntax to older engines."""
     def deco(func: Func) -> Func:
         """Registers the function."""
         POLYFILLS.append((frozenset(tag.upper() for tag in tags), func))
+        if engine:
+            POLYFILLS_ENGINE.append(func)
         return func
     return deco
 
@@ -283,7 +287,7 @@ def _polyfill_strip_report(fgd: FGD) -> None:
                 kv.reportable = False
 
 
-@_polyfill('!P2DES')  # Fixed in VitaminSource.
+@_polyfill('!P2DES', engine=True)  # Fixed in VitaminSource.
 def _polyfill_frustum_literals(fgd: FGD) -> None:
     """The frustum() helper does not support literal values, only keyvalues."""
     keys = [
@@ -314,6 +318,7 @@ def _polyfill_frustum_literals(fgd: FGD) -> None:
                     default=str(Vec(value)) if isinstance(value, tuple) else format_float(value),
                     desc='Ignore, this is necessary to display the preview frustum.',
                     readonly=True,
+                    editor_only=True,
                 )}
                 setattr(helper, attr, name)
 
@@ -563,7 +568,7 @@ def load_file(
     base_fgd: FGD,
     ent_source: dict[str, str],
     fsys: RawFileSystem,
-    file: File,
+    file: File[RawFileSystem],
     *,
     is_snippet: bool,
     fgd_vis: bool,
@@ -764,7 +769,7 @@ def action_count(
         has_ent = set()
 
         for base in ent.bases:
-            assert isinstance(base, EntityDef)
+            assert isinstance(base, EntityDef), (ent, ent.bases)
             base_uses[base.classname].add(ent.classname)
 
         for game, tags in expanded.items():
@@ -1267,14 +1272,18 @@ def action_export(
                 if not match_tags(tags, get_appliesto(base)):
                     ent.bases.remove(base)
 
-    if not engine_mode:
-        print('Applying polyfills:')
+    print('Applying polyfills:')
+    if engine_mode:
+        for polyfill in POLYFILLS_ENGINE:
+            print(f' - {polyfill.__name__.removeprefix('_polyfill_')}')
+            polyfill(fgd)
+    else:
         for poly_tag, polyfill in POLYFILLS:
             if match_tags(tags, poly_tag):
-                print(f' - {polyfill.__name__[10:]}: Applying')
+                print(f' - {polyfill.__name__.removeprefix('_polyfill_')}: Applying')
                 polyfill(fgd)
             else:
-                print(f' - {polyfill.__name__[10:]}: Not required')
+                print(f' - {polyfill.__name__.removeprefix('_polyfill_')}: Not required')
 
     print('Applying helpers to child entities and optimising...')
     for ent in fgd.entities.values():
