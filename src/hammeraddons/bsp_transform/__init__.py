@@ -61,7 +61,6 @@ class Context:
         self.studiomdl = studiomdl_loc
         self.game = game
         self.game_conf = game_conf
-        self.config = Keyvalues.root()
 
         self._io_remaps: dict[tuple[str, str], tuple[list[Output | RemapFunc], bool]] = {}
         self._allow_remaps = True
@@ -70,6 +69,7 @@ class Context:
     @property
     @deprecated("Use EntityDef.engine_def() if possible.", category=DeprecationWarning)
     def fgd(self) -> FGD:
+        """Removed attribute, EntityDef.engine_def() provides this directly."""
         if self._fgd is None:
             self._fgd = FGD.engine_dbase()
         return self._fgd
@@ -77,7 +77,16 @@ class Context:
     @property
     @deprecated("Use ctx.game_conf.tags, not ctx.tags", category=DeprecationWarning)
     def tags(self) -> frozenset[str]:
+        """This was moved to game_conf."""
         return self.game_conf.tags
+
+    @property
+    @deprecated(
+        "No longer used."
+        "Define a CONFIG global set to a bsp_transform.Config() instance.", category=DeprecationWarning)
+    def config(self) -> Keyvalues:
+        """Deprecated attribute."""
+        return Keyvalues.root()
 
     def _add_io_remap(
         self, name: str, inp_name: str,
@@ -215,11 +224,6 @@ async def run_transformations(
             LOGGER.info('Skipping "{}"', transform.name)
             continue
         LOGGER.info('Running "{}"...', transform.name)
-        try:
-            context.config = config[transform.name.casefold()]
-        except KeyError:
-            context.config = Keyvalues(transform.name, [])
-        LOGGER.debug('Config: {!r}', context.config)
         await transform.func(context)
 
     apply_io_remaps(context)

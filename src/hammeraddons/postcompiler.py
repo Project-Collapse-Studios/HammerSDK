@@ -196,7 +196,6 @@ async def main(argv: list[str]) -> None:
             pass  # Already empty.
 
     bsp_file.out_comma_sep = conf.game_conf.io_comma_sep
-    transform_conf = {prop.name: prop for prop in conf.opts.get(config.TRANSFORM_OPTS)}
 
     LOGGER.info('Running transforms...')
     await run_transformations(
@@ -205,7 +204,6 @@ async def main(argv: list[str]) -> None:
         bsp_file,
         conf.game,
         conf.game_conf,
-        transform_conf,
         disabled={name.strip().casefold() for name in conf.opts.get(config.DISABLED_TRANSFORMS).split(',')},
         modelcompile_dump=modelcompile_dump,
         studiomdl_path=studiomdl_path,
