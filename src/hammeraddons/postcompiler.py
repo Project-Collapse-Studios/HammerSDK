@@ -268,7 +268,7 @@ async def main(argv: list[str]) -> None:
         LOGGER.warning('No propcombine allowed, --propcombine not passed on the command line!')
 
     auto_pack = conf.opts.get(config.AUTO_PACK)
-    if should_pack := (auto_pack and args.allow_pack):
+    if auto_pack and args.allow_pack:
         LOGGER.info('Analysing packable resources...')
         packlist.pack_from_ents(
             bsp_file.ents,
