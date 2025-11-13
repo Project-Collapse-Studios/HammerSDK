@@ -426,28 +426,30 @@ def load_paths_config(main_conf: Path) -> ExpanderRoots:
     conf_loc = main_conf.with_name(PATHS_CONF_NAME)
     legacy_loc = main_conf.with_name(PATHS_OLD_NAME)
     for loc in [conf_loc, legacy_loc]:
-        LOGGER.info('Paths config: {}', loc)
+        LOGGER.debug('Checking for paths config: {}', loc)
         try:
             with open(loc, encoding='utf8') as f:
-                for kv in Keyvalues.parse(f).find_children('Paths'):
-                    if kv.has_children():
-                        LOGGER.warning('Paths configs may not be blocks!')
-                    else:
-                        name = kv.name.strip('|')
-                        if name in PREDEFINED_PATHS:
-                            LOGGER.warning(
-                                '|{}| cannot be defined in the path config - '
-                                'the following names are builtin: {}',
-                                kv.name, sorted(PREDEFINED_PATHS),
-                            )
-                        roots[name] = path = Path(kv.value).resolve()
-                        LOGGER.info('Path |{}| = {}', name, path)
-            break  # Found
+                paths_kv = Keyvalues.parse(f)
         except FileNotFoundError:
-            pass
-    else:
-        LOGGER.info('Writing initial paths config to {}', conf_loc)
-        conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
+            continue
+        LOGGER.info('Paths config: {}', loc)
+        for kv in paths_kv.find_children('Paths'):
+            if kv.has_children():
+                LOGGER.warning('Paths configs may not be blocks!')
+            else:
+                name = kv.name.strip('|')
+                if name in PREDEFINED_PATHS:
+                    LOGGER.warning(
+                        '|{}| cannot be defined in the path config - '
+                        'the following names are builtin: {}',
+                        kv.name, sorted(PREDEFINED_PATHS),
+                    )
+                roots[name] = path = Path(kv.value).resolve()
+                LOGGER.info('Path |{}| = {}', name, path)
+        return roots  # Found
+
+    LOGGER.info('Writing initial paths config to {}', conf_loc)
+    conf_loc.write_text(PATHS_CONF_STARTER, encoding='utf8')
     return roots
 
 
@@ -747,9 +749,24 @@ def update_check(conf_path: Path, main: Options, plugins: dict[str, Options]) ->
     return updated or new
 
 
-def parse(map_path: Path, game_folder: str | None = '') -> Config:
+def parse(map_path: Path, cmd_config_loc: str | None = '', game_folder: str | None = '') -> Config:
     """Load the config, plugins, and parse."""
-    conf_path, conf_kv = find_conf(map_path)
+    if cmd_config_loc:
+        # Location was provided, use exactly this. If we fail, just write here.
+        LOGGER.info('Config path specified as "{}"', cmd_config_loc)
+        conf_path = Path(cmd_config_loc).resolve()
+        # Allow specifying a directory, means the file is inside.
+        if conf_path.is_dir() or cmd_config_loc.endswith(('/', '\\')):
+            conf_path /= MAIN_CONF_NAME
+        try:
+            with open(conf_path, encoding='utf8') as f:
+                conf_kv = Keyvalues.parse(f, conf_path)
+        except FileNotFoundError:
+            LOGGER.warning('Config does not exist, creating...')
+            conf_kv = Keyvalues.root()
+    else:
+        # Calculate the config location.
+        conf_path, conf_kv = find_conf(map_path)
 
     LOGGER.info('Loading main config options...')
     opts = Options(MAIN_SECTION_NAME, MAIN_VERSION, globals())

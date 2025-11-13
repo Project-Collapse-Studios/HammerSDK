@@ -58,12 +58,19 @@ async def main(argv: list[str]) -> None:
     )
 
     parser.add_argument(
+        "--config",
+        dest="config",
+        default="",
+        help="Specify the location of hammeraddons.vdf, overriding calculation from the map path.",
+    )
+
+    parser.add_argument(
         "-game", "--game",
         dest="game_folder",
         default="",
         help="Specify the folder containing gameinfo.txt, and thus the "
              "location of the game. This overrides the option specified "
-             "in srctools.vdf.",
+             "in hammeraddons.vdf.",
     )
 
     parser.add_argument(
@@ -139,7 +146,7 @@ async def main(argv: list[str]) -> None:
     LOGGER.addHandler(handler)
     LOGGER.info("Map path is {}", path)
 
-    conf = config.parse(path, args.game_folder)
+    conf = config.parse(path, args.config, args.game_folder)
 
     packlist = PackList(conf.fsys)
     studiomdl_path = conf.game_conf.resolve_studiomdl(conf.expand_path)
@@ -158,8 +165,12 @@ async def main(argv: list[str]) -> None:
     packlist.load_particle_manifest(conf.loc.with_name('srctools_particle_data.dmx'))
     LOGGER.info('Done! ({} particles)', len(packlist.particles))
     LOGGER.info('Loading choreo scenes...')
-    packlist.load_choreo_scenes()
-    LOGGER.info('Done! ({} scenes)', len(packlist.choreo))
+    try:
+        packlist.load_choreo_scenes()
+    except FileNotFoundError:
+        LOGGER.warning('No scenes.image file, scenes will not be loaded.')
+    else:
+        LOGGER.info('Done! ({} scenes)', len(packlist.choreo))
 
     LOGGER.info('Reading BSP...')
     bsp_file = BSP(path)
