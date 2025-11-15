@@ -557,14 +557,19 @@ def _apply_searchpath_entries(
                     f'Filesystem packing conflict! {conf_name} explicitly set filesystem '
                     f'{fsys} to both packing and no-packing modes!'
                 )
+            LOGGER.debug('{}: Set {} to pack={}', conf_name, fsys, entry.pack)
     # Now handle optional entries.
+    missing_optional = []
     for entry in optional:
         # Awkward mismatch - Path() strips trailing slashes.
         # Put them back on the end, so we match folders.
         search = expand_path(entry.path).as_posix()
-        if entry.path.endswith(('/', '\\')):
+        if entry.kind == 'folder':
             search += '/'
-
+        elif entry.kind == 'vpk' and search.casefold().endswith('.vpk') and search.casefold()[-8:-4] != '_dir':
+            # Inject some_folder.vpk -> some_folder*.vpk, to catch with/without _dir.
+            search = search[:-4] + '*.vpk'
+        found = False
         for fsys, prefix in fsys_chain.systems:
             # Treat folders as ending with a slash, but not VPKs.
             targ_path = Path(fsys.path).as_posix()
@@ -572,6 +577,7 @@ def _apply_searchpath_entries(
                 targ_path += '/'
             if not fnmatch.fnmatch(targ_path, search):
                 continue
+            found = True
             match entry.pack:
                 # We don't care about mismatches here - as wildcards users might want to have
                 # later entries to fine-tune earlier ones.
@@ -584,6 +590,11 @@ def _apply_searchpath_entries(
                 case None:
                     # Parse functions disallow this.
                     raise AssertionError(f'Useless {entry!r}, should be impossible!')
+        if not found:
+            missing_optional.append(search)
+    # Pull these out so they're highlighted more.
+    for search in missing_optional:
+        LOGGER.debug('{}: Optional searchpath {} matched nothing', conf_name, search)
     return can_pack
 
 
@@ -880,7 +891,7 @@ VERSION = Opt.string(
 GAMEINFO = Opt.string_or_none(
     'gameinfo',
     """The main game folder. portal2/ for Portal 2, episodic/ for Episode 1, etc.
-    This is relative to the config file.
+    This is relative to the config file. Use "." for the current folder.
     """,
 )
 
