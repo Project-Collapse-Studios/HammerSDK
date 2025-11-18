@@ -10,7 +10,7 @@ import os
 import sys
 
 from srctools import AtomicWriter, Keyvalues, conv_int, logger, NoKeyError
-from srctools.dmx import Element
+from srctools.dmx import Element, ValueType as DMXType, Attribute as DMAttribute
 from srctools.filesys import FileSystem, FileSystemChain, RawFileSystem, VPKFileSystem
 from srctools.game import Game
 from srctools.steam import find_app
@@ -330,6 +330,38 @@ class GameConfig:
             particles_manifest=root['particles_manifest'].val_str,
             studiomdl_path=root['studiomdl_path'].val_str,
         )
+
+    @classmethod
+    def optimise(cls, root: Element) -> None:
+        """Optimise this games config element tree.
+
+        This merges identical searchpaths, so they can just be referenced by their UUIDs.
+        """
+        def entry_key(elem: Element, optional: bool) -> tuple:
+            """These are mutable and can't be hashed, we're not editing though."""
+            entry = SearchpathEntry.parse_dmx(elem, optional)
+            return (entry.kind, entry.path, entry.mode, entry.pack, optional)
+
+        searchpaths_cache: dict[tuple, Element] = {}
+        for attr in root.values():
+            if attr.type != DMXType.ELEMENT:
+                continue
+            game = attr.val_elem
+            try:
+                searchpaths = list(game['searchpaths'].iter_elem())
+            except KeyError:
+                continue
+            for i, path_elem in enumerate(searchpaths):
+                try:
+                    parsed = entry_key(path_elem, True)
+                except ValueError:
+                    try:  # Optional=true better represents the original dmx
+                        parsed = entry_key(path_elem, False)
+                    except ValueError:
+                        continue  # Invalid, don't simplify.
+                searchpaths[i] = searchpaths_cache.setdefault(parsed, path_elem)
+            # Iter_elem() treats a single elem as a 1-array, so this is simpler.
+            game['searchpaths'] = searchpaths[0] if len(searchpaths) == 1 else searchpaths
 
     def check_tag(self, tag: str) -> bool:
         """Check a tag is present, doing the correct uppercasing."""

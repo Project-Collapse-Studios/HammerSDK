@@ -28,6 +28,8 @@ for game_attr in games_conf.values():
         except Exception as exc:
             exc.add_note(f'Bad config: {game_attr!r}')
             raise
+# Then merge search path entries to simplify.
+GameConfig.optimise(games_conf)
 
 version = versioningit.get_version(SPECPATH, {
     'vcs': {'method': 'git'},
