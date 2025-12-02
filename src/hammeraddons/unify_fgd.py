@@ -15,8 +15,8 @@ import re
 
 from srctools import fgd
 from srctools.fgd import (
-    FGD, AutoVisgroup, EntAttribute, EntityDef, EntityTypes, Helper, HelperExtAppliesTo,
-    HelperTypes, KVDef, ResourceCtx, Snippet, ValueTypes, match_tags, validate_tags,
+    FGD, AutoVisgroup, EntAttribute, EntityDef, EntityTypes, TagsSet, Helper, HelperExtAppliesTo,
+    HelperTypes, KVDef, ResourceCtx, Snippet, ValueTypes, match_tags, validate_tags
 )
 from srctools.filesys import File, RawFileSystem
 from srctools.math import Vec, format_float
@@ -150,9 +150,10 @@ ALL_TAGS = {
 }
 
 # If the tag is present, run to backport newer FGD syntax to older engines.
-POLYFILLS: list[tuple[frozenset[str], Callable[[FGD], None]]] = []
+type PolyFill = Callable[[FGD, TagsSet], None]
+POLYFILLS: list[tuple[TagsSet, PolyFill]] = []
 # Ones which should run in the engine dump
-POLYFILLS_ENGINE: list[Callable[[FGD], None]] = []
+POLYFILLS_ENGINE: list[PolyFill] = []
 
 # This ends up being the C1 Reverse Line Feed in CP1252,
 # which Hammer displays as nothing. We can suffix visgroups with this to
@@ -186,7 +187,7 @@ SNIPPET_KINDS = [
 SNIPPET_USED: set[str] = set()
 
 
-def _polyfill[Func: Callable[[FGD], None]](
+def _polyfill[Func: PolyFill](
     *tags: str,
     engine: bool = False,
 ) -> Callable[[Func], Func]:
@@ -201,7 +202,7 @@ def _polyfill[Func: Callable[[FGD], None]](
 
 
 @_polyfill('until_asw', 'mesa')
-def _polyfill_boolean(fgd: FGD) -> None:
+def _polyfill_boolean(fgd: FGD, _: TagsSet) -> None:
     """Before Alien Swarm's Hammer, boolean was not available as a keyvalue type.
 
     Substitute with choices.
@@ -218,7 +219,7 @@ def _polyfill_boolean(fgd: FGD) -> None:
 
 
 @_polyfill('until_asw')
-def _polyfill_particlesystem(fgd: FGD) -> None:
+def _polyfill_particlesystem(fgd: FGD, _: TagsSet) -> None:
     """Before Alien Swarm's Hammer, the particle system viewer was not available.
 
     Substitute with just a string.
@@ -231,7 +232,7 @@ def _polyfill_particlesystem(fgd: FGD) -> None:
 
 
 @_polyfill('until_asw')
-def _polyfill_node_id(fgd: FGD) -> None:
+def _polyfill_node_id(fgd: FGD, _: TagsSet) -> None:
     """Before Alien Swarm's Hammer, node_id was not available as a keyvalue type.
 
     Substitute with integer.
@@ -244,7 +245,7 @@ def _polyfill_node_id(fgd: FGD) -> None:
 
 
 @_polyfill('until_l4d2', '!tf2')
-def _polyfill_scripts(fgd: FGD) -> None:
+def _polyfill_scripts(fgd: FGD, _: TagsSet) -> None:
     """Before L4D2's Hammer (except TF2), the vscript specific types were not available.
 
     Substitute with just a string.
@@ -261,8 +262,11 @@ def _polyfill_scripts(fgd: FGD) -> None:
 
 
 @_polyfill()
-def _polyfill_ext_valuetypes(fgd: FGD) -> None:
-    # Convert extension types to the closest standard equivalent.
+def _polyfill_ext_valuetypes(fgd: FGD, tags: TagsSet) -> None:
+    """Convert extension types to the closest standard equivalent.
+
+    Does not apply to engine builds, those accept our custom types.
+    """
     decay = {
         ValueTypes.EXT_STR_TEXTURE: ValueTypes.STRING,
         ValueTypes.EXT_ANGLE_PITCH: ValueTypes.FLOAT,
@@ -270,6 +274,9 @@ def _polyfill_ext_valuetypes(fgd: FGD) -> None:
         ValueTypes.EXT_VEC_DIRECTION: ValueTypes.VEC,
         ValueTypes.EXT_VEC_LOCAL: ValueTypes.VEC,
     }
+    if 'STRATA' not in tags:
+        decay[ValueTypes.EXT_SOUNDSCAPE] = ValueTypes.STRING
+
     for ent in fgd.entities.values():
         for tag_map in ent.keyvalues.values():
             for kv in tag_map.values():
@@ -278,8 +285,9 @@ def _polyfill_ext_valuetypes(fgd: FGD) -> None:
                     kv.type = decay.get(kv.type, kv.type)
 
 
-@_polyfill('!P2DES', engine=True)  # Fixed in VitaminSource.
-def _polyfill_frustum_literals(fgd: FGD) -> None:
+# This is supported in VitaminSource. We want to remove in engine, so these keys get defined.
+@_polyfill('!P2DES', engine=True)
+def _polyfill_frustum_literals(fgd: FGD, _: TagsSet) -> None:
     """The frustum() helper does not support literal values, only keyvalues."""
     keys = [
         ('fov', '_frustum_fov', '<Frustum FOV>'),
@@ -301,7 +309,6 @@ def _polyfill_frustum_literals(fgd: FGD) -> None:
                 while name in ent.keyvalues:
                     i += 1
                     name = f'{name_base}{i}'
-                # This should be !ENGINE, but we don't run polyfills in engine mode.
                 ent.keyvalues[name] = {frozenset(): KVDef(
                     name,
                     type=ValueTypes.COLOR_255 if attr == 'color' else ValueTypes.FLOAT,
@@ -327,7 +334,7 @@ def format_all_tags() -> str:
      )
 
 
-def expand_tags(tags: frozenset[str]) -> frozenset[str]:
+def expand_tags(tags: TagsSet) -> TagsSet:
     """Expand the given tags, producing the full list of tags these will search.
 
     This adds since_/until_ tags, and values in FEATURES.
@@ -405,6 +412,7 @@ def load_database(
 
     # Classname -> filename
     ent_source: dict[str, str] = {}
+    extra_fsys: RawFileSystem | None
 
     if extra_loc is not None:
         if single_extra := extra_loc.is_file():
@@ -653,7 +661,7 @@ def get_appliesto(ent: EntityDef) -> list[str]:
     return arg_list
 
 
-def add_tag(tags: frozenset[str], new_tag: str) -> frozenset[str]:
+def add_tag(tags: TagsSet, new_tag: str) -> TagsSet:
     """Modify these tags such that they allow the new tag."""
     is_inverted = new_tag.startswith(('!', '-'))
 
@@ -726,7 +734,7 @@ def action_count(
 
     print('Done.\nGames: ' + ', '.join(sorted(games)))
 
-    expanded: dict[str, frozenset[str]] = {
+    expanded: dict[str, TagsSet] = {
         # Opt into complete list, since we're checking against engine dumps.
         game: expand_tags(frozenset({game, 'COMPLETE'}))
         for game in ALL_GAMES | ALL_MODS
@@ -980,7 +988,7 @@ def action_import(
                     ent.helpers.append(helper)
 
             for cat in ('keyvalues', 'inputs', 'outputs'):
-                cur_map: dict[str, dict[frozenset[str], EntityDef]] = getattr(ent, cat)
+                cur_map: dict[str, dict[TagsSet, EntityDef]] = getattr(ent, cat)
                 new_map = getattr(new_ent, cat)
                 new_names = set()
                 for name, tag_map in new_map.items():
@@ -1039,7 +1047,7 @@ def action_import(
 def action_export(
     dbase: Path,
     extra_db: Path | None,
-    tags: frozenset[str],
+    tags: TagsSet,
     output_path: Path,
     as_binary: bool,
     engine_mode: bool,
@@ -1100,8 +1108,8 @@ def action_export(
                 ent.bases = [base_entity_def]
 
             value: EntAttribute
-            category: dict[str, dict[frozenset[str], EntAttribute]]
-            base_cat: dict[str, dict[frozenset[str], EntAttribute]]
+            category: dict[str, dict[TagsSet, EntAttribute]]
+            base_cat: dict[str, dict[TagsSet, EntAttribute]]
             for attr_name in ['inputs', 'outputs', 'keyvalues']:
                 # Unsafe cast, we're not going to insert the wrong kind of attribute though.
                 category = getattr(ent, attr_name)
@@ -1115,7 +1123,7 @@ def action_export(
                     # Remake the map, excluding non-engine tags.
                     # If any are explicitly matching us, just use that
                     # directly.
-                    tag_map: dict[frozenset[str], EntAttribute] = {}
+                    tag_map: dict[TagsSet, EntAttribute] = {}
                     for tags, value in orig_tag_map.items():
                         if 'ENGINE' in tags or '+ENGINE' in tags:
                             if value.type is ValueTypes.CHOICES:
@@ -1267,12 +1275,12 @@ def action_export(
     if engine_mode:
         for polyfill in POLYFILLS_ENGINE:
             print(f' - {polyfill.__name__.removeprefix('_polyfill_')}')
-            polyfill(fgd)
+            polyfill(fgd, tags)
     else:
         for poly_tag, polyfill in POLYFILLS:
             if match_tags(tags, poly_tag):
                 print(f' - {polyfill.__name__.removeprefix('_polyfill_')}: Applying')
-                polyfill(fgd)
+                polyfill(fgd, tags)
             else:
                 print(f' - {polyfill.__name__.removeprefix('_polyfill_')}: Not required')
 
