@@ -55,4 +55,6 @@
 
 	// Outputs
 	output OnScavengeSpawn[L4D](void) : "Fired if this prop is selected to spawn by the director scavenge item placement."
+
+	@resources []
 	]

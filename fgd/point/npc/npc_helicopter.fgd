@@ -75,6 +75,7 @@
 
 	@resources
 		[
+		// TODO: If non-combat is set, don't need most of these resources. Same with Arbeit helicopter (subclass)
 		model "models/combine_helicopter.mdl"
 		model "models/combine_helicopter_broken.mdl"
 		material "materials/sprites/redglow1.vmt"
@@ -82,5 +83,22 @@
 		entity helicopter_chunk
 		entity grenade_helicopter
 		entity npc_helicoptersensor
+
+		snd "NPC_AttackHelicopter.ChargeGun"
+		snd "NPC_AttackHelicopter.RotorsLoud" // Only if 'loud rotor wash' set
+		snd "NPC_AttackHelicopter.Rotors" // Only if not ^^ unset
+		snd "NPC_AttackHelicopter.DropMine"
+		snd "NPC_AttackHelicopter.BadlyDamagedAlert"
+		snd "NPC_AttackHelicopter.CrashingAlarm1"
+		snd "NPC_AttackHelicopter.MegabombAlert"
+
+		snd "NPC_AttackHelicopter.RotorBlast"
+		snd "NPC_AttackHelicopter.EngineFailure"
+		snd "NPC_AttackHelicopter.FireGun"
+		snd "NPC_AttackHelicopter.Crash"
+		snd "HelicopterBomb.HardImpact"
+
+		snd "ReallyLoudSpark"
+		snd "NPC_AttackHelicopterGrenade.Ping"
 		]
 	]

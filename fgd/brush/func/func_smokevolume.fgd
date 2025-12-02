@@ -22,4 +22,5 @@
 	input SetRotationSpeed(float) : "Set the particle rotation speed (in degrees per second)."
 	input SetMovementSpeed(float) : "Set the particle movement speed (in inches per second)."
 	input SetDensity(float) : "Set the particle density. It should be a range from 0 to 1."
+	@resources [] // Just material
 	]

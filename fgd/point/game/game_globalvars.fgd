@@ -16,4 +16,5 @@
 	output OutFrametime(float) : "Outputs frame time."
 	output OutTickCount(integer) : "Outputs tick count."
 	output OutIntervalPerTick(integer) : "Outputs interval per tick."
+	@resources []
 ]

@@ -38,4 +38,6 @@
 	output OnEndCap(void) : "Sent when either team end capture."
 	output OnNumCappersChanged(integer) : "Sent when the number of cappers changes, passes the value in int."
 	output OnNumCappersChanged2(integer) : "Sent when the number of cappers changes, passes the value in int (-1 for capture blocked)."
+
+	@resources []
 	]

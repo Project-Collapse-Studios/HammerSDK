@@ -1,5 +1,5 @@
 @NpcClass base(BaseNPC) 
-	appliesto(Mapbase)
+	appliesto(MBase)
 	studioprop()
 = npc_shadow_walker : "Shadow Walker"
 	[

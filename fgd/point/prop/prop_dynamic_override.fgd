@@ -31,4 +31,5 @@
 	// Inputs
 	input SetInteraction[MBase](integer) : "Adds an interaction to this entity."
 	input RemoveInteraction[MBase](integer) : "Removes an interaction from this entity."
+	@resources [] // In prop_dynamic_base
 	]

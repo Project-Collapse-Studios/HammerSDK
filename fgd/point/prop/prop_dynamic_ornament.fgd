@@ -13,4 +13,5 @@
 	// Inputs
 	input SetAttached(target_destination) : "Attach the ornament to a different entity. Parameter should be the name of entity to attach to."
 	input Detach(string) : "Detach from the Target Entity and become invisible. The ornament can be re-attached with the SetAttached input."
+	@resources [] // In prop_dynamic_base
 	]

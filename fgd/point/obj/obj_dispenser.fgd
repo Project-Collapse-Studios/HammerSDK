@@ -39,6 +39,7 @@
 		mdl "models/buildables/dispenser_lvl3.mdl"
 		mdl "models/buildables/dispenser_lvl3_light.mdl"
 
+		// TODO - vgui screens, if that's useful?
 		// PrecacheVGuiScreen("screen_obj_dispenser_blue")
 		// PrecacheVGuiScreen("screen_obj_dispenser_red")
 		sound "Building_Dispenser.Idle"
