@@ -186,7 +186,10 @@ SNIPPET_KINDS = [
 SNIPPET_USED: set[str] = set()
 
 
-def _polyfill[Func: Callable[[FGD], None]](*tags: str, engine: bool=False) -> Callable[[Func], Func]:
+def _polyfill[Func: Callable[[FGD], None]](
+    *tags: str,
+    engine: bool = False,
+) -> Callable[[Func], Func]:
     """Register a polyfill, which backports newer FGD syntax to older engines."""
     def deco(func: Func) -> Func:
         """Registers the function."""
@@ -273,18 +276,6 @@ def _polyfill_ext_valuetypes(fgd: FGD) -> None:
                 # Don't change unknown types.
                 if kv.custom_type is None:
                     kv.type = decay.get(kv.type, kv.type)
-
-
-@_polyfill('until_l4d')
-def _polyfill_strip_report(fgd: FGD) -> None:
-    """In HL2's Hammer, the 'report' modifier uses old syntax.
-
-    Strip for now until we can export that version.
-    """
-    for ent in fgd.entities.values():
-        for tag_map_kv in ent.keyvalues.values():
-            for kv in tag_map_kv.values():
-                kv.reportable = False
 
 
 @_polyfill('!P2DES', engine=True)  # Fixed in VitaminSource.
@@ -1398,7 +1389,12 @@ def action_export(
             serialise(fgd, bin_f)
     else:
         with open(output_path, 'w', encoding='iso-8859-1') as txt_f:
-            fgd.export(txt_f, custom_syntax=False)
+            fgd.export(
+                txt_f,
+                custom_syntax=False,
+                # HL2/episodes require the old syntax.
+                old_report='UNTIL_L4D' in tags,
+            )
             # BEE2 compatibility, don't make it run.
             if 'P2' in tags:
                 txt_f.write('\n// BEE 2 EDIT FLAG = 0 \n')

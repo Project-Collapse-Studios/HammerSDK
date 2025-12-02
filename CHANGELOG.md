@@ -22,6 +22,7 @@
 
 ## Bugfixes
 * Fix vactube objects appearing to rapidly move from end to start positions in some cases.
+* Improved handling of more complex `gameinfo.txt` files like Mapbase's.
 * Automatically remove old generated vactube animation models.
 * Fix an issue where prop ropes generated with slight angles on straight sections.
 * Fix prop ropes not reusing existing compiled versions.
