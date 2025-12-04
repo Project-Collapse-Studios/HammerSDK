@@ -9,4 +9,5 @@
 	movementsound(sound) : "Vehicle Movement Sound" : "vehicles/tank_treads_loop1.wav"
 	
 	input TargetEntity(string) : "Change the tank to target the specified entity."
+	@resources []
 	]

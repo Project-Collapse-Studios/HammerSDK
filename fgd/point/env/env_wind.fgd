@@ -32,4 +32,6 @@
 	input SetWindRadius[MBase](float) : "Sets the radius in which this env_wind should simulate wind. -1 = everywhere"
 	input SetWindRadiusInner[MBase](float) : "Sets the inner-radius for the env_wind, which enables varying intensities at certain distances. 0 = no inner radius"
 	input SetTreeSwayScale[MBase](float) : "Sets the scale at which this env_wind affects $treeSway. Set to 0 to not affect $treeSway."
+
+	@resources []
 	]

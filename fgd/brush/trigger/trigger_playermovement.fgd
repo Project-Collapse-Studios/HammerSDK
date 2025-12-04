@@ -11,4 +11,5 @@
 		4096: "Auto-walk while in trigger" : 0 [MBase, since_L4D, GMOD]
 		8192 : "Disable jump while in trigger" [MBase, since_L4D2, GMOD]
 		]
+	@resources []
 	]

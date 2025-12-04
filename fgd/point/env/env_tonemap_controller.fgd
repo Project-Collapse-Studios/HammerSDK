@@ -62,4 +62,6 @@
 	input InputSetBloomNxtGen_TintG[MESA](float) : "InputSetBloomNxtGen_TintG"
 	input InputSetBloomNxtGen_TintB[MESA](float) : "InputSetBloomNxtGen_TintB"
 	input InputSetBloomNxtGen_Exponent[MESA](float) : "InputSetBloomNxtGen_Exponent"
+
+	@resources []
 	]

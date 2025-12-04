@@ -7,4 +7,5 @@
 	[
 	target(target_destination) report: "Tank AI Entity" : : "The tanktrain_ai entity to change the target of."
 	newtarget(target_destination) : "New Target Entity" : : "The entity to tell the tanktrain_ai to target."
+	@resources []
 	]

@@ -17,4 +17,6 @@
 	// Outputs
 	output AtTarget(void) : "Fires when NPC reaches this target"
 	output LeaveTarget(void) : "Fires when NPC leaves this target"
+
+	@resources []
 	]

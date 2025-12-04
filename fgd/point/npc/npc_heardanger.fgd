@@ -11,4 +11,6 @@
 	output OnHearWorld(void) : "Fired when this NPC hears a sound (other than combat or the player)."
 	output OnHearPlayer(void) : "Fired when this NPC hears the player."
 	output OnHearCombat(void) : "Fired when this NPC hears combat sounds."
+
+	@resources []
 	]

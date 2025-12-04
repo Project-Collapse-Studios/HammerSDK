@@ -9,4 +9,9 @@
 	
 	input SetGlowColor(color255) : "<r> <g> <b> <a> 0-255"
 	input Toggle(void) : "Toggles this entity."
+
+	@resources
+		[
+		mat "materials/dev/glow_color.vmt"
+		]
 	]

@@ -12,4 +12,5 @@
 	// Inputs
 	input SetMaxPieces(float) : "Adjust the maximum amount of the weapon allowed."
 	input SetAmmoModifier(float) : "Adjust the ammo modifier."
+	@resources [] // Does have a Spawn() function, but that's unused?
 	]

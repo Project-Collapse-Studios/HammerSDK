@@ -83,4 +83,6 @@
 	output OnTrigger14(void) : "Scene trigger 14"
 	output OnTrigger15(void) : "Scene trigger 15"
 	output OnTrigger16(void) : "Scene trigger 16"
+
+	@resources []
 	]
