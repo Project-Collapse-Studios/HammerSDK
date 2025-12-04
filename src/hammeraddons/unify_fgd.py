@@ -855,6 +855,8 @@ def action_count(
             print(base, len(count), count if len(count) == 1 else '...')
 
     print('\n\nEntity Dumps:')
+    all_classes = set()
+    used_classes = set()
     for dump_path in factories_folder.glob('*.txt'):
         with dump_path.open() as f:
             dump_classes = {
@@ -877,6 +879,8 @@ def action_count(
 
         extra = defined_classes - dump_classes
         missing = dump_classes - defined_classes
+        all_classes |= defined_classes
+        used_classes |= dump_classes
         if extra:
             print(f'{game} - Extraneous definitions: ')
             print(', '.join(sorted(extra)))
@@ -884,25 +888,33 @@ def action_count(
             print(f'{game} - Missing definitions: ')
             print(', '.join(sorted(missing)))
 
+    print('Completely unused:')
+    print(', '.join(sorted(all_classes - used_classes)))
+
     print('\n\nMissing Class Resources:')
 
     missing_count = defined_count = empty_count = 0
     not_in_engine = {'-ENGINE', '!ENGINE', 'SRCTOOLS', '+SRCTOOLS'}
+    class_res = defaultdict(list)
     for clsname in sorted(fgd.entities):
         ent = fgd.entities[clsname]
         if ent.type is EntityTypes.BASE or ent.is_alias:
             continue
+        appliesto = get_appliesto(ent)
 
-        if not not_in_engine.isdisjoint(get_appliesto(ent)):
+        if not not_in_engine.isdisjoint(appliesto):
             continue
         if ent.resources_defined():
             defined_count += 1
             if len(ent.resources) == 0:
                 empty_count += 1
         else:
-            print(clsname, end=', ')
+            class_res[frozenset(appliesto)].append(ent.classname)
             missing_count += 1
 
+    for tags_list, classnames in class_res.items():
+        classnames.sort()
+        print(f'{{{' '.join(tags_list)}}}', '=', ' '.join(classnames))
     print(
         f'\nMissing: {missing_count}, '
         f'Defined: {defined_count} = {defined_count/(missing_count + defined_count):.2%}, empty={empty_count}\n\n'
