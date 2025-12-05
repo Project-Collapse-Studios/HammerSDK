@@ -24,6 +24,7 @@
 		4: "func_pushable" : 0 [!KZ]
 		8: "Physics Objects" : 0 [!KZ]
 		8192: "Items  (weapons, items, projectiles)" : 0 [MBase]
+		8192: "Allow ghosts to fire this trigger" : 0 [MOMENTUM]
 		16: "Only player ally NPCs" : 0 [!KZ]
 		64: "Everything (not including physics debris)" : 0 [!KZ] // KZ changes these out
 		512: "Only clients *not* in vehicles" : 0 [!KZ]

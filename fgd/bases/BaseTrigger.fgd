@@ -15,7 +15,9 @@
 		8192: "Items (weapons, items, projectiles)" : 0 [MBase]
 		16: "Only player ally NPCs" : 0 [!ASW]
 		16: "Only marines" : 1 [ASW]
-		32: "Only clients in vehicles" : 0
+		32: "Only explosives" : 0 [+MOMENTUM]
+		32: "Only clients in vehicles" : 0 [-MOMENTUM]
+		32: "Only explosives" : 0 [+MOMENTUM]
 		64: "Everything (not including physics debris)" : 0
 		512: "Only clients *not* in vehicles" : 0 [!ASW]
 		1024: "Physics debris" : 0
