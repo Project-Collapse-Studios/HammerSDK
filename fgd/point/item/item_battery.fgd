@@ -4,7 +4,7 @@
 	studioprop[-mesa, +MBase, -EZ2]()
 	studioprop[-mesa, -MBase, -EZ2]("models/items/battery.mdl")
 	studioprop[+mesa]("models/weapons/w_battery.mdl")
-= item_battery: "HEV battery"
+= item_battery: "HEV suit battery."
 	[
 	PowerMultiplier[MBase](float) : "Power Multiplier" : "1.0" : "Multiplies the amount of armor this item gives."
 	// Mapbase makes this customisable, but EZ2 removes that.

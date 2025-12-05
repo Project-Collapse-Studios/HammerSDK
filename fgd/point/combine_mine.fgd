@@ -6,7 +6,7 @@
 	studio("models/props_combine/combine_mine01.mdl") = combine_mine: "Combine Land Mine"
 	[
 	bounce(boolean) : "Bounce" : 1 : "Whether the mine should bounce up in the air before exploding." 
-	ExplosionDelay[MBase](float) : "Delay" : "0.5" : "The delay after being triggered before this mine bounces, or before it explodes if bouncing is disabled. Does not apply to the cavern type."
+	ExplosionDelay[MBase, Strata](float) : "Delay" : "0.5" : "The delay after being triggered before this mine bounces, or before it explodes if bouncing is disabled. Does not apply to the cavern type."
 	locksilently(boolean) : "Lock Silently" : 1 : "Prevents the mine from making any clamping sound when it plants itself for the first time, after which it makes sound again."
 
 	// Replaced by Initial State

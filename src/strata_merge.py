@@ -7,8 +7,8 @@ from srctools.filesys import RawFileSystem
 from srctools import FGD
 
 MERGED = {  # Set of classnames we have checked already and know the diff is fine.
-    'BaseEntityVisBrush',
-    'BaseHeadcrab', 'BaseHelicopter', 'BasePortButton', 'BaseTrain', 'CombineScanner',
+    'baseentityvisbrush', 'baselight', 'fadedistance',
+    'bseheadcrab', 'basehelicopter', 'baseportbutton', 'basetrain', 'combinescanner', 'damagetype',
 
     'ai_changetarget', 'ai_goal_actbusy', 'ai_goal_injured_follow', 'ai_goal_lead_weapon',
     'ai_script_conditions', 'aiscripted_schedule', 'ambient_generic',
@@ -18,21 +18,34 @@ MERGED = {  # Set of classnames we have checked already and know the diff is fin
     'comp_prop_cable_dynamic', 'comp_prop_rope', 'comp_prop_rope_dynamic', 'comp_propcombine_set',
     'comp_propcombine_volume', 'comp_relay', 'comp_sequential_call', 'comp_trigger_coop',
     'comp_vactube_start', 'comp_vactube_junction', 'comp_vactube_end', 'comp_vactube_sensor',
-    'comp_vactube_spline', 'comp_vactube_object',
+    'comp_vactube_spline', 'comp_vactube_object', 'comp_piston_platform', 'comp_movie_fitter',
+    'comp_multi_command', 'hammer_model',
     'env_cubemap', 'env_effectscript', 'env_fade', 'env_fire', 'env_firesensor', 'env_fog_controller',
-    'env_projectedtexture', 'env_portal_laser', 'env_soundscape',
+    'env_projectedtexture', 'env_portal_laser', 'env_soundscape', 'env_rockettrail', 'env_sun',
+    'env_rotorwash_emitter', 'env_blood', 'env_bubbles', 'env_embers', 'env_starfield', 'env_steam',
+    'env_zoom',
     'filter_enemy', 'filter_multi', 'func_areaportal', 'func_breakable', 'func_breakable_surf',
+    'filter_activator_class',
     'func_brush', 'func_combine_ball_spawner', 'func_door', 'func_illusionary', 'func_physbox',
     'func_instance', 'func_instance_io_proxy',
     'func_movelinear', 'linked_portal_door',
     'item_ammo_357', 'item_ammo_357_large',
-    'item_ammo_ar2', 'item_ammo_ar2_altfire', 'item_ammo_ar2_large',
+    'item_ammo_ar2', 'item_ammo_ar2_altfire', 'item_ammo_ar2_large', 'item_healthcharger',
+    'item_healthkit', 'item_healthvial', 'item_item_crate', 'item_large_box_lrounds',
+    'item_large_box_mrounds', 'item_large_box_srounds', 'item_rpg_round', 'item_suit',
+    'item_suitcharger', 'item_box_buckshot', 'item_battery', 'item_grubnugget',
     'item_ammo_crossbow', 'info_coop_spawn', 'info_apc_missile_hint',
-    'logic_achievement', 'logic_choreographed_scene', 'logic_compare',
+    'item_box_lrounds', 'item_box_mrounds', 'item_box_srounds',
+    'logic_achievement', 'logic_choreographed_scene', 'logic_compare', 'logic_playerproxy',
+    'logic_timer', 'logic_auto', 'logic_console', 'logic_convar', 'logic_gate', 'logic_measure_direction',
+    'logic_measure_movement', 'logic_modelinfo', 'logic_playmovie', 'logic_scene_list_manager',
+    'logic_script', 'logic_sequence', 'material_modify_control',
+    'light', 'light_spot', 'light_rt', 'light_rt_spot', 'light_environment',
     'prop_thumper', 'path_track', 'prop_laser_catcher', 'prop_testchamber_sign', 'prop_tractor_beam',
     'prop_testchamber_door', 'paint_sphere',
     'point_bonusmaps_accessor', 'point_broadcastclientcommand', 'point_camera', 'point_changelevel',
-    'npc_pigeon', 'npc_rollermine', 'npc_seagull', 'npc_security_camera', 'npc_strider', 'npc_zombine',
+    'npc_pigeon', 'npc_crow', 'npc_rollermine', 'npc_seagull', 'npc_security_camera',
+    'npc_strider', 'npc_zombine', 'npc_dog', 'npc_eli',
     'trigger_soundoperator', 'trigger_soundscape',
     'trigger_togglesave', 'trigger_remove', 'trigger_rpgfire', 'trigger_tonemap', 'trigger_transition',
     'trigger_wind', 'trigger_weapon_dissolve', 'trigger_weapon_strip',
@@ -93,9 +106,11 @@ def main() -> None:
         with open(REPORT_DIR / f'{classname}.diff', 'w') as f:
             f.writelines(difflib.unified_diff(
                 ha_text.splitlines(keepends=True), strata_text.splitlines(keepends=True),
-                f'HammerAddons - {classname}', f'Strata - {classname}',
+                f'HammerAddons', f'Strata', n=999,
             ))
         count += 1
+    added.sort()
+    removed.sort()
     print(f'Conflicts: {count}')
     print(f'Added: {added}')
     print(f'Removed: {removed}')
