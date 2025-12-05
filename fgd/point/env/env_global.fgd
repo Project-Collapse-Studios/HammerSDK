@@ -1,7 +1,7 @@
 @PointClass base(BaseEntityPoint)
 	color(200 0 0)
 	iconsprite("editor/env_global.vmt")
-= env_global: "An entity to control a game-specific global states."
+= env_global: "An entity that controls game-specific global states."
 	[
 
 	globalstate[engine](string) : "Global State to Set"
@@ -108,7 +108,8 @@
 		]
 
 	initialstate[engine](integer) : "Initial State" : 0
-	initialstate(choices) : "Initial State" : 0 =
+	initialstate(choices) : "Initial State" : 0 : "Controls the active state for this global. " +
+		"Setting this to \"Dead\" permanently disables this global, and will not persist during level transitions." =
 		[
 		0: "Off"
 		1: "On"
@@ -129,16 +130,18 @@
 	input Remove(void) : "Set state of global to DEAD."
 	input SetCounter(integer) : "Sets the counter value of this global."
 	input AddToCounter(integer) : "Adds to the counter value of this global. Negative numbers subtract."
-	input GetCounter[!INFRA, !MBASE](void) : "Causes the Counter output to be fired, passing the current counter value for this global. This doesn't work properly."
+	input GetCounter[!INFRA, !MBASE, !Strata](void) : "Causes the Counter output to be fired, passing the current counter value for this global. This doesn't work properly."
 	input GetCounter[INFRA](void) : "Causes the OnGetCounter output to be fired, passing the current counter value for this global."
 	input GetCounter[MBASE](void) : "Causes the OutCounter output to be fired, passing the current counter value for this global."
 
 	// Outputs
 	// This counter output is overwritten by the KV above, making it non-functional.
 	// INFRA and Mapbase rename it to fix that.
-	output Counter[!INFRA, !MBASE](integer) : "Fired in response to the GetCounter input, passing the current value of the counter."
+	// Strata specially handles the KV to support both.
+	output Counter[!INFRA, !MBASE, !Strata](integer) : "This has the same name as the keyvalue, so it does not function."
 	output OutCounter[MBASE](integer) : "Fired in response to the GetCounter input, passing the current value of the counter."
 	output OnGetCounter[INFRA](integer) : "Fired in response to the GetCounter input, passing the current value of the counter."
+	output Counter[Strata](integer) : "Fired in response to the GetCounter input, passing the current value of the counter."
 
 	@resources []
 	]

@@ -17,6 +17,7 @@
 
 // Lightmaps are TF2-exclusive.
 // Since at least ASW, screenspace fade is disallowed.
+// Strata Source adds non-uniform scaling.
 
 @PointClass base(Angles) 
 	// line() breaks the studioprop() default box.
@@ -35,6 +36,7 @@
 	rendercolor[since_L4D](color255) : "Color (R G B)" : "255 255 255"
 
 	uniformscale[PROP_SCALING](float) : "Uniform Scale Override" : 1 : "Resize the static prop."
+	scale[Strata](vector): "Scale Override" : "1 1 1" : "Resize the static prop."
 
 	solid[engine](integer) : "Collisions": 6
 	solid(choices) : "Collisions" : 6 : "Method of collision for this prop." =

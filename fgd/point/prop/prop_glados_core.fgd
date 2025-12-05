@@ -33,9 +33,9 @@
 	delaybetweenlines(float) : "Pause (in secs) between VO Lines." : 0.4 : "When the core is talking, this is the number of seconds delay between it's spoken lines."
 
 	// Inputs
-	input Panic(void) : "Core is near death, panic."
+	input Panic(void) : "Emit panic voiceover."
 	input StartTalking(void) : "Start playing lines, play looking animations."
 
 	// Outputs
-	output OnPlayerPickup(void) : "Player picked up core."
+	output OnPlayerPickup(void) : "Fired when the player picks up this personality core."
 	]
