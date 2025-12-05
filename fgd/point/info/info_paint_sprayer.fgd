@@ -12,7 +12,7 @@
 	drawonly(boolean) : "Draw Only?" : 0 : "If this flag is true, blobs will only render, vanishing on contact with surfaces."
 
 	rendermode[engine](integer) : "Render Mode" : 0
-	rendermode(choices) : "Render Mode" : 0 : "The mode to render blobs. Appears non-functional." =
+	rendermode[+complete](choices) : "Render Mode" : 0 : "The mode to render blobs. Appears non-functional." =
 		[
 		0: "Blobulator"
 		1: "Fast Sphere"
