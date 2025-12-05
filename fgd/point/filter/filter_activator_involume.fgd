@@ -1,6 +1,6 @@
 @FilterClass base(filter_base) 
 	autovis(Logic, Filters)
-	appliesto(MBase)
+	appliesto(MBase, Strata)
 	iconsprite("editor/filter_involume.vmt") 
 	line(255 255 255, targetname, target)
 	line(0 255 255, targetname, tester)

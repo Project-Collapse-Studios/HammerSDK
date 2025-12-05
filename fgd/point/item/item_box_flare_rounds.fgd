@@ -1,5 +1,5 @@
 @PointClass base(ItemAmmo) 
-	appliesto(MBase) 
+	appliesto(MBase, Strata) 
 	studioprop("models/items/boxflares.mdl") = item_box_flare_rounds: "Box of Flare Rounds"
 	[
 	@resources
