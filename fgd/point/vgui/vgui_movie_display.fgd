@@ -8,7 +8,9 @@
 	sphere[-Strata](height)
 = vgui_movie_display: "Movie Display"
 	[
-	displaytext(string) : "Display Text"
+	startenabled[Strata](boolean): "Start enabled" : 0 : "Whether or not the video should start enabled."
+	startpaused[Strata](boolean): "Start paused" : 0 : "Whether or not the video should start paused."
+ 	displaytext(string) : "Display Text"
 	MovieFilename(string) : "Movie To display" : "media/filename.bik" : "The movie to display."
 	MovieFilename[engine](string) : "Movie To display" : "media/filename.bik" : "The movie to display."
 	MovieFilename[P2, -P2CE](choices) : "Movie to display" : "media/aperture_logo.bik" : "The movie to display. You can also type in the filename of a custom movie here." =

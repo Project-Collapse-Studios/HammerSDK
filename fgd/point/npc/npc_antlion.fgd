@@ -21,7 +21,7 @@
 	
 	model(studio) : "Override Model"
 	noglow[engine](boolean) : "Disable Glowing Butt" : 0
-	noglow(choices) : "Glowing Butt" : 0 =
+	noglow[EZ2](choices) : "Glowing Butt" : 0 =
 		[
 		0 : "Glow"
 		1 : "Don't glow"

@@ -11,13 +11,14 @@
 	spawnflags(flags)  =
 		[
 		1: "Disabled" : 0
-		2: "Fire once" : 0
+		// 2: "Fire once" : 0 - Commented out in code.
 		4: "Branch Reverse" : 0
 		8: "Disable train" : 0
 		16: "Teleport to THIS path track" : 0
 		32: "Helicopter Force Angles" : 0 [MESA]
 		32: "Part of an uphill path" : 0 [TF2]
 		64: "Part of a downhill path" : 0 [TF2, MESA]
+		32768: "Alternate path enabled" : 0
 		]
 
 	target(target_destination) report: "Next Stop Target" : : "The next path_track in the path."

@@ -11,7 +11,8 @@
 
 	ForceBlobShadows[MESA](boolean) : "Force Blob shadows" : 1
 
-	enableshadowsfromlocallights[since_L4D](boolean) : "Enable Shadows From Local Lights" : 1
+	enableshadowsfromlocallights[since_L4D](boolean) : "Enable Shadows From Local Lights" : 1 : "Enables RTT dynamic shadow angles, " +
+		"which cause shadows to face away from the nearest light source instead of always using this entity's direction. "
 	enableshadowsfromlocallights[MBase, GMod](boolean) : "Enable Local Light Shadows" : 0 : "Enables RTT dynamic shadow angles, " +
 		"which cause shadows to face away from the nearest light source instead of always using this entity's direction. " +
 		"This is a new feature and the original Half-Life 2 had no dynamic shadow angles. " +

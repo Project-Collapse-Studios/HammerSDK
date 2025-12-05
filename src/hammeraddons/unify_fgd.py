@@ -110,7 +110,7 @@ FEATURES: dict[str, set[str]] = {
     'CSGO': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'P2DES': {'P2', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'STRATA': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
-    'P2CE': {'P2', 'HL2', 'EP1', 'EP2', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
+    'P2CE': {'P2', 'HL2', 'EP1', 'EP2', 'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
 
     'PSA': {'P1'},
     'P2SIXENSE': {'P2'},
@@ -858,12 +858,16 @@ def action_count(
     all_classes = set()
     used_classes = set()
     for dump_path in factories_folder.glob('*.txt'):
+        dump_classes = set()
         with dump_path.open() as f:
-            dump_classes = {
-                cls.casefold().strip()
-                for cls in f
-                if not cls.isspace()
-            }
+            for line in f:
+                line = line.casefold().strip()
+                if line.isspace():
+                    continue
+                # Strata's output has lines like 'hl2:weapon_crowbar'. We don't care right now.
+                if ':' in line:
+                    line = line.split(':', 1)[1]
+                dump_classes.add(line)
         game = dump_path.stem.upper()
         tags = frozenset(game.split('_'))
 
@@ -1198,7 +1202,7 @@ def action_export(
                         ]
                     if (
                         isinstance(value, KVDef) and value.editor_only
-                        and re.fullmatch("-{4,}", value.disp_name) is not None
+                        and re.fullmatch(r"-{4,}", value.disp_name) is not None
                     ):
                         # It's a divider, set a specific length, or blank it in engine mode.
                         value.disp_name = '-' if engine_mode else ('-' * 80)

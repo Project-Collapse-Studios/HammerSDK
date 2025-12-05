@@ -10,18 +10,18 @@
 	sphere(AreaPortalFadeEnd) 
 = prop_testchamber_door: "Portal Door."
 	[
-	open[P2CE](boolean): "Start Open" : 0 : "If set, the door starts in the open state."
-	locked[P2CE](boolean): "Start Locked" : 0 : "If set, the door starts locked and can no longer change open or closed state."
-	skin[P2CE](integer): "Skin" : 0 : "Skin to use in game"
-	model[P2CE](studio): "Model" : "models/props/portal_door_combined.mdl" : "Model to use in-game"
-	defaultanim[P2CE](string) readonly editor: "<Default Animation>" : "idleclose" : "Ignore, needed to prevent the close animation from looping in Hammer"
- 
 	lightingorigin(target_destination) : "Lighting Origin" : : "Select an info_lighting to specify a location to sample lighting from for this door, instead of the origins."
 	areaportalwindow(target_destination) : "Area Portal Window Name" : : "The name of an area portal window that is controlled by the door. When closed, the window will be forced shut"
 	useareaportalfade(boolean) : "Fade Area Portal?" : 0 : "If the area portal should use the specified fade distances to fade out. Otherwise, it will be set to a distance of 10000 (effectively infinite)."
 	areaportalfadestart(float) : "Fade Start Distance" : 0 : "The distance at which the area portal starts fading out."
 	areaportalfadeend(float) : "Fade End Distance" : 0 : "The distance at which the area portal turns completely opaque."
 
+	open[P2CE](boolean): "Start Open" : 0 : "If set, the door starts in the open state."
+	locked[P2CE](boolean): "Start Locked" : 0 : "If set, the door starts locked and can no longer change open or closed state."
+	skin[P2CE](integer): "Skin" : 0 : "Skin to use in game"
+	model[P2CE](studio): "Model" : "models/props/portal_door_combined.mdl" : "Model to use in-game"
+	defaultanim[P2CE](string) readonly editor: "<Default Animation>" : "idleclose" : "Ignore, needed to prevent the close animation from looping in Hammer"
+ 
 	// Inputs
 	input Open(void) : "Open the door and cause the areaportal to return to fading."
 	input Close(void) : "Close the door and cause the areaportal to close."

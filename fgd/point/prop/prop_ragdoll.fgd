@@ -10,6 +10,7 @@
 	spawnflags(flags)  =
 		[
 		4: "Debris - Don't collide with the player or other debris" : 1
+		4096: "Use LRU Retirement" : 0
 		8192: "Allow Dissolve" : 0
 		16384: "Motion Disabled" : 0
 		32768: "Allow stretch" : 0

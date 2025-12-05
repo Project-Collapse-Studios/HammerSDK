@@ -6,6 +6,7 @@
 		[
 		0: "Repulsion Gel"
 		1: "Reflection Gel / Adhesion Gel" [-Strata]
+		1: "Reflection Gel" [+Strata]
 		2: "Propulsion Gel"
 		3: "Conversion Gel"
 		4: "Cleansing Gel"
@@ -18,6 +19,7 @@
 		[
 		0: "Repulsion Gel"
 		1: "Reflection Gel / Adhesion Gel" [-Strata]
+		1: "Reflection Gel" [+Strata]
 		2: "Propulsion Gel"
 		3: "Conversion Gel"
 		4: "Cleansing Gel"

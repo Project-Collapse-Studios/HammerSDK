@@ -49,6 +49,7 @@
 		11: "11 - Mud" [L4D, L4D2]
 		11: "11 - Steam Pipe" [since_ASW]
 		12: "12 - Sand Barrel" [since_CSGO]
+		13: "13 - Dense Wood" [Strata]
 		]
 
 	spawnflags(flags) =

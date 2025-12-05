@@ -7,7 +7,7 @@
 	achievementevent[engine](string) : "Achievement Event" : : "Named event is sent to the achievement system when this entity receives a 'FireEvent' input."
 	achievementname[engine](string) : "Achievement Name" : : "The name of the achievement to be awarded when this  entity receives a 'FireEvent' input."
 
-	achievementevent(string) report: "Achievement Event" : : "Named event is sent to the achievement system when this entity receives a 'FireEvent' input."
+	achievementevent[until_P2](string): "Achievement Event" : : "Named event is sent to the achievement system when this entity receives a 'FireEvent' input."
 	
 	achievementevent[Mesa](choices) report: "Achievement Event" : : "Named event is sent to the achievement system when this entity receives a 'FireEvent' input." =
 		[
@@ -564,6 +564,7 @@
 		"TSP_BEATTHEGAME": "Beat the game"
 		"TSP_UNACHIEVABLE": "Unachievable"
 		]
+	achievementname[STRATA](string): "Achievement Name" : : "The name of the achievement to be awarded when this entity receives a 'FireEvent' input."
 
 	// Inputs
 	input Toggle(void) : "Toggle the relay between enabled and disabled."

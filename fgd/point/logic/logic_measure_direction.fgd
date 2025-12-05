@@ -1,4 +1,4 @@
-@PointClass appliesto(MBase)
+@PointClass appliesto(MBase, Strata)
 	base(logic_measure_movement) 
 	sphere(TraceDistance)
 	iconsprite(editor/vizzys/logic_measure_direction)
