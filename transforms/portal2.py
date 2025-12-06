@@ -10,6 +10,9 @@ LOGGER = srctools.logger.get_logger(__name__)
 @trans('Fix Laser Catcher Skins')
 def laser_catcher_skins(ctx: Context) -> None:
     """Fix Valve's bug where reloading saves causes lasers to get their skin wrong."""
+    if ctx.game_conf.check_tag('STRATA'):
+        return  # Bug is fixed.
+
     for ent in ctx.vmf.by_class['prop_laser_catcher']:
         if not conv_bool(ent.pop('src_fix_skins'), True):
             continue
@@ -80,6 +83,8 @@ def force_paintinmap(ctx: Context) -> None:
 @trans('Precache P2 Light Bridge')
 def precache_light_bridge(ctx: Context) -> None:
     """Ensure light bridges have the particle precached."""
+    if ctx.game_conf.check_tag('STRATA'):
+        return  # Bug is fixed.
 
     for bridge in ctx.vmf.by_class['prop_wall_projector']:
         if conv_bool(bridge['StartEnabled', '0']):
@@ -115,6 +120,8 @@ def fix_button_collision(ctx: Context) -> None:
         'prop_floor_button',
         'prop_floor_cube_button',
         'prop_under_floor_button',
+        'prop_button',
+        'prop_under_button',
     ]:
         for btn in ctx.vmf.by_class[cls]:
             if conv_int(btn['solid']) == 6:
