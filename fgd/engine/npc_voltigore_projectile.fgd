@@ -8,7 +8,7 @@
 		mat "materials/sprites/glow01.vmt"
 		mat "materials/sprites/hydragutbeam.vmt"
 		snd "DoSpark"
-		entity env_tesla
+		entity point_tesla
 		entity vortex_controller
 		]
 	]   
