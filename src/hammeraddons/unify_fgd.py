@@ -1199,7 +1199,6 @@ def action_export(
             fgd.export(
                 txt_f,
                 custom_syntax=False,
-                escape_quotes='SINCE_STRATA' in tags,
                 # HL2/episodes require the old syntax.
                 old_report='UNTIL_L4D' in tags,
             )
