@@ -15,7 +15,9 @@
 		4: "Dual Portal Device (PotatOS attached)"
 		]
 	equippaintgun[engine](integer) : "Equip Paint Gun" : 0
-	equippaintgun(choices) : "Equip Paint Gun" : 0 : "Automatically grants the player a paint gun if enabled.\n\nThe \"basic paint gun\" option will give the player a paint gun with no powers assigned by default - paint powers must be obtained by touching an item_paint_power_pickup entity. Selecting the \"Fully-upgraded paint gun\" option will give the player all applicable paint powers for the paint gun." =
+	equippaintgun(choices) : "Equip Paint Gun" : 0 : "Automatically grants the player a paint gun if enabled.\n\n" +
+		"The \"basic paint gun\" option will give the player a paint gun with no powers assigned by default - paint powers must be obtained by touching an item_paint_power_pickup entity. " +
+		"Selecting the \"Fully-upgraded paint gun\" option will give the player all applicable paint powers for the paint gun." =
 		[
 		0: "None"
 		1: "Basic paint gun"

@@ -17,6 +17,6 @@
 		]
 
 	// Inputs
-	input TriggerForAllPlayers[since_CSGO, GMOD](void) : "This will force all connected players to take the weapon(s) specified."
-	input TriggerForActivatedPlayer[since_CSGO, GMOD](string) : "This will force the player who activated to equip the specified weapon."
+	input TriggerForAllPlayers[CSGO, GMOD](void) : "This will force all connected players to take the weapon(s) specified."
+	input TriggerForActivatedPlayer[CSGO, GMOD](string) : "This will force the player who activated to equip the specified weapon."
 	]

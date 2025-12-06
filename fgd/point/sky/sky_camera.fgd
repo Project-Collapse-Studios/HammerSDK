@@ -17,11 +17,11 @@
 
 	spawnflags(flags) =
 		[
-		1: "Master (takes priority if multiple sky_cameras exist)" : 0 [MBase]
-		2: "Continuously update position (for moving sky_cameras)" : 0 [MBase]
+		1: "Master (takes priority if multiple sky_cameras exist)" : 0 [MBase, Strata]
+		2: "Continuously update position (for moving sky_cameras)" : 0 [MBase, Strata]
 		]
 
-	skycolor[MBase](color255) : "Sky Color" : "255 255 255 0" : "Causes the skybox to use a solid color instead of the sky texture specified in worldspawn. " +
+	skycolor[MBase, Strata](color255) : "Sky Color" : "255 255 255 0" : "Causes the skybox to use a solid color instead of the sky texture specified in worldspawn. " +
 		"Blended alpha is unfortunately not supported, " +
 		"but an alpha of '0' disables the effect and any alpha greater than that (e.g. 255) enables the effect."
 
@@ -61,7 +61,7 @@
 	input SetFogColor[MBase, Strata](color255) : "Sets the primary fog color."
 	input SetFogColorSecondary[MBase, Strata](color255) : "Sets the secondary fog color."
 	input SetFarZ[MBase, Strata](integer): "Sets the far clip plane distance."
-	
+	input SetFogMaxDensity[MBase, Strata](float) : "0 to 1, set the fog's max density"
 	input SetSkyColor[MBase, Strata](color255) : "Sets the sky color."
 	
 	input CopyFogController[MBase](target_destination) : "Copies the target fog controller's exact fog parameters."

@@ -29,8 +29,8 @@
 		2: "Medium"
 		3: "High"
 		4: "Very High"
-		// Custom agression disabled
-		5 : "Custom" [MBase]
+		// Custom agression disabled?
+		5 : "Custom"
 		]
 
 	playerbattleline(boolean) : "Player battleline" : 1 : "Player defines a battle line, applies to allies only"
@@ -48,7 +48,7 @@
 	// Inputs
 	input Activate(void) : "Begin contesting position."
 	input Deactivate(void) : "Cease contesting position."
-	input UpdateActors[MBase](void) : "Forces an update on this goal's actors."
+	input UpdateActors[MBase, Strata](void) : "Forces an update on this goal's actors."
 	input SetAggressiveness(integer) : "Set aggressiveness."
 
 	@resources []

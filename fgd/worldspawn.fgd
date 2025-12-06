@@ -14,6 +14,7 @@
 	skyname[CSGO](string)          : "SkyBox Texture Name" : "sky_dust"            : "Texture used for the 2D skybox."
 	skyname[L4D](string)           : "SkyBox Texture Name" : "sky_l4d_urban01_hdr" : "Texture used for the 2D skybox."
 	skyname[L4D2](string)          : "SkyBox Texture Name" : "sky_l4d_rural02_hdr" : "Texture used for the 2D skybox."
+	skyname[P2CE](string)          : "SkyBox Texture Name" : "sky_black_nofog"     : "Texture used for the 2D skybox."
 	
 	chaptertitle[-MBase](string) : "Chapter Title" : : "Chapter Title that appears onscreen when this level starts."
 	chaptertitle[+MBase](string) : "Chapter/Savegame Title" : "" : "A ''chapter'' title that this map should identify with. " +

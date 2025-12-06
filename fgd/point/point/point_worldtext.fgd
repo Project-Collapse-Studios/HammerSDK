@@ -17,6 +17,7 @@
 		]
 
 	message(string) : "Entity Message" : "" : "Text Message. English characters and numbers only! Newline characters are accepted."
+	message[TF2, Strata, GMod](string) : "Entity Message" : "" : "Text Message. The character selection is limited by the font. Newline characters are accepted."
 	textsize(float) : "Text Size" : 10 : "Text Size."
 	color[since_CSGO](color255) : "Color" : "255 255 255" : "Color of the text"
 	color[until_CSGO](color255) : "Color" : "255 255 255 255" : "Color and opacity of the text"
@@ -38,6 +39,7 @@
 		11 : "Roboto Mono (green glow, soft edges)"
 		12 : "TF2 Build (soft edges)"
 	]
+	font[Strata](material) : "Font Material" : "editor/worldtext" : "The font material atlas to use for the text"
 
 	orientation[engine](integer) : "Orientation" : 0
 	orientation[until_CSGO](choices) : "Orientation" : 0 : "Text orientation mode. Fixed orientation left aligns the text, the others center align it." =
@@ -55,6 +57,7 @@
 	input SetEnabled[GMOD](boolean) : "Sets the visibility based on in the input parameter"
 	input Enable[!TF2](void) : "Start displaying the message text."
 	input Disable[!TF2](void) : "Stop displaying the message text."
+	input Toggle[Strata](void) : "Toggles the display status"
 	input SetMessage[since_CSGO](string) : "Set the message text."
 
 	// SDK 25 Inputs

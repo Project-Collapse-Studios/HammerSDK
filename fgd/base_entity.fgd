@@ -44,6 +44,7 @@
 	responseContext(string) : "Response Context" : ""
 	addon(string) : "AI Addon" : : "Broken ASW feature."
 	teamnumber(integer): "Team Number"
+	pendingteamnumber(integer) : "Pending Team Number" : : "Team numer this entity will be on at the beginning of the next round."
 	
 	health(integer) : "Health"
 	max_health(integer) : "Max Health"
@@ -66,6 +67,14 @@
 	disableflashlight(boolean) : "Disable Projected Texture Shadows"
 	disableshadowdepth(boolean) : "Disable Shadow Depth"
 	shadowdepthnocache(integer) : "Cache in Shadow Depth"
+
+	viewhideflags(integer) : "View ID nodraw" : 0 : "This keyvalue can control whether an entity should only draw on things like monitors or mirrors, " +
+		"or the opposite. The code for this is { m_iViewHideFlags & (1 << CurrentViewID()) } and supports any combination of view IDs."
+	fadescale(float) : "Fade Scale" : 1 : "If you specify a fade in the worldspawn, then the engine will forcibly fade out props even if fademindist/fademaxdist isn't specified." +
+		"This scale factor gives you some control over the fade. " +
+		"Using 0 here turns off the forcible fades. " +
+		"Numbers smaller than 1 cause the prop to fade out at further distances, " +
+		"and greater than 1 cause it to fade out at closer distances."
 
 	movetype(integer) : "Movement Type" : 0
 	collisiongroup(integer) : "Collision Group" : 0
