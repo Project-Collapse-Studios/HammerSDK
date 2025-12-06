@@ -684,37 +684,6 @@ def add_tag(tags: TagsSet, new_tag: str) -> TagsSet:
 
     return frozenset(tag_set)
 
-
-def check_ent_sprites(ent: EntityDef, used: dict[str, list[str]]) -> None:
-    """Check if the specified entity has a unique sprite."""
-    mdl: str | None = None
-    sprite: str | None = None
-    for helper in ent.helpers:
-        if type(helper) in UNIQUE_HELPERS:
-            return  # Specialised helper is sufficient.
-        if isinstance(helper, fgd.HelperModel):
-            if helper.model is None and 'model' in ent.kv:
-                return  # Model is customisable.
-            mdl = helper.model
-        if isinstance(helper, fgd.HelperSprite):
-            if helper.mat is None:
-                print(f'{ent.classname}: {helper}???')
-            sprite = helper.mat
-    # If both model and sprite, allow model to be duplicate.
-    if mdl and sprite:
-        display = sprite
-    elif mdl:
-        display = mdl
-    elif sprite:
-        display = sprite
-    else:
-        tags = get_appliesto(ent)
-        if 'ENGINE' not in tags and '+ENGINE' not in tags:
-            print(f'{ent.classname}: No sprite/model? {", ".join(map(repr, ent.helpers))}')
-        return
-    used[display].append(ent.classname)
-
-
 def iter_tags(fgd: FGD) -> Iterator[str]:
     """Iterate over all tags defined in the FGD."""
     for ent in fgd:
@@ -731,268 +700,25 @@ def iter_tags(fgd: FGD) -> Iterator[str]:
                 yield from tags
 
 
-def action_count(
+def action_report(
     dbase: Path,
     extra_db: Path | None,
+    report_dir: Path,
     factories_folder: Path,
 ) -> None:
-    """Output a count of all entities in the database per game."""
+    """Output various reports on the database, to help pinpoint improvements."""
+    report_dir.absolute()
+    print('Report dir: ', report_dir)
+    from hammeraddons import fgd_reports
+    report_dir.mkdir(parents=True, exist_ok=True)
     fgd, base_entity_def = load_database(dbase, extra_db)
+    print('Database loaded.')
 
-    count_base: dict[str, int] = Counter()
-    count_point: dict[str, int] = Counter()
-    count_brush: dict[str, int] = Counter()
-
-    all_tags = {
-        tag.lstrip('+-!').upper()
-        for ent in fgd
-        for tag in get_appliesto(ent)
-    }
-
-    games = (ALL_GAMES | ALL_MODS) & all_tags
-
-    print('Done.\nGames: ' + ', '.join(sorted(games)))
-
-    expanded: dict[str, TagsSet] = {
-        # Opt into complete list, since we're checking against engine dumps.
-        game: expand_tags(frozenset({game, 'COMPLETE'}))
-        for game in ALL_GAMES | ALL_MODS
-    }
-    expanded['ALL'] = frozenset()
-
-    game_classes: MutableMapping[tuple[str, str], set[str]] = defaultdict(set)
-    base_uses: MutableMapping[str, set[str]] = defaultdict(set)
-    all_ents: MutableMapping[str, set[str]] = defaultdict(set)
-
-    kv_counts: dict[tuple, list[tuple]] = defaultdict(list)
-    inp_counts: dict[tuple, list[tuple]] = defaultdict(list)
-    out_counts: dict[tuple, list[tuple]] = defaultdict(list)
-    desc_counts: dict[tuple, list[tuple]] = defaultdict(list)
-    val_list_counts: dict[tuple, list[tuple]] = defaultdict(list)
-
-    for ent in fgd:
-        if ent.type is EntityTypes.BASE:
-            counter = count_base
-            typ = 'Base'
-            # Ensure it's present, so we detect 0-use bases.
-            base_uses[ent.classname]  # noqa
-        elif ent.type is EntityTypes.BRUSH:
-            counter = count_brush
-            typ = 'Brush'
-        else:
-            counter = count_point
-            typ = 'Point'
-        appliesto = get_appliesto(ent)
-
-        has_ent = set()
-
-        for base in ent.bases:
-            assert isinstance(base, EntityDef), (ent, ent.bases)
-            base_uses[base.classname].add(ent.classname)
-
-        for game, tags in expanded.items():
-            if match_tags(tags, appliesto):
-                counter[game] += 1
-                game_classes[game, typ].add(ent.classname)
-                has_ent.add(game)
-            # Allow explicitly saying certain ents aren't in the actual game
-            # with the "engine" tag, or only adding them to this + the binary dump.
-            if ent.type is not EntityTypes.BASE and match_tags(tags | {'ENGINE'}, appliesto):
-                all_ents[game].add(ent.classname.casefold())
-
-        has_ent.discard('ALL')
-
-        if has_ent == games:
-            # Applies to all, strip.
-            game_classes['ALL', typ].add(ent.classname)
-            counter['ALL'] += 1
-            if appliesto:
-                print('ALL game: ', ent.classname)
-            for game in games:
-                counter[game] -= 1
-                game_classes[game, typ].discard(ent.classname)
-
-        if ent.classname in SNIPPET_USED:
-            # This entity does use snippets already, don't count it.
-            continue
-
-        for name, kv_map in ent.keyvalues.items():
-            for tags, kv in kv_map.items():
-                if 'ENGINE' in tags or '+ENGINE' in tags or kv.type is ValueTypes.SPAWNFLAGS:
-                    continue
-                if kv.desc:  # Blank is not a duplicate!
-                    desc_counts[kv.desc, ].append((ent.classname, name))
-                kv_counts[
-                    kv.name, kv.type, (tuple(kv.val_list) if kv.val_list is not None else ()), kv.desc, kv.default,
-                ].append((ent.classname, name, kv.desc))
-                if kv.val_list is not None:
-                    val_list_counts[tuple(kv.val_list)].append((ent.classname, name))
-        for name, io_map in ent.inputs.items():
-            for tags, io in io_map.items():
-                if 'ENGINE' in tags or '+ENGINE' in tags:
-                    continue
-                inp_counts[io.name, io.type, io.desc].append((ent.classname, name, io.desc))
-        for name, io_map in ent.outputs.items():
-            for tags, io in io_map.items():
-                if 'ENGINE' in tags or '+ENGINE' in tags:
-                    continue
-                out_counts[io.name, io.type, io.desc].append((ent.classname, name, io.desc))
-
-    all_games: set[str] = {*count_base, *count_point, *count_brush}
-
-    def ordering(game: str) -> tuple:
-        """Put ALL at the start, mods at the end."""
-        if game == 'ALL':
-            return (0, 0)
-        try:
-            return (1, GAME_ORDER.index(game))
-        except ValueError:
-            return (2, game)  # Mods
-
-    game_order = sorted(all_games, key=ordering)
-
-    row_temp = '{:^9} | {:^6} | {:^6} | {:^6}'
-    header = row_temp.format('Game', 'Base', 'Point', 'Brush')
-
-    print(header)
-    print('-' * len(header))
-
-    for game in game_order:
-        print(row_temp.format(
-            game,
-            count_base[game],
-            count_point[game],
-            count_brush[game],
-        ))
-
-    print('\n\nBases:')
-    for base, count in sorted(base_uses.items(), key=lambda x: (len(x[1]), x[0])):
-        ent = fgd[base]
-        if ent.type is EntityTypes.BASE and (
-            ent.keyvalues or ent.outputs or ent.inputs
-        ):
-            print(base, len(count), count if len(count) == 1 else '...')
-
-    print('\n\nEntity Dumps:')
-    all_classes = set()
-    used_classes = set()
-    for dump_path in factories_folder.glob('*.txt'):
-        dump_classes = set()
-        with dump_path.open() as f:
-            for line in f:
-                line = line.casefold().strip()
-                if line.isspace():
-                    continue
-                # Strata's output has lines like 'hl2:weapon_crowbar'. We don't care right now.
-                if ':' in line:
-                    line = line.split(':', 1)[1]
-                dump_classes.add(line)
-        game = dump_path.stem.upper()
-        tags = frozenset(game.split('_'))
-
-        defined_classes = {
-            cls
-            for tag in tags
-            for cls in all_ents.get(tag, ())
-            if not cls.startswith('comp_')
-        }
-        if not defined_classes:
-            print(f'No dump for tags "{game}"!')
-            continue
-
-        extra = defined_classes - dump_classes
-        missing = dump_classes - defined_classes
-        all_classes |= defined_classes
-        used_classes |= dump_classes
-        if extra:
-            print(f'{game} - Extraneous definitions: ')
-            print(', '.join(sorted(extra)))
-        if missing:
-            print(f'{game} - Missing definitions: ')
-            print(', '.join(sorted(missing)))
-
-    print('Completely unused:')
-    print(', '.join(sorted(all_classes - used_classes)))
-
-    print('\n\nMissing Class Resources:')
-
-    missing_count = defined_count = empty_count = 0
-    not_in_engine = {'-ENGINE', '!ENGINE', 'SRCTOOLS', '+SRCTOOLS'}
-    class_res = defaultdict(list)
-    for clsname in sorted(fgd.entities):
-        ent = fgd.entities[clsname]
-        if ent.type is EntityTypes.BASE or ent.is_alias:
-            continue
-        appliesto = get_appliesto(ent)
-
-        if not not_in_engine.isdisjoint(appliesto):
-            continue
-        if ent.resources_defined():
-            defined_count += 1
-            if len(ent.resources) == 0:
-                empty_count += 1
-        else:
-            class_res[frozenset(appliesto)].append(ent.classname)
-            missing_count += 1
-
-    for tags_list, classnames in class_res.items():
-        classnames.sort()
-        print(f'{{{' '.join(tags_list)}}}', '=', ' '.join(classnames))
-    print(
-        f'\nMissing: {missing_count}, '
-        f'Defined: {defined_count} = {defined_count/(missing_count + defined_count):.2%}, empty={empty_count}\n\n'
-    )
-
-    def report_missing_res(msg: str) -> None:
-        """Report errors in resources."""
-        print(f'Ent {ent.classname} res error: {msg}')
-    res_ctx = ResourceCtx(fgd=fgd)
-    for ent in fgd.entities.values():
-        # Get them all, checking validity in the process.
-        deque(ent.get_resources(res_ctx, ent=None, on_error=report_missing_res), maxlen=0)
-    print()
-
-    mdl_or_sprites: dict[str, list[str]] = defaultdict(list)
-    for ent in fgd:
-        if ent.type is not EntityTypes.BASE and ent.type is not EntityTypes.BRUSH and not ent.is_alias:
-            check_ent_sprites(ent, mdl_or_sprites)
-    for resource, classes in mdl_or_sprites.items():
-        if len(classes) > 1:
-            classes.sort()
-            print(f'Reused {resource}: {classes}')
-
-    for kind_name, count_map in (
-        ('keyvalues', kv_counts),
-        ('inputs', inp_counts),
-        ('outputs', out_counts),
-        ('val list', val_list_counts),
-        ('desc', desc_counts)
-    ):
-        print(f'Duplicate {kind_name}:')
-        for key, info in sorted(count_map.items(), key=lambda v: len(v[1]), reverse=True):
-            if len(info) <= 2:
-                continue
-            print(f'{len(info):02}: {key[:64]!r} -> {info}')
-
-    def check_parents(done: set[EntityDef], repeat: set[EntityDef], ent: EntityDef) -> None:
-        if ent in done:
-            repeat.add(ent)
-        else:
-            done.add(ent)
-            for base in ent.bases:
-                assert isinstance(base, EntityDef), (ent, ent.bases)
-                check_parents(done, repeat, base)
-
-    for ent in fgd:
-        done: set[EntityDef] = set()
-        repeat: set[EntityDef] = set()
-        check_parents(done, repeat, ent)
-        if repeat:
-            print(
-                f'Repeated bases: {ent.classname} = '
-                f'{[ent.classname for ent in repeat]}, '
-                f'all={[ent.classname for ent in done]}'
-            )
+    all_ents = fgd_reports.report_counts(fgd, report_dir)
+    fgd_reports.report_factories(fgd, all_ents, report_dir=report_dir, factories_folder=factories_folder)
+    fgd_reports.report_helper_reuse(fgd, report_dir)
+    fgd_reports.report_missing_resources(fgd, report_dir)
+    fgd_reports.report_undefined_resources(fgd, report_dir)
 
 
 def action_import(
@@ -1455,6 +1181,12 @@ def action_export(
         for tag, classnames in res_tags.items():
             print(f'- {tag}: {len(classnames)} ents')
 
+    # Check for any failure to apply an extend class, and throw an error if we find any
+    # These will break Hammer if they sneak through!
+    for ent in fgd.entities.values():
+        if ent.type == EntityTypes.EXTEND:
+            raise RuntimeError(f'Found unmatched @ExtendClass "{ent.classname}"!')
+
     print(f'Exporting {output_path}...')
 
     if as_binary:
@@ -1467,6 +1199,7 @@ def action_export(
             fgd.export(
                 txt_f,
                 custom_syntax=False,
+                escape_quotes='SINCE_STRATA' in tags,
                 # HL2/episodes require the old syntax.
                 old_report='UNTIL_L4D' in tags,
             )
@@ -1547,10 +1280,14 @@ def main(args: list[str] | None = None) -> None:
     )
     subparsers = parser.add_subparsers(dest="mode")
 
-    subparsers.add_parser(
-        "count",
-        help=action_count.__doc__,
-        aliases=["c"],
+    parser_report = subparsers.add_parser(
+        "report",
+        help=action_report.__doc__,
+        aliases=["c", "count"],  # Former name
+    )
+    parser_report.add_argument(
+        'output',
+        help='Folder to write reports to.',
     )
 
     parser_exp = subparsers.add_parser(
@@ -1680,8 +1417,12 @@ def main(args: list[str] | None = None) -> None:
             result.srctools_only,
             result.collapse_bases,
         )
-    elif result.mode in ("c", "count"):
-        action_count(dbase, extra_db, factories_folder=Path(repo_dir, 'db', 'factories'))
+    elif result.mode in ("report", "c", "count"):
+        action_report(
+            dbase, extra_db,
+            factories_folder=Path(repo_dir, 'db', 'factories'),
+            report_dir=Path(result.output),
+        )
     elif result.mode in ("visgroup", "v", "vis"):
         action_visgroup(dbase, extra_db, result.output)
     else:

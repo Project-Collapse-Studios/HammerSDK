@@ -79,3 +79,4 @@ examples/hammeraddons.vdf
 # Random extra things
 output.fgd
 build_for_testing.bat
+reports/
