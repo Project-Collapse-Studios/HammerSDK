@@ -75,7 +75,9 @@
 	input fademaxdist(float) : "Sets distance at which the entity ends fading. If <0, the entity won't disappear at all. The value will scale appropriately if the entity is in a 3D Skybox."
 	input DisableShadow(void) : "Allows the entity to draw a render target (dynamic) shadow."
 	input EnableShadow(void) : "Prevents the entity from drawing a render target (dynamic) shadow."
-	
+	input Dissolve[+Strata, +P2](void) : "Fizzles the object, firing the OnFizzled output."
+	input SilentDissolve[+Strata, +P2](void) : "Kills the object immediately, firing the OnFizzled output."
+
 	input AlternativeSorting[SINCE_EP1](boolean) : "Used to attempt to fix sorting problems when rendering. True activates, false deactivates"
 	input SetModelScale[EP1, EP2](vector) : "Takes two values separated by a space. The first is the target model scale. " +
 		"The second value is the number of seconds the change in scale will be spread over."

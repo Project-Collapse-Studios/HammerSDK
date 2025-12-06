@@ -19,7 +19,7 @@
 		1: "Color"
 		]
 		
-	fieldofview(float) : "FieldOfView" : "0.2" : "How far to look (1.0 = straight ahead, 0.0 = +/- 90 degrees, -1.0 = all directions)"
+	fieldofview(float) : "Field Of View" : "0.2" : "How far to look (1.0 = straight ahead, 0.0 = +/- 90 degrees, -1.0 = all directions)"
 	minsearchdist(integer) : "Min Search Dist" : 0
 	maxsearchdist(integer) : "Max Search Dist" : 2048
 

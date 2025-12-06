@@ -118,8 +118,8 @@
 	input MoveToRotationDistance[Gmod, since_P2](float) : "Sets the open distance (in degrees) and moves there."
 	input SetGlowEnabled[since_CSGO](void) : "Starts the glow."
 	input SetGlowDisabled[since_CSGO](void) : "Stops the glow."
-	input SetUnbreakable[L4D, L4D2](void) : "The door can't be broken."
-	input SetBreakable[L4D, L4D2](void) : "The door can be broken."
+	input SetUnbreakable[L4D, L4D2, since_CSGO](void) : "The door can't be broken."
+	input SetBreakable[L4D, L4D2, since_CSGO](void) : "The door can be broken."
 	input SetAnimation[INFRA](string) : "Force the door to play an animation. The parameter should be the name of the animation."
 	input SetAnimationNoReset[INFRA](string) : "Force the door to play an animation unless the door " +
 		"is already playing the animation. The parameter should be the name of the animation."

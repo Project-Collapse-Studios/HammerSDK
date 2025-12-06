@@ -1,7 +1,7 @@
 @NpcClass base(TalkNPC, PlayerCompanion) 
 	appliesto(EP1, EP2, HL2, P1) 
 	autovis(Entities, NPCs, Rebels, Alyx)
-	studio() = npc_alyx: "Alyx"
+	studio() = npc_alyx: "Alyx Vance. Behaves identically to Citizens in standard Half-Life 2, but supports a variety of unique behaviors in Episodic mode such as Zombie-Alyx combat interactions, boarding vehicles, et al."
 	[
 	model(studio) : "World model" : "models/alyx.mdl"
 

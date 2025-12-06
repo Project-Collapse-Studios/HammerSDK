@@ -1,12 +1,12 @@
-// Different bases in EZ2 versus Mesa.
-@BaseClass base(BaseNPCAssault) appliesto(Mesa) = _npc_bullsquid_mesa []
+// Different bases in EZ2.
+@BaseClass base(BaseNPCAssault) appliesto(-EZ2) = _npc_bullsquid_normal []
 @BaseClass base(EZ2PredatorNPC) appliesto(EZ2) = _npc_bullsquid_ez2 []
 
 @NpcClass 
-	appliesto(Mesa, EZ2) 
-	base(_npc_bullsquid_mesa, _npc_bullsquid_ez2)
+	appliesto(Mesa, EZ2, Strata) 
+	base(_npc_bullsquid_normal, _npc_bullsquid_ez2)
 	studio[Mesa]("models/xenians/bullsquid.mdl") 
-	studio[EZ2]("models/bullsquid.mdl") 
+	studio[-Mesa]("models/bullsquid.mdl") 
 	line[EZ2](255 128 128, targtname, Mate)
 = npc_bullsquid: "Bullsquid"
 	[

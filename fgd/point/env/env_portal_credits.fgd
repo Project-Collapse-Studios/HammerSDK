@@ -9,6 +9,7 @@
 	input RollCredits(void) : "Start the intro credits rolling."
 	input RollOutroCredits(void) : "Start the outro credits rolling."
 	input ShowLogo(void) : "Show the HL2 logo."
+	input SetLogoLength(float) : "How long the logo shows."
 	input RollPortalOutroCredits(void) : "Start the Portal greenscreen outro credits."
 
 	// Outputs

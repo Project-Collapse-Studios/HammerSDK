@@ -35,6 +35,11 @@
 	particle_name_outer[GMOD](particlesystem) : "Particle System Override (Outer)" : "" : "If any of these are set, will override 'Precipitation Type' with a custom particle based one.\nThis is the farthest particle system from the player.\nYour map should contain the entered particle system by name in one of the PCF files in its manifest."
 	particle_dist_inner[GMOD](float) : "Particle System Distance (Inner)" : "180" : "If using custom particle systems, this will be the distance of the middle one from the player."
 	
+	innerdistance[Strata](float): "Inner particle distance" : -1 : "Distance between the inner and outer particle systems. If not set, this will be automatically selected from the precipitation type keyvalue."
+	innernearparticle[Strata](particlesystem): "Inner near system" : : "Name of the inner near particle system. If not set, this will be automatically selected from the precipitation type keyvalue."
+	innerfarparticle[Strata](particlesystem): "Inner far system" : : "Name of the inner far particle system. If not set, this will be automatically selected from the precipitation type keyvalue."
+	outerparticle[Strata](particlesystem): "Outer system" : : "Name of the outer particle system. If not set, this will be automatically selected from the precipitation type keyvalue."
+ 
 	input Alpha(integer) : "Changes the density of the rain, " +
 	"and may add additional particle effects like fog or leaves. " +
 	"Accepts inputs from -1 to 255."

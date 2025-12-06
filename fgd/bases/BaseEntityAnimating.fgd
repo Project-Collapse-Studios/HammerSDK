@@ -52,7 +52,8 @@
 	sequence[engine](integer) : "Sequence Number" : 0 : "Stores the index of the currently playing animation. Can be set manually via AddOutput, but care must be used."
 	
 	suppressanimsounds[since_P2](boolean) : "Suppress Anim Sounds" : 0 : "If set, the prop will not play any sounds that are embedded in animations it plays."
-
+	AllowSilentDissolve[P2CE](boolean): "Allow SilentDissolve input" : 1 : "Allow the SilentDissolve input to dissolve this object."
+	
 	linedivider_animbase[!engine](string) readonly editor: "----------------------------------------------------------------------------------------------------------" : ""
 
 	LightingOrigin(target_destination) : "Lighting Origin" :  : "Select any entity (not info_lighting!) from which to sample lighting instead of the entity's origin."
@@ -70,7 +71,7 @@
 	input Skin(integer) : "Changes the model skin to the specified number."
 	input SetBodyGroup(integer) : "Change the model's bodygroup to the specified index number."
 	// 2013 only
-	input SetModelScale[until_L4D, !GMod](vector) : "Set the scale of the entity's model. Takes two values separated by a space. The first is the target model scale. " +
+	input SetModelScale[until_L4D, !GMod, Strata](vector) : "Set the scale of the entity's model. Takes two values separated by a space. The first is the target model scale. " +
 		"The second value is the number of seconds the change in scale will be spread over."
 
 	input Ignite(void) : "Makes the entity catch on fire indefinitely."
@@ -98,7 +99,9 @@
 	input CreateSeparateRagdoll[MBase](void) : "Creates a separate serverside ragdoll at this entity's origin."
 	input CreateSeparateRagdollClient[MBase](void) : "Creates a separate clientside ragdoll at this entity's origin."
 	input SetPoseParameter[MBase](string) : "Sets the specified pose parameter to the specified value (e.g. ''aim_yaw 45'')."
-
+	input Dissolve[+P2, +Strata](void) : "Fizzles the object, firing the OnFizzled output."
+	input SilentDissolve[+P2, +Strata](void) : "Kills the object immediately, firing the OnFizzled output."
+ 
 	// Outputs
 	output OnIgnite(void) : "Fired when this object catches fire."
 	output OnServerRagdoll[MBase](ehandle) : "Fires when this object becomes/creates a serverside ragdoll. Passes the ragdoll."

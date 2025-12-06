@@ -10,7 +10,7 @@
 	input Disable(void) : "Disable the crash target."
 
 	// Outputs
-	output OnCrashed(void) : "Fired when the Hunship crashed at this target."
+	output OnCrashed(void) : "Fired when the Gunship crashes at this target."
 
 	@resources []
 	]
