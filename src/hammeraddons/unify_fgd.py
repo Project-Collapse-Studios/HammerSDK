@@ -5,7 +5,7 @@ This allows sharing definitions among different engine versions.
 from __future__ import annotations
 
 from typing import Any
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, MutableMapping, Iterator
 from collections import Counter, defaultdict, ChainMap, deque
 from pathlib import Path
 import argparse
@@ -49,6 +49,7 @@ MODS_BRANCHED: dict[str, list[tuple[str, str]]] = {
         ('HLS', 'Half-Life: Source'),
         ('DODS', 'Day of Defeat: Source'),
         ('CSS', 'Counter-Strike: Source'),
+        ('HL2DM', 'Half-Life 2: Deathmatch'),
     ],
     'EP2': [
         ('MESA', 'Black Mesa'),
@@ -714,6 +715,22 @@ def check_ent_sprites(ent: EntityDef, used: dict[str, list[str]]) -> None:
     used[display].append(ent.classname)
 
 
+def iter_tags(fgd: FGD) -> Iterator[str]:
+    """Iterate over all tags defined in the FGD."""
+    for ent in fgd:
+        for helper in ent.get_helpers(HelperExtAppliesTo):
+            yield from helper.applies
+        for kv_map in ent.keyvalues.values():
+            for tags, kv in kv_map.items():
+                yield from tags
+                if kv.val_list is not None:
+                    for tup in kv.val_list:
+                        yield from tup[-1]
+        for io_map in itertools.chain(ent.inputs.values(), ent.outputs.values()):
+            for tags in io_map:
+                yield from tags
+
+
 def action_count(
     dbase: Path,
     extra_db: Path | None,
@@ -957,6 +974,26 @@ def action_count(
                 continue
             print(f'{len(info):02}: {key[:64]!r} -> {info}')
 
+    def check_parents(done: set[EntityDef], repeat: set[EntityDef], ent: EntityDef) -> None:
+        if ent in done:
+            repeat.add(ent)
+        else:
+            done.add(ent)
+            for base in ent.bases:
+                assert isinstance(base, EntityDef), (ent, ent.bases)
+                check_parents(done, repeat, base)
+
+    for ent in fgd:
+        done: set[EntityDef] = set()
+        repeat: set[EntityDef] = set()
+        check_parents(done, repeat, ent)
+        if repeat:
+            print(
+                f'Repeated bases: {ent.classname} = '
+                f'{[ent.classname for ent in repeat]}, '
+                f'all={[ent.classname for ent in done]}'
+            )
+
 
 def action_import(
     dbase: Path,
@@ -1092,6 +1129,16 @@ def action_export(
 
     print(f'Map size: ({fgd.map_size_min}, {fgd.map_size_max})')
 
+    # Gather all the tags used by entities, make sure there aren't unrecognised ones - typos etc.
+    used_tags = {
+        tag.lstrip('!-+').upper()
+        for tag in iter_tags(fgd)
+    }
+    print(f'{len(used_tags)}/{len(ALL_TAGS)} tags used in DB.')
+    extra_tags = used_tags - ALL_TAGS
+    if extra_tags:
+        raise ValueError(f'Unknown tags: {extra_tags}')
+
     aliases: dict[EntityDef, str | EntityDef] = {}
     if engine_mode or collapse_bases:
         # In engine mode, we don't care about specific games.
@@ -1153,6 +1200,8 @@ def action_export(
                             break
                         elif '-ENGINE' not in tags and '!ENGINE' not in tags:
                             tag_map[tags] = value
+                        elif isinstance(value, KVDef) and value.editor_only:
+                            tag_map[tags - {'-ENGINE', '!ENGINE'}] = value
 
                     if not tag_map:
                         # All were set as non-engine, so it's not present.
@@ -1418,6 +1467,7 @@ def action_export(
             fgd.export(
                 txt_f,
                 custom_syntax=False,
+                escape_quotes='SINCE_STRATA' in tags,
                 # HL2/episodes require the old syntax.
                 old_report='UNTIL_L4D' in tags,
             )
