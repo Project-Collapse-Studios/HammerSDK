@@ -715,7 +715,7 @@ def action_report(
     print('Database loaded.')
 
     all_ents = fgd_reports.report_counts(fgd, report_dir)
-    fgd_reports.report_factories(fgd, all_ents, report_dir=report_dir, factories_folder=factories_folder)
+    fgd_reports.report_factories(all_ents, report_dir=report_dir, factories_folder=factories_folder)
     fgd_reports.report_helper_reuse(fgd, report_dir)
     fgd_reports.report_missing_resources(fgd, report_dir)
     fgd_reports.report_undefined_resources(fgd, report_dir)

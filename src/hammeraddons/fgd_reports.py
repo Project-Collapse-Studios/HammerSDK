@@ -180,7 +180,6 @@ def report_counts(fgd: FGD, report_dir: Path) -> MutableMapping[str, set[str]]:
 
 
 def report_factories(
-    fgd: FGD,
     all_ents: MutableMapping[str, set[str]],
     *,
     report_dir: Path, factories_folder: Path,
