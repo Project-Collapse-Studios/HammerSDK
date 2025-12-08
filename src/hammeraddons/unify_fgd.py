@@ -5,8 +5,8 @@ This allows sharing definitions among different engine versions.
 from __future__ import annotations
 
 from typing import Any
-from collections.abc import Callable, MutableMapping, Iterator
-from collections import Counter, defaultdict, ChainMap, deque
+from collections.abc import Callable, Iterator
+from collections import Counter, defaultdict, ChainMap
 from pathlib import Path
 import argparse
 import itertools
@@ -16,7 +16,7 @@ import re
 from srctools import fgd
 from srctools.fgd import (
     FGD, AutoVisgroup, EntAttribute, EntityDef, EntityTypes, TagsSet, Helper, HelperExtAppliesTo,
-    HelperTypes, KVDef, ResourceCtx, Snippet, ValueTypes, match_tags, validate_tags
+    HelperTypes, KVDef, Snippet, ValueTypes, match_tags, validate_tags
 )
 from srctools.filesys import File, RawFileSystem
 from srctools.math import Vec, format_float
@@ -683,6 +683,7 @@ def add_tag(tags: TagsSet, new_tag: str) -> TagsSet:
             tag_set.add(new_tag.upper())
 
     return frozenset(tag_set)
+
 
 def iter_tags(fgd: FGD) -> Iterator[str]:
     """Iterate over all tags defined in the FGD."""

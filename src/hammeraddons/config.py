@@ -10,7 +10,7 @@ import os
 import sys
 
 from srctools import AtomicWriter, Keyvalues, conv_int, logger, NoKeyError
-from srctools.dmx import Element, ValueType as DMXType, Attribute as DMAttribute
+from srctools.dmx import Element, ValueType as DMXType
 from srctools.filesys import FileSystem, FileSystemChain, RawFileSystem, VPKFileSystem
 from srctools.game import Game
 from srctools.steam import find_app

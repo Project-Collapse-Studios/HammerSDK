@@ -104,8 +104,7 @@ def main() -> None:
     for fname in MERGE_DIR.iterdir():
         fname.unlink()
 
-    with open(REPORT_DIR / '.gitignore', 'w') as f:
-        f.write('*')
+    (REPORT_DIR / '.gitignore').write_text('*')
 
     bases = {
         ent.classname.casefold()
@@ -159,10 +158,10 @@ def main() -> None:
             continue
 
         folder = MERGE_DIR if classname in MERGED else REPORT_DIR
-        with open(folder / f'{classname}.diff', 'w') as f:
+        with open(folder / f'{classname}.diff', 'w', encoding='utf8') as f:
             f.writelines(difflib.unified_diff(
                 ha_text.splitlines(keepends=True), strata_text.splitlines(keepends=True),
-                f'HammerAddons', f'Strata', n=999,
+                'HammerAddons', 'Strata', n=999,
             ))
         if folder is REPORT_DIR:
             count += 1

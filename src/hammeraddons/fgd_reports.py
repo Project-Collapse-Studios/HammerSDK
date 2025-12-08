@@ -140,7 +140,7 @@ def report_counts(fgd: FGD, report_dir: Path) -> MutableMapping[str, set[str]]:
     header = row_temp.format('Game', 'Base', 'Point', 'Brush')
     print('Counted entities.')
 
-    with open(report_dir / 'counts.txt', 'w') as f:
+    with open(report_dir / 'counts.txt', 'w', encoding='utf8') as f:
         f.write(header)
         print('-' * len(header), file=f)
 
@@ -153,12 +153,12 @@ def report_counts(fgd: FGD, report_dir: Path) -> MutableMapping[str, set[str]]:
             ))
 
         f.write('\n\nBases:\n')
-        for base, count in sorted(base_uses.items(), key=lambda x: (len(x[1]), x[0])):
+        for base, used in sorted(base_uses.items(), key=lambda x: (len(x[1]), x[0])):
             ent = fgd[base]
             if ent.type is EntityTypes.BASE and (
                 ent.keyvalues or ent.outputs or ent.inputs
             ):
-                f.write(f'{base} {len(count)} {count if len(count) == 1 else '...'}\n')
+                f.write(f'{base} {len(used)} {used if len(used) == 1 else '...'}\n')
 
     for kind_name, count_map in (
         ('keyvalues', kv_counts),
@@ -168,7 +168,7 @@ def report_counts(fgd: FGD, report_dir: Path) -> MutableMapping[str, set[str]]:
         ('desc', desc_counts)
     ):
         count = 0
-        with open(report_dir / f'duplicate_{kind_name}.txt', 'w') as f:
+        with open(report_dir / f'duplicate_{kind_name}.txt', 'w', encoding='utf8') as f:
             for key, info in sorted(count_map.items(), key=lambda v: len(v[1]), reverse=True):
                 if len(info) <= 2:
                     continue
@@ -215,14 +215,14 @@ def report_factories(
         missing = dump_classes - defined_classes
         all_classes |= defined_classes
         used_classes |= dump_classes
-        with open(report_dir / f'factories_{game.lower()}.txt', 'w') as rep_f:
+        with open(report_dir / f'factories_{game.lower()}.txt', 'w', encoding='utf8') as rep_f:
             rep_f.write('Extraneous definitions: \n')
             pprint(sorted(extra), rep_f, compact=True)
             rep_f.write('\n\nMissing definitions: \n')
             pprint(sorted(missing), rep_f, compact=True)
 
     unused = all_classes - used_classes
-    with open(report_dir / f'factories_unused.txt', 'w') as rep_f:
+    with open(report_dir / 'factories_unused.txt', 'w', encoding='utf8') as rep_f:
         pprint(sorted(unused), rep_f, compact=True)
     print(f'Checked entity factories. {len(unused)} totally unused.')
 
@@ -248,7 +248,7 @@ def report_undefined_resources(fgd: FGD, report_dir: Path) -> None:
             class_res[frozenset(appliesto)].append(ent.classname)
             missing_count += 1
 
-    with open(report_dir / 'undefined_resources.txt', 'w') as f:
+    with open(report_dir / 'undefined_resources.txt', 'w', encoding='utf8') as f:
         for tags_list, classnames in class_res.items():
             classnames.sort()
             f.write(f'{', '.join(tags_list)} = {pformat(classnames, compact=True)}\n')
@@ -271,7 +271,7 @@ def report_missing_resources(fgd: FGD, report_dir: Path) -> None:
         f.write(f'Ent {ent.classname} res error: {msg}\n')
     res_ctx = ResourceCtx(fgd=fgd)
 
-    with open(report_dir / 'missing_resources.txt', 'w') as f:
+    with open(report_dir / 'missing_resources.txt', 'w', encoding='utf8') as f:
         for ent in fgd.entities.values():
             # Get them all, checking validity in the process.
             for _ in ent.get_resources(res_ctx, ent=None, on_error=report):
@@ -313,7 +313,7 @@ def check_ent_sprites(used: dict[str, list[str]], f: TextIO, ent: EntityDef) -> 
 def report_helper_reuse(fgd: FGD, report_dir: Path) -> None:
     """Report missing or reused helpers."""
     mdl_or_sprites: dict[str, list[str]] = defaultdict(list)
-    with open(report_dir / 'helper_reuse.txt', 'w') as f:
+    with open(report_dir / 'helper_reuse.txt', 'w', encoding='utf8') as f:
         for ent in fgd:
             if ent.type is not EntityTypes.BASE and ent.type is not EntityTypes.BRUSH and not ent.is_alias:
                 check_ent_sprites(mdl_or_sprites, f, ent)
@@ -337,13 +337,13 @@ def report_repeated_bases(fgd: FGD, report_dir: Path) -> None:
                 assert isinstance(base, EntityDef), (ent, ent.bases)
                 check_parents(done, repeat, base)
 
-    with open(report_dir / 'repeated_bases.txt', 'w') as f:
+    with open(report_dir / 'repeated_bases.txt', 'w', encoding='utf8') as f:
         for ent in fgd:
             done: set[EntityDef] = set()
             repeat: set[EntityDef] = set()
             check_parents(done, repeat, ent)
             if repeat:
-                print(
+                f.write(
                     f'Repeated bases: {ent.classname} = '
                     f'{[ent.classname for ent in repeat]}, '
                     f'all={[ent.classname for ent in done]}'

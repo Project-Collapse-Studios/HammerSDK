@@ -1,8 +1,9 @@
 """Transformations that can be applied to the BSP file."""
 from typing import Protocol
+from typing_extensions import deprecated
+
 from collections.abc import Awaitable, Callable, Container, Mapping
 from pathlib import Path
-from warnings import deprecated
 import inspect
 
 import attrs
