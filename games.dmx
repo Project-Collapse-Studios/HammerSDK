@@ -144,13 +144,13 @@
 		]
 		}
 
-	"Portal 1" "Game" // Both episodes are the same code.
+	"Portal 1" "Game"
 		{
 		"name" "string" "Portal 1"
 		"steamid" "int" "400"
 		"aliases" "string_array" ["P1", "Portal"]
 
-		"tags" "string_array" ["l2", "episodic"]
+		"tags" "string_array" ["hl2", "episodic"]
 
 		"io_comma_sep" "bool" "1"
 		"instance_proxies" "bool" "0"
@@ -210,7 +210,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "`"
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "<440>bin/studiomdl.exe"
+		"studiomdl_path"     "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		}
