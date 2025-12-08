@@ -21,8 +21,8 @@
 		9 : "Speed"
 		10: "Walk"
 		]
-	lookedkey2[engine](integer) : "Second key to use that fires, if held down at same time as other keys" : -1
-	lookedkey2(choices) : "Second key to use that fires, if held down at same time as other keys" : -1 =
+	lookedkey2[engine](integer) : "Second key that fires" : -1
+	lookedkey2(choices) : "Second key that fires" : -1 : "This needs to be held down at same time as other keys." =
 		[
 		-1: "None"
 		0 : "Forward"
@@ -37,8 +37,8 @@
 		9 : "Speed"
 		10: "Walk"
 		]
-	lookedkey3[engine](integer) : "Third key to use that fires, if held down at same time as other keys" : -1
-	lookedkey3(choices) : "Third key to use that fires, if held down at same time as other keys" : -1 =
+	lookedkey3[engine](integer) : "Third key that" : -1
+	lookedkey3(choices) : "Third key that fires" : -1 : "This needs to be held down at same time as other keys." =
 		[
 		-1: "None"
 		0 : "Forward"
