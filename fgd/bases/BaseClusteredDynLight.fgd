@@ -6,6 +6,7 @@
 		2: "Shadowed" : 0
 		4: "Always Update": 0
 		]
+	_lightmode[engine](integer) : "Light Mode" : 2
 	_lightmode(choices) : "Light mode" : 2 = 
 		[
 		0: "Static"

@@ -910,6 +910,7 @@ def action_export(
                 # If there's an "ENGINE" tag, that's specifically for us.
                 # Otherwise, warn if there's a type conflict.
                 # If the final value is choices, warn too (not really a type).
+                from_engine = False
                 for key, orig_tag_map in list(category.items()):
                     # Remake the map, excluding non-engine tags.
                     # If any are explicitly matching us, just use that
@@ -923,6 +924,7 @@ def action_export(
                                 )
                             # Use just this.
                             tag_map = {TAGS_EMPTY: value}
+                            from_engine = True
                             break
                         elif '-ENGINE' not in tags and '!ENGINE' not in tags:
                             tag_map[tags] = value
@@ -945,7 +947,7 @@ def action_export(
                                 ent.classname,
                                 key,
                                 ', '.join([typ.value for typ in types])
-                            ))
+                            ), file=sys.stderr)
                         # Pick the one with the shortest tags arbitrarily.
                         _, value = min(
                             tag_map.items(),
@@ -957,7 +959,8 @@ def action_export(
                     if value.type is ValueTypes.CHOICES:
                         print(
                             f'{ent.classname}.{key} uses CHOICES type, '
-                            'provide ENGINE tag!'
+                            'provide ENGINE tag!',
+                            file=sys.stderr,
                         )
                         if isinstance(value, KVDef):
                             assert value.val_list is not None
@@ -1001,8 +1004,11 @@ def action_export(
                             if base_value.type is ValueTypes.CHOICES:
                                 print(
                                     f'Base Entity {attr_name[:-1]} '
-                                    f'"{key}"  is a choices type!'
+                                    f'"{key}"  is a choices type!',
+                                    file=sys.stderr,
                                 )
+                            if from_engine:
+                                pass  # Ours is set as engine, we always export it.
                             elif key == 'spawnflags':
                                 # Don't use the blank one in CBaseEntity
                                 pass
@@ -1019,7 +1025,11 @@ def action_export(
                                 # Base ignores parameters, but child has some - that's fine.
                                 pass
                             else:
-                                print(f'{ent.classname}.{key}: {value.type} != base {base_value.type}')
+                                print(
+                                    f'{ent.classname}.{key}: '
+                                    f'{value.type} != base {base_value.type}',
+                                    file=sys.stderr,
+                                )
 
                     # Blank this, it's not that useful.
                     value.desc = ''

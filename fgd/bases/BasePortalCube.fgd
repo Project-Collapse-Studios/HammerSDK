@@ -31,5 +31,5 @@
 	output OnPlayerPickup(void) : "Any player picked up the cube."
 	output OnPhysGunDrop(void) : "Any player dropped the cube."
 	output OnPainted[-Strata](void) : "Cube got painted, only if the state changed."
-	output OnPainted[Strata](integer) : "Cube got painted, only if the state changed. Has the paint type as parameter."
+	output OnPainted[Strata, engine](integer) : "Cube got painted, only if the state changed. Has the paint type as parameter."
 ]

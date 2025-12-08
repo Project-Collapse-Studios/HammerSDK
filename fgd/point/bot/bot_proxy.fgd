@@ -35,6 +35,7 @@
 	action_point(target_destination) : "Action Point" : : "Put the name of a bot_action_point here to tell the bot to move to it when it spawns in."
 
 	// Inputs
+	input SetTeam[engine](string) : "Change the bot's team"
 	input SetTeam[-TF2](string) : "Change the bot's team"
 	input SetTeam[TF2](string) : "Change the bot's team (auto, red, blue)"
 	input SetClass[TF2](string) : "Change the bot's class (auto, soldier, pyro, etc)"

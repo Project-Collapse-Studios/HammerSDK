@@ -1,5 +1,6 @@
 @BaseClass appliesto(Strata) = BaseClusteredLight
 	[
+	_lightmode[engine](integer) : "Light Mode" : 2
 	_lightmode(choices) : "Light mode" : 0 : "The level of dynamic lighting to use for this light. 'Static' lights have no dynamic or specular lighting, and produce direct and bounced static lightmaps. 'Specular' lights have specular lighting, and produce direct and bounced static lightmaps. 'Static Bounce' lights have dynamic direct and specular lighting, and produce only bounced static lightmaps. 'Fully Dynamic' lights have dynamic direct and specular lighting, and produce no static lightmaps." = 
 		[
 		0: "Static"

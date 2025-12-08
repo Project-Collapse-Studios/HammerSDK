@@ -2,6 +2,7 @@
 base(Trigger)
 = trigger_setspeed : "A trigger volume that sets the exact speed of entities that are touching it." 
 	[
+	HorizontalSpeedMode[engine](integer) : "Vertical Speed Mode" : 0
 	HorizontalSpeedMode(choices) : "Horizontal Speed Mode" : 0 : "Determines how horizontal speed is applied. If direction is not set, the entity's current velocity direction is retained. If the entity has no horizontal speed, its rotation is used for the velocity angle." =
 		[
 		0: "Set exact speed and direction"
@@ -12,6 +13,7 @@ base(Trigger)
 		]
 	HorizontalSpeed(float) : "Horizontal Speed" : 500 : "The new horizontal speed to apply. Direction depends on Horizontal Speed Mode."
 	HorizontalSpeedAngle(angle) : "Horizontal Speed Angle (Pitch Yaw Roll)" : "0 0 0" : "If this entity's Horizontal Speed Mode is 'Set exact speed and direction', this angle determines the new horizontal velocity direction. Only the Yaw is used."
+	VerticalSpeedMode[engine](integer) : "Vertical Speed Mode" : 4
 	VerticalSpeedMode(choices) : "Vertical Speed Mode" : 4 : "Determines how vertical speed is applied. 'Increase only' and 'Decrease only' factor in both sign and magnitude. For example, using 'Decrease only' with a speed of -500 will ensure an entity touching this is moving at least 500 units/sec downward." =
 		[
 		1: "Set exact speed"

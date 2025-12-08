@@ -14,6 +14,7 @@
 	AutoExposureMin[MBase](float) : "Auto Exposure Minimum" : -1 : "Sets a custom tonemap auto exposure minimum. -1 = use default" // 0.5
 	AutoExposureMax[MBase](float) : "Auto Exposure Maximum" : -1 : "Sets a custom tonemap auto exposure maximum. -1 = use default" // 2.0
 	BloomScale[MBase](float) : "Bloom Scale" : -1 : "Sets a custom bloom scale. -1 = use default" // 1.0
+	BloomScale[engine](string) : "[HA] Bloom Scale" // Mismatch of types.
 
 	bUseNextGenBloom[MESA](boolean) : "Use Next Gen Bloom" : 0	
 	bUseCustomBloomNextGen_Threshold[MESA](boolean) : "Use Custom Next Gen Bloom Threshold" : 0
@@ -28,7 +29,7 @@
 	m_fCustomBloomNextGen_exponent[MESA](float)	: "Custom Bloom Tint Exponent": "1.0" : "m_fCustomBloomNextGen_exponent"
 
 	// KVs that set outputs. MBase doesn't need those.
-	TonemapScale[-MBase, +srctools](integer) : "[HA] Tonemap Scale" : -1 : "Set the tonemap scale on spawn, via a logic_auto. This should be a value between 0 and 2, where 0 is the eyes fully closed, 1 is use the unchanged autoexposure (default), and 2 is the eye fully wide open."
+	TonemapScale[-MBase, +srctools](float) : "[HA] Tonemap Scale" : -1 : "Set the tonemap scale on spawn, via a logic_auto. This should be a value between 0 and 2, where 0 is the eyes fully closed, 1 is use the unchanged autoexposure (default), and 2 is the eye fully wide open."
 	TonemapRate[-MBase, +srctools](float) : "[HA] Tonemap Rate" :: "Set the rate for auto exposure adjustment on spawn, via a logic_auto."
 	AutoExposureMin[-MBase, +srctools](float) : "[HA] Auto Exposure Minimum" :: "Set a custom tonemap auto exposure minimum on spawn, via a logic_auto."
 	AutoExposureMax[-MBase, +srctools](float) : "[HA] Auto Exposure Maximum" :: "Set a custom tonemap auto exposure maximum on spawn, via a logic_auto."

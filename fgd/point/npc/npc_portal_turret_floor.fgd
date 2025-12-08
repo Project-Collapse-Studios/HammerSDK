@@ -63,7 +63,7 @@
 
 	skin[P2](integer) : "[H] Skin" : 0 : "The skin to show, mainly for the normal model."
 
-	turretrange[P1, !engine](integer) readonly editor: "<Maximum Range>" : 1500 : "How far the turret will be able to see targets. Always 1500 in Portal 1, but this keyvalue is needed to display the preview."
+	turretrange[P1, !engine](float) readonly editor: "<Maximum Range>" : 1500 : "How far the turret will be able to see targets. Always 1500 in Portal 1, but this keyvalue is needed to display the preview."
 
 	// Inputs
 	input FireBullet(string) : "Causes the turret to instantly fire at the specified entity."

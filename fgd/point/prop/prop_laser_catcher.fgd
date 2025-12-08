@@ -27,6 +27,7 @@
 		]
 
 	uselaserfilter[Strata](boolean): "Use Laser Filter" : 0 : "If enabled, this catcher can only be activated by the specified laser color."
+	filtercolor[engine](color255) : "Laser Filter Color" : "255 255 255 255"
 	filtercolor[Strata](choices): "Laser Filter Color" : "255 255 255 255" : "Filter lasers by this color. You can also specify a custom RGBA color here." = #snippet StrataDisBeamColor
 
 	// Fixed in Strata!
