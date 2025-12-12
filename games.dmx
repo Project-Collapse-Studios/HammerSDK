@@ -726,7 +726,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "\""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "win64/bin/studiomdl.exe"
+		"studiomdl_path"     "string" "bin/win64/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		}
