@@ -809,9 +809,10 @@ async def decompile_model(
             ]
             LOGGER.debug('Executing {}', ' '.join(args))
             result = await trio.run_process(args, capture_stdout=True, check=False)
+            result_out = result.stdout.replace(b'\r\n', b'\n').decode('ascii', 'backslashescape')
             if result.returncode != 0:
                 LOGGER.warning('Could not decompile "{}"!', filename)
-                LOGGER.debug('{}', result.stdout.replace(b'\r\n', b'\n').decode('ascii', 'replace'))
+                LOGGER.debug('{}', result_out)
                 return None
     # There should now be a QC file here.
     failed = False
@@ -827,8 +828,11 @@ async def decompile_model(
     else:  # not found or couldn't be parsed.
         if not failed:  # Don't produce both errors.
             LOGGER.warning('No QC outputted into {}', cache_folder)
+            failed = True
         qc_result = None
         qc_path = Path()
+    if failed:
+        LOGGER.debug('Crowbar output for {}:\n{}', filename, result_out)
 
     cache_kv = Keyvalues('qc', [])
     cache_kv['checksum'] = checksum.hex()
