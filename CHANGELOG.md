@@ -13,6 +13,7 @@
   * Searchpaths 'nopack' option now allows wildcards for disabling locations in bulk.
 * Moved options specifying the behaviour of the current game branch to a dedicated file, 
   so users only need to pick from presets.
+* Update internal Crowbar to version 0.75. This is used decompile models for propcombine.
 * Added 1/16 scale skybox mode for vactube system. You'll need to provide your own models or use prop scaling.
 * Added vactube curves 7-16. You'll need to provide your own models though.
 * `comp_entity_finder`s can now use `@names` for replace outputs, so they work in HL2.
