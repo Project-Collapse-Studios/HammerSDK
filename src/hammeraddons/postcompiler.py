@@ -220,7 +220,13 @@ async def main(argv: list[str]) -> None:
         studiomdl_path=studiomdl_path,
     )
 
-    if studiomdl_path is not None and args.propcombine:
+    if args.propcombine:
+        if studiomdl_path is None:
+            # All builtin definitions should have a correct path, so this should be a user one.
+            raise ValueError(
+                'Cannot propcombine, no studioMDL path provided! '
+                'Update hammeraddons_game.vdf.'
+            )
         decomp_cache_path = conf.opts.get(config.PROPCOMBINE_CACHE)
         decomp_cache_loc: Path | None
         crowbar_loc: Path | None
