@@ -40,8 +40,10 @@
 		"y": "Left Direction"
 		"z": "Up Direction"
 		]
-		
+
 	const(string) : "Scale / Constant" : : "A scale factor for the data, or a constant to use directly. The exact behaviour depends on the mode."
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Generated file is automatically packed.
 	]

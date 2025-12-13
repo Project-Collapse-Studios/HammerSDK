@@ -61,6 +61,8 @@
 		]
 
 	output OnFinished(void) : "Fired once the transition has completed."
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources []
 	]

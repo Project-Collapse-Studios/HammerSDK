@@ -85,5 +85,7 @@
 
 	// Code supports infinite number, just continue naming pattern.
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources []
 	]

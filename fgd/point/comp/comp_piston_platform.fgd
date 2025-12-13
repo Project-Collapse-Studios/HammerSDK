@@ -65,5 +65,7 @@
 	input MoveTo5[+VScript](void): "Extend the platform to 5 segments. Requires VScript. " +
 		"MoveTo6+ work also if such pistons are added."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // VScript is conditionally added.
 	]

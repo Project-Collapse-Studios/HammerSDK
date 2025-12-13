@@ -40,6 +40,8 @@
 	soundscript3(string): "SoundScript" : : "Pack a soundscript file, and include in the manifest."
 	soundscript4(string): "SoundScript" : : "Pack a soundscript file, and include in the manifest."
 	soundscript5(string): "SoundScript" : : "Pack a soundscript file, and include in the manifest."
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Done via transform.
 	]

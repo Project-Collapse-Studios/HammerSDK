@@ -40,5 +40,7 @@
 	input DisableTimer(void) : "Disable the automatic timer."
 	output OnSpawned(void) : "Fired when an object spawns. The object entity is NOT passed as !activator."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources []
 ]

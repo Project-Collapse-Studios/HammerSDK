@@ -74,5 +74,7 @@
 
 	output OnPass(void) : "Fired when an object passes the midpoint of the junction. The entity is NOT passed as !activator."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources []
 ]

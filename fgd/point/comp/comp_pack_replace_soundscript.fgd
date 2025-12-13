@@ -7,6 +7,8 @@
 	[
 	original(string): "Original SoundScript" : : "Prevent this soundscript from being included."
 	replacement(string): "New SoundScript" : : "Force this soundscript to be included."
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Done via transform.
 	]

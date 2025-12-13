@@ -80,5 +80,7 @@
 
 	movespeed(integer) readonly editor: "Speed (unused)" : 1 : "This key needs to be greater than zero to show the preview in Hammer, ignore it."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Converted to static prop and packed normally.
 	]

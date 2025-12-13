@@ -20,6 +20,7 @@
 * Allow `<appid>` references to be used everywhere `|srctools_paths|` references can be used.
 * `env_tonemap_controller` options can be set by keyvalues, generating a `logic_auto` automatically.
 * Added rotation, scale, animation, and bodygroup keyvalues to `hammer_model`. Some of these require a custom Hammer fork (e.g. Hammer++) to be visible.
+* Added a 'version number' to all postcompiler entities. This allows backwards-incompatible changes to occur in the future.
 
 ## Bugfixes
 * Fix vactube objects appearing to rapidly move from end to start positions in some cases.

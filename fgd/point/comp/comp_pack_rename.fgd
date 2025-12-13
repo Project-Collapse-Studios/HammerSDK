@@ -19,6 +19,8 @@
 		"TEXTURE": "Texture"
 		"MODEL": "Model"
 		]
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Done via transform.
 	]

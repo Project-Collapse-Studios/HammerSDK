@@ -44,6 +44,9 @@
 	case15(string) : "Case 15" : : "Fires OnCase15 if the InValue parameter matches this value. In Numeric mode, comparison operators such as <, >, =, !=, >=, or <= may be put at the start of the value. In Weighted Random mode, this instead is the chance that this case will be picked."
 	case16(string) : "Case 16" : : "Fires OnCase16 if the InValue parameter matches this value. In Numeric mode, comparison operators such as <, >, =, !=, >=, or <= may be put at the start of the value. In Weighted Random mode, this instead is the chance that this case will be picked."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
+
 	// Inputs
 	input InValue(string) : "Replaced by whichever case matches the parameter. Does nothing in Weighted Random mode."
 	input Trigger(void) : "Replaced by whichever case matches the input keyvalue. In Weighted Random mode, behaves like PickRandom."

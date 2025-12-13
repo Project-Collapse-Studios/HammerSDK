@@ -31,5 +31,7 @@
 	input BecomeRagdoll[since_P2](void) : "Change into a ragdoll immediately."
 	input FadeAndKill[since_P2](void) : "Fade out then remove this cable set."
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Converted to prop_dynamic, then packed normally.
 	]

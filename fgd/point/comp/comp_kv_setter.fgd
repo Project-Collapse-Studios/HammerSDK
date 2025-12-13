@@ -36,6 +36,8 @@
 	output OnUser3(void) : "Fired in response to FireUser3 input."
 	output OnUser4(void) : "Fired in response to FireUser4 input."
 	output OnKilled[L4D](void) : "Fired when the entity is killed and removed from the game."
-    
+
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources []
 	]

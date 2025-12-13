@@ -25,5 +25,7 @@
 		"rand": "Random"
 		]
 
+	#snippet keyvalue CompVersion
+	#snippet keyvalue CompV1
     @resources [] // Converted to static props and packed normally.
 	]
