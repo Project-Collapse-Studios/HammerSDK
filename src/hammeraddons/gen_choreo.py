@@ -8,9 +8,9 @@ import io
 import pathlib
 import re
 import sys
-import traceback
 
 from srctools import Keyvalues, choreo, sndscript
+from srctools.logger import init_logging
 from srctools.tokenizer import Tokenizer
 from pyglet.util import DecodeException as PygletDecode
 import attrs
@@ -33,6 +33,8 @@ SCENES: list[choreo.Entry] = []
 RE_CAPTION_CMD = re.compile(r'<[^>]+>')
 RE_WORDS = re.compile(r'\S+')
 MANUAL_SOUNDSCRIPTS: set[str] = set()
+
+LOGGER = init_logging(None)
 
 
 @attrs.frozen
@@ -125,8 +127,7 @@ async def scene_from_sound(settings: Settings, root: trio.Path, filename: trio.P
     try:
         duration = (await trio.to_thread.run_sync(pyglet.media.load, str(filename))).duration
     except PygletDecode as exc:
-        print(f'Could not determine duration for WAV {filename}:')
-        traceback.print_exception(type(exc), exc, None)
+        LOGGER.warning(f'Could not determine duration for WAV {filename}:', exc_info=exc)
         return
 
     relative = filename.relative_to(root)
@@ -147,7 +148,10 @@ async def scene_from_sound(settings: Settings, root: trio.Path, filename: trio.P
     mixgroup = settings.mixgroups.get(soundscript_name, character, f'{character}VO')
     soundlevel = settings.soundlevels.get(soundscript_name, character, sndscript.Level.SNDLVL_NONE)
 
-    # print(filename, '->', soundscript_name, scene_name, duration)
+    LOGGER.debug(
+        'File {} -> script {}, scene {}, {}s',
+        filename, soundscript_name, scene_name, duration,
+    )
     CHOREO_SOUNDS[character][soundscript_name] = snd = sndscript.Sound(
         name=soundscript_name,
         sounds=[str(trio.Path('npc', relative)).replace('\\', '/')],
@@ -196,7 +200,7 @@ async def scene_from_subtitle(settings: Settings, soundscript: str, caption: str
 
     word_count = sum(1 for _ in RE_WORDS.finditer(stripped))
     duration = settings.seconds_per_word * word_count
-    # print(f'Caption: {soundscript} = {word_count} words = {duration}')
+    LOGGER.debug('Caption: {} = {} words = {}', soundscript, word_count, duration)
     scene_name = trio.Path(
         settings.game_dir, 'scenes', 'npc', *soundscript.split('.')
     ).with_suffix('.vcd')
@@ -225,7 +229,7 @@ async def build_scene(
     if caption == soundscript_name and not cc_only:
         caption = ''  # Redundant, choreo assumes the sound name.
 
-    print(f'Writing {scene_name}, caption={caption!r}...')
+    LOGGER.info('Writing {}, caption={!r}...', scene_name, caption)
     scene = choreo.Scene(actors=[
         choreo.Actor(
             name=actor_name,
@@ -270,7 +274,7 @@ async def check_existing(settings: Settings, filename: trio.Path) -> None:
     if 'auto-generated' in first_line:
         await filename.unlink()
     else:
-        print(f'"{filename}" is manually authored.')
+        LOGGER.info('"{}" is manually authored.', filename)
         data = await filename.read_text()
         scene = await trio.to_thread.run_sync(
             choreo.Scene.parse_text, Tokenizer(data, filename)
@@ -294,7 +298,7 @@ async def make_soundscript(settings: Settings, actor: str) -> None:
             bufs.append(io.StringIO())
             nursery.start_soon(trio.to_thread.run_sync, sound.export, bufs[-1])
 
-    print(f'Writing {filename}...')
+    LOGGER.info('Writing {}...', filename)
     async with await filename.open('w') as f:
         for buf in bufs:
             await f.write(buf.getvalue())
@@ -304,7 +308,7 @@ async def make_soundscript(settings: Settings, actor: str) -> None:
 async def read_settings(path: trio.Path) -> Settings:
     """Read the settings."""
     path = await path.resolve()
-    print("Config file path: ", path)
+    LOGGER.info("Config file path: ", path)
     with open(path, encoding='utf8') as f:
         conf = Keyvalues.parse(f)
     wpm = conf.float('wpm', 100.0)
@@ -405,51 +409,51 @@ async def main(argv: list[str]) -> None:
     args: Args = parser.parse_args(argv)
 
     settings = await read_settings(trio.Path(args.config))
-    print(f'Game folder: {settings.game_dir}')
+    LOGGER.info('Game folder: {}', settings.game_dir)
 
     await args.func(settings, args)
 
 
 async def rebuild_scenes(settings: Settings, args: Args) -> None:
     """Rebuild all scenes."""
-    print('Removing existing auto scenes...')
+    LOGGER.info('Removing existing auto scenes...')
     async with trio.open_nursery() as nursery:
         for scene in await (settings.game_dir / 'scenes').rglob('*.vcd'):
             nursery.start_soon(check_existing, settings, scene)
 
     if settings.scene_imports:
-        print('Importing scenes.image scenes...')
+        LOGGER.info('Importing scenes.image scenes...')
         async with trio.open_nursery() as nursery:
             for image, scenes in settings.scene_imports.items():
                 nursery.start_soon(merge_scenes_image, image, scenes)
 
-    print('Manual soundscripts', MANUAL_SOUNDSCRIPTS)
-    print('Generating scenes from sounds...')
+    LOGGER.info('Manual soundscripts: {}', MANUAL_SOUNDSCRIPTS)
+    LOGGER.info('Generating scenes from sounds...')
 
     sound_folder = await (settings.game_dir / 'sound/npc').resolve()
     async with trio.open_nursery() as nursery:
         for sound in await sound_folder.rglob("*.wav"):
             nursery.start_soon(scene_from_sound, settings, sound_folder, sound)
 
-    print('Generating scenes from captions...')
+    LOGGER.info('Generating scenes from captions...')
     await check_captions(settings)
 
     image_buf = io.BytesIO()
     scene_done = trio.Event()
 
     async def build_image() -> None:
-        print(f'Building scenes.image ({len(SCENES)} scenes)...', flush=True)
+        LOGGER.info('Building scenes.image {} scenes)...', len(SCENES))
         await trio.to_thread.run_sync(choreo.save_scenes_image_sync, image_buf, SCENES)
         scene_done.set()
 
-    print('Writing soundscripts...')
+    LOGGER.info('Writing soundscripts...')
     async with trio.open_nursery() as nursery:
         nursery.start_soon(build_image)  # Can run while making soundscripts.
         for actor in CHOREO_SOUNDS:
             nursery.start_soon(make_soundscript, settings, actor)
 
         await scene_done.wait()
-        print('Writing scenes.image...')
+        LOGGER.info('Writing scenes.image...')
         await (settings.game_dir / 'scenes/scenes.image').write_bytes(image_buf.getvalue())
 
 
@@ -483,9 +487,9 @@ async def make_vscript(settings: Settings, args: Args) -> None:
         new_names.append((char, f'{char}{segs}.{last}{i:0{num_size}}'))
 
     if any(sub.real_name != name for (c, name), sub in zip(new_names, subtitles, strict=True)):
-        print('Renumbering: ')
+        LOGGER.warning('Renumbering subtitles.')
         for (char, name), sub in zip(new_names, subtitles, strict=True):
-            print(f'{sub.real_name} -> {name}')
+            LOGGER.debug(f'{sub.real_name} -> {name}')
             sub.name = name
 
     out = io.StringIO()
