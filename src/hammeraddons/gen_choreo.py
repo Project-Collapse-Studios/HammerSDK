@@ -9,10 +9,11 @@ import pathlib
 import re
 import sys
 
-from srctools import Keyvalues, choreo, sndscript
+from srctools import Keyvalues, choreo, sndscript, VPK
 from srctools.logger import init_logging
 from srctools.tokenizer import Tokenizer
 from pyglet.util import DecodeException as PygletDecode
+from hammeraddons.config import make_expander
 import attrs
 import pyglet.media
 import trio
@@ -114,7 +115,7 @@ class Settings:
     ]
     # For subtitle -> choreo, the WPM to use.
     seconds_per_word: float
-    # Lists of scenes.image files to merge into ours, with the filenames to add, or None for all
+    # Lists of scenes.image files to merge into ours, with the filenames to add, or None for all.
     scene_imports: Mapping[trio.Path, list[str] | None]
     # Whether stacks are allowed.
     use_operator_stacks: bool
@@ -314,6 +315,17 @@ async def read_settings(path: trio.Path) -> Settings:
     wpm = conf.float('wpm', 100.0)
     game_dir = await trio.Path(path, '..', conf['gamedir']).resolve()
 
+    scene_imports: dict[trio.Path, list[str] | None] = {}
+    expand = make_expander({}, pathlib.Path(game_dir))
+    for image in conf.find_children('image_imports'):
+        src = trio.Path(expand(image.real_name))
+        if src in scene_imports:
+            LOGGER.warning('Duplicate definitions for image_imports: {!r}', src)
+        if not image.has_children() and image.value == '*':
+            scene_imports[src] = None  # Add all
+        else:
+            scene_imports[src] = image.as_array()
+
     return Settings(
         game_dir=game_dir,
         actor_names=Overridable.parse(
@@ -334,12 +346,7 @@ async def read_settings(path: trio.Path) -> Settings:
         ),
         use_operator_stacks=conf.bool('use_operator_stacks', True),
         seconds_per_word=60.0 / wpm,
-        scene_imports={
-            game_dir / image.real_name: None
-            if not image.has_children() and image.value == '*'
-            else image.as_array()
-            for image in conf.find_children('image_imports')
-        },
+        scene_imports=scene_imports,
         caption_override={
             kv.real_name: kv.value
             for kv in conf.find_children("captionoverrides")
@@ -360,7 +367,21 @@ async def check_captions(settings: Settings) -> None:
 
 async def merge_scenes_image(image_path: trio.Path, scenes: list[str] | None) -> None:
     """Merge a scenes.image file into our choreo scenes."""
-    data = await image_path.read_bytes()
+    try:
+        data = await image_path.read_bytes()
+    except FileNotFoundError as raw_exc:
+        # Look for 'some_path/filename.vpk/subfolder/file', decode that.
+        for i, part in enumerate(image_path.parts):
+            if part.casefold().endswith('.vpk'):
+                vpk_path = pathlib.Path(*image_path.parts[:i+1])
+                vpk_child = pathlib.Path(*image_path.parts[i+1:])
+                LOGGER.info('Mounting scenes.image from VPK: {}:{}', vpk_path, vpk_child)
+                vpk = await trio.to_thread.run_sync(VPK, vpk_path)
+                data = await trio.to_thread.run_sync(vpk[vpk_child.as_posix()].read)
+                break
+        else:
+            raise raw_exc  # No VPK, raise original exception.
+
     image = await trio.to_thread.run_sync(choreo.parse_scenes_image, io.BytesIO(data))
     if scenes is None:
         SCENES.extend(image.values())
