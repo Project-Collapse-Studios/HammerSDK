@@ -4,6 +4,7 @@ from typing import final, Literal, Self, Protocol
 from collections.abc import Callable, Container, Iterator
 from decimal import Decimal, InvalidOperation
 from random import Random
+import functools
 import hashlib
 import operator
 import re
@@ -17,8 +18,9 @@ from srctools.logger import get_logger
 
 
 __all__ = [
-    'parse_numeric_specifier', 'check_control_enabled', 'rng_hasher', 'rng_get',
-    'ent_description', 'RelayOut', 'get_multimode_value', 'strip_cust_keys',
+    'parse_numeric_specifier', 'check_control_enabled', 'build_filename',
+    'rng_hasher', 'rng_get', 'ent_description', 'RelayOut',
+    'get_multimode_value', 'strip_cust_keys',
     'NumericOp', 'NumericSpecifier',
 ]
 
@@ -99,6 +101,33 @@ def ent_description(ent: Entity) -> str:
         return f'"{name}" {classname} @ ({pos})'
     else:
         return f'{classname} @ ({pos})'
+
+
+@functools.cache
+def build_filename(*seeds: str, max_under: int = 4, length: int=16) -> str:
+    """Try to create a valid filename from the provided seed strings.
+
+    This is for debugging purposes, so we can try to make generated files
+    identifiable. If we cannot safely do so, skip.
+    :parameter seeds: Each of these strings is tried in turn.
+    :parameter length: The filename is trimmed to this long at most.
+    :parameter max_under: Try removing underscores to stay under the limit,
+        if there's more than this many present.
+    """
+    for seed in seeds:
+        # Replace all non-printables with underscores
+        name = re.sub(r'[^a-zA-Z0-9]', '_', seed)
+        # Then merge any adjacient ones.
+        name = re.sub(r'__+', '_', name)
+        if 3 < len(name) <= length:
+            return name
+        if name.count('_') >= max_under:
+            under_trimmed = name.replace('_', '')
+            if len(under_trimmed) < max_under:
+                return under_trimmed
+        if len(name) < 2 * length:
+            return name[:length]
+    return ''
 
 
 class _Hasher(Protocol):

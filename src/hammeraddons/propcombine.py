@@ -33,6 +33,7 @@ import attrs
 import trio
 
 from .acache import ACache
+from .bsp_transform.common import build_filename
 from .mdl_compiler import ModelCompiler
 
 
@@ -106,24 +107,11 @@ def unify_mdl(path: str) -> str:
     return path
 
 
-@functools.cache
-def clean_group_name(name: str) -> str:
-    """Normalise the group name, to make sure it's a valid filename.
-
-    It's for debugging really, so it doesn't matter too much if mangled.
-    """
-    if not name:
-        return 'mdl'
-    name = re.sub(r'[^a-zA-Z0-9]', '_', name)
-    name = re.sub(r'__+', '_', name)
-    return name[:16]
-
-
 class CombineVolume:
     """Parsed comp_propcombine_* ents."""
     def __init__(self, group_name: str, skinset: frozenset[str], origin: Vec) -> None:
         self.group = group_name
-        self.filename = clean_group_name(group_name)
+        self.filename = build_filename(group_name) or 'mdl'
         self.skinset = skinset
         # For sorting.
         self.volume = 0.0
