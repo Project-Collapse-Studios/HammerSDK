@@ -1,4 +1,4 @@
-"""Portal-2 specific transformations."""
+"""Automatically workaround various Portal 2-specific bugs."""
 from srctools import Output, conv_bool, conv_int, VMF
 import srctools.logger
 
