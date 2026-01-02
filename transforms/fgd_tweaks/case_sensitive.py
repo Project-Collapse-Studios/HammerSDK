@@ -7,11 +7,9 @@ from hammeraddons.bsp_transform.common import ent_description
 LOGGER = logger.get_logger(__name__)
 
 
-@trans('FGD - Fix key casing')
+@trans('FGD - Fix key casing', inhibit_tags='STRATA')
 def force_case_sensitivity(ctx: Context) -> None:
     """Force case-sensitivity on some keyvalues that require it."""
-    if ctx.game_conf.check_tag('STRATA'):
-        return  # Bug is fixed.
     fix_casing(ctx.vmf, 'light_environment', 'SunSpreadAngle')
     fix_casing(ctx.vmf, 'light_directional', 'SunSpreadAngle')
     fix_casing(ctx.vmf, 'lua_run', 'Code')

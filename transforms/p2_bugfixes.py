@@ -7,12 +7,9 @@ from hammeraddons.bsp_transform import trans, Context, ent_description
 LOGGER = srctools.logger.get_logger(__name__)
 
 
-@trans('Fix Laser Catcher Skins')
+@trans('Fix Laser Catcher Skins', inhibit_tags='STRATA')
 def laser_catcher_skins(ctx: Context) -> None:
     """Fix Valve's bug where reloading saves causes lasers to get their skin wrong."""
-    if ctx.game_conf.check_tag('STRATA'):
-        return  # Bug is fixed.
-
     for ent in ctx.vmf.by_class['prop_laser_catcher']:
         if not conv_bool(ent.pop('src_fix_skins'), True):
             continue
@@ -80,12 +77,9 @@ def force_paintinmap(ctx: Context) -> None:
             ctx.vmf.spawn['maxblobcount'] = '250'
 
 
-@trans('Precache P2 Light Bridge')
+@trans('Precache P2 Light Bridge', inhibit_tags='STRATA')
 def precache_light_bridge(ctx: Context) -> None:
     """Ensure light bridges have the particle precached."""
-    if ctx.game_conf.check_tag('STRATA'):
-        return  # Bug is fixed.
-
     for bridge in ctx.vmf.by_class['prop_wall_projector']:
         if conv_bool(bridge['StartEnabled', '0']):
             return  # Starts on, no need.

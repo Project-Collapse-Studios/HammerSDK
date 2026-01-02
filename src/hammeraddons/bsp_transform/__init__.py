@@ -2,7 +2,7 @@
 from typing import Protocol
 from typing_extensions import deprecated
 
-from collections.abc import Awaitable, Callable, Container, Mapping
+from collections.abc import Awaitable, Callable, Container, Mapping, Iterable
 from pathlib import Path
 import inspect
 
@@ -167,6 +167,7 @@ class Transform:
     func: TransFunc
     name: str
     priority: int
+    inhibit_tags: set[str | tuple[str, ...]]
 
 
 TRANSFORMS: dict[str, Transform] = {}
@@ -176,24 +177,39 @@ class TransProto(Protocol):
     def __call__[Func: TransFuncOrSync](self, func: Func) -> Func: ...
 
 
-def trans(name: str, *, priority: int = 0) -> TransProto:
-    """Add a transformation procedure to the list."""
+def trans(
+    name: str, *,
+    priority: int = 0,
+    inhibit_tags: Iterable[str | tuple[str, ...]] = (),
+) -> TransProto:
+    """Add a transformation procedure to the list.
+
+    :param name: Unique identifier for the transform, used to identify it.
+    :param priority: Controls execution order. Larger numbers execute after smaller ones.
+    :param inhibit_tags: If any of these tags are set in the game config, this transform is disabled.
+       This is used to indicate when the game has implemented the transform natively.
+       If a value is a tuple, this entire group must be defined to succeed.
+    """
     name = name.strip()
     if ',' in name:
         raise ValueError('Commas are not allowed in names!')
+    if isinstance(inhibit_tags, str):
+        inhibit_tags_set = {inhibit_tags}
+    else:
+        inhibit_tags_set = set(inhibit_tags)
 
     def deco[Func: TransFuncOrSync](func: Func) -> Func:
         """Stores the transformation."""
         if (key := name.casefold()) in TRANSFORMS:
             raise ValueError(f'Duplicate transform {name!r}!')
         if inspect.iscoroutinefunction(func):
-            TRANSFORMS[key] = Transform(func, name, priority)
+            TRANSFORMS[key] = Transform(func, name, priority, inhibit_tags_set)
         else:
             async def async_wrapper(ctx: Context) -> None:
                 """Just freeze all other tasks to run this."""
                 await trio.lowlevel.checkpoint()
                 func(ctx)
-            TRANSFORMS[key] = Transform(async_wrapper, name, priority)
+            TRANSFORMS[key] = Transform(async_wrapper, name, priority, inhibit_tags_set)
         return func
     return deco
 
@@ -222,8 +238,21 @@ async def run_transformations(
 
     for transform in sorted(TRANSFORMS.values(), key=lambda trans: trans.priority):
         if transform.name.casefold() in disabled:
-            LOGGER.info('Skipping "{}"', transform.name)
+            LOGGER.info('Skipping "{}" (user)', transform.name)
             continue
+        disable = False
+        for inhibit in transform.inhibit_tags:
+            if isinstance(inhibit, tuple):
+                if all(map(game_conf.check_tag, inhibit)):
+                    disable = True
+                    break
+            elif game_conf.check_tag(inhibit):
+                disable = True
+                break
+        if disable:
+            LOGGER.info('Skipping "{}" (redundant)', transform.name)
+            continue
+
         LOGGER.info('Running "{}"...', transform.name)
         await transform.func(context)
 
