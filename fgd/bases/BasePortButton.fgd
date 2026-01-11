@@ -16,8 +16,13 @@
 	input PressOut(void) : "Release the button, sending it to the top position."
 
 	// Outputs
-	output OnPressed(void) : "Called when the button has been pressed."
-	output OnUnPressed(void) : "Called when the button has been released."
+	output OnPressed(void) : "Fires when the button has been pressed."
+	output OnUnPressed(void) : "Fires when the button has been released."
+
+	output OnPressedPlayer[srctools](void) : "Added by HammerAddons. Fires when the button is pressed by a player. " +
+		"This is implemented by using a generated filter's TestActivator input."
+	output OnPressedCube[srctools](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player). " +
+		"This is implemented by using a generated filter's TestActivator input."
 
 	@resources
 		[
