@@ -10,7 +10,6 @@ from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import fnmatch
-import functools
 import itertools
 import math
 import operator

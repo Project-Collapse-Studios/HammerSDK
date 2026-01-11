@@ -1,9 +1,9 @@
 """Transformations that can be applied to the BSP file."""
 from typing import Protocol
-from typing_extensions import deprecated
 
 from collections.abc import Awaitable, Callable, Container, Mapping, Iterable
 from pathlib import Path
+from warnings import deprecated
 import inspect
 
 import attrs
@@ -193,6 +193,7 @@ def trans(
     name = name.strip()
     if ',' in name:
         raise ValueError('Commas are not allowed in names!')
+    inhibit_tags_set: set[str | tuple[str, ...]]
     if isinstance(inhibit_tags, str):
         inhibit_tags_set = {inhibit_tags}
     else:

@@ -104,7 +104,7 @@ def ent_description(ent: Entity) -> str:
 
 
 @functools.cache
-def build_filename(*seeds: str, max_under: int = 4, length: int=16) -> str:
+def build_filename(*seeds: str, max_under: int = 4, length: int = 16) -> str:
     """Try to create a valid filename from the provided seed strings.
 
     This is for debugging purposes, so we can try to make generated files
