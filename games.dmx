@@ -27,7 +27,7 @@
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -89,7 +89,7 @@
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -158,7 +158,7 @@
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -210,7 +210,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "`"
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		}
@@ -232,7 +232,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" 
@@ -295,7 +295,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "<243730>bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "<243730>bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -381,7 +381,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "<243730>bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "<243730>bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -498,7 +498,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "''"
 		"particles_manifest" "string" "particles/particles_manifest.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -608,7 +608,7 @@
 		"vscript"      "bool" "0"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "" // Not sure.
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" [
@@ -685,7 +685,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" ""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "bin/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		"searchpaths" "element_array" 
@@ -726,7 +726,7 @@
 		"vscript"      "bool" "1"
 		"vscript_quote"      "string" "\""
 		"particles_manifest" "string" "maps/<map name>_particles.txt"
-		"studiomdl_path"     "string" "bin/win64/studiomdl.exe"
+		"studiomdl_path_windows" "string" "bin/win64/studiomdl.exe"
 
 		"pack_vpk" "bool" "0"
 		}
