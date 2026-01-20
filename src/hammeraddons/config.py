@@ -16,7 +16,7 @@ from srctools.game import Game
 from srctools.steam import find_app
 import attrs
 
-from . import BINS_PATH
+from . import BINS_PATH, WIN, MAC, LINUX
 from .plugin import BUILTIN as BUILTIN_PLUGIN, PluginFinder, Source as PluginSource
 from .props_config import Opt, Options
 
@@ -298,7 +298,9 @@ class GameConfig:
     particles_manifest: str
 
     # Configured location of StudioMDL, relative to the game root.
-    studiomdl_path: str
+    studiomdl_path_windows: str
+    studiomdl_path_linux: str
+    studiomdl_path_mac: str
 
     @classmethod
     def parse(cls, root: Element) -> Self:
@@ -328,7 +330,9 @@ class GameConfig:
             vscript=root['vscript'].val_bool,
             vscript_quote=root['vscript_quote'].val_str,
             particles_manifest=root['particles_manifest'].val_str,
-            studiomdl_path=root['studiomdl_path'].val_str,
+            studiomdl_path_windows=root['studiomdl_path_windows'].val_str,
+            studiomdl_path_linux=root.get_wrap('studiomdl_path_linux', '').val_str,
+            studiomdl_path_mac=root.get_wrap('studiomdl_path_mac', '').val_str,
         )
 
     @classmethod
@@ -369,17 +373,31 @@ class GameConfig:
 
     def resolve_studiomdl(self, expand_path: Expander) -> Path | None:
         """Locate studioMDL, either from the game root, or by checking the game's steam folder."""
-        if not self.studiomdl_path:
+        if WIN:
+            path = self.studiomdl_path_windows
+        elif LINUX:
+            path = self.studiomdl_path_linux
+        elif MAC:
+            path = self.studiomdl_path_mac
+        else:
+            LOGGER.warning('No studiomdl path for this OS?')
+            path = ''
+
+        if not path and not WIN and self.studiomdl_path_windows:
+            LOGGER.debug('No native studiomdl, using Windows version')
+            path = self.studiomdl_path_windows
+
+        if not path:
             LOGGER.warning('No studiomdl path provided.')
             return None
         # First, try direct.
-        direct = expand_path(self.studiomdl_path)
+        direct = expand_path(path)
         LOGGER.debug('Checking for studiomdl @ "{}"', direct)
         if direct.exists():
             return direct
         # Otherwise, if the steam folder exists, try there.
         if self.steamid is not None:
-            steam = expand_path(f'<{self.steamid}>{self.studiomdl_path}')
+            steam = expand_path(f'<{self.steamid}>{path}')
             LOGGER.debug('Checking for studiomdl @ "{}"', steam)
             if steam.exists():
                 return steam

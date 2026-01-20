@@ -29,7 +29,9 @@ def blank_ctx(shared_datadir: Path) -> Context:
         vscript=True,
         vscript_quote='',
         particles_manifest='',
-        studiomdl_path='',
+        studiomdl_path_windows='',
+        studiomdl_path_mac='',
+        studiomdl_path_linux='',
     )
     fsys = FileSystemChain()
     return Context(

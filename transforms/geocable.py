@@ -1566,7 +1566,7 @@ async def comp_prop_rope(ctx: Context) -> None:
     if not all_nodes:
         return
     LOGGER.info('{} rope nodes found.', len(all_nodes))
-    if ctx.game_conf.studiomdl_path is None:
+    if ctx.studiomdl is None:
         LOGGER.warning('Ropes cannot be compiled, no StudioMDL.exe found!')
         return
 
