@@ -17,6 +17,7 @@ from srctools import FrozenVec, Vec, Output, conv_int
 
 from hammeraddons.bsp_transform.common import RelayOut
 from hammeraddons.bsp_transform import trans, Context
+from hammeraddons.mdl_compiler import executable_args
 from . import nodes, animations, objects
 from .sensors import Sensor
 
@@ -277,7 +278,7 @@ async def vactube_transform(ctx: Context) -> None:
                     anim.mesh.export(mesh_file)
 
         args = [
-            str(ctx.studiomdl),
+            *executable_args(ctx.studiomdl),
             '-nop4', '-i',  # Ignore warnings.
             '-game', str(ctx.game.path),
             temp_dir + '/prop.qc',

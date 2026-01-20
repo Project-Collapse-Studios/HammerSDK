@@ -20,6 +20,7 @@ from srctools.mdl import MDL_EXTS
 from srctools.packlist import PackList
 import trio
 
+from hammeraddons import WIN
 from hammeraddons.acache import ACache
 from hammeraddons.bsp_transform import Context
 
@@ -41,6 +42,15 @@ class GenModel[OutT]:
 
     def __repr__(self) -> str:
         return f'<Model "{self.name}, used={self.used}>'
+
+
+def executable_args(exe: Path) -> list[str]:
+    """Determine the parameters for running an executable."""
+    if not WIN and exe.suffix.casefold() == '.exe':
+        # It's an EXE, assume this means we need WINE to run it.
+        return ['wine', str(exe)]
+    else:
+        return [str(exe)]
 
 
 class ModelCompiler[ModelKey: Hashable, InT, OutT]:
@@ -277,7 +287,7 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
             path = Path(folder)
             result = await compile_func(key, path, f'{self.model_folder}{mdl_name}.mdl', args)
             studio_args = [
-                str(self.studiomdl_loc),
+                *executable_args(self.studiomdl_loc),
                 '-nop4',
                 '-game', str(self.game.path),
                 str(path / 'model.qc'),
