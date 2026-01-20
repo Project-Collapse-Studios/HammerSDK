@@ -16,6 +16,7 @@ import operator
 import os
 import re
 import shutil
+import sys
 
 from srctools import (
     VMF, Entity, FileSystemChain, KeyValError, Keyvalues, bool_as_int, conv_int,
@@ -794,6 +795,9 @@ async def decompile_model(
                 '-i', str(Path(tempdir, stem + '.mdl')),
                 '-o', str(cache_folder),
             ]
+            if sys.platform.startswith(('linux', 'darwin')) and crowbar.suffix.casefold() == '.exe':
+                # It's an EXE, assume this means we need WINE to run it.
+                args.insert(0, 'wine')
             LOGGER.debug('Executing {}', ' '.join(args))
             result = await trio.run_process(args, capture_stdout=True, check=False)
             result_out = result.stdout.replace(b'\r\n', b'\n').decode('ascii', 'backslashescape')
