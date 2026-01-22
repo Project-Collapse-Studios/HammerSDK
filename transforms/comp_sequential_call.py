@@ -133,6 +133,7 @@ def sequential_call(ctx: Context) -> None:
                 out.delay = round(out.delay + delay, 2)
                 if out.target.casefold() == '!seq' or out.target == target:
                     out.target = ent['targetname']
+                out.params = out.params.replace('!seq', ent['targetname'])
                 seq_call.outputs.append(out)
         for out in outputs_final:
             out.delay = round(out.delay + max_delay, 2)
