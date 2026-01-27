@@ -1,5 +1,5 @@
 @PointClass base(ControlEnables)
-	iconsprite("editor/comp_kv_setter")
+	iconsprite("editor/comp_overlay_setter")
 	sphere(radius)
 	appliesto(srctools)
 = comp_overlay_setter : "Locates a nearby overlay, then swaps the material according to fixup values."
