@@ -10,7 +10,7 @@ import attrs
 import trio.lowlevel
 
 from hammeraddons.config import GameConfig
-from srctools import FGD, VMF, EmptyMapping, Entity, FileSystem, Keyvalues, Output
+from srctools import FGD, VMF, EmptyMapping, Entity, FileSystem, Keyvalues, Output, FileSystemChain
 from srctools.bsp import BSP
 from srctools.game import Game
 from srctools.logger import get_logger
@@ -66,6 +66,10 @@ class Context:
         self._io_remaps: dict[tuple[str, str], tuple[list[Output | RemapFunc], bool]] = {}
         self._allow_remaps = True
         self._ent_code: dict[Entity, str] = {}
+
+    @property
+    def fsys(self) -> FileSystemChain:
+        return self.pack.fsys
 
     @property
     @deprecated("Use EntityDef.engine_def() if possible.", category=DeprecationWarning)
