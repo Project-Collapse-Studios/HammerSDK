@@ -11,6 +11,8 @@
 		6 : "[6] Incorrect (Solid)"
 		]
 
+	filtername(filterclass) : "Filter Name" : : "A filter entity that restricts which things can press the button. If set, the builtin filtering is disabled."
+
 	// Inputs
 	input PressIn(void) : "Activate the button as if it was pressed, sending it to the bottom position."
 	input PressOut(void) : "Release the button, sending it to the top position."
@@ -19,10 +21,13 @@
 	output OnPressed(void) : "Fires when the button has been pressed."
 	output OnUnPressed(void) : "Fires when the button has been released."
 
-	output OnPressedPlayer[srctools](void) : "Added by HammerAddons. Fires when the button is pressed by a player. " +
+	output OnPressedPlayer[srctools, -P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a player. " +
 		"This is implemented by using a generated filter's TestActivator input."
-	output OnPressedCube[srctools](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player). " +
+	output OnPressedCube[srctools, -P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player). " +
 		"This is implemented by using a generated filter's TestActivator input."
+
+	output OnPressedPlayer[P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a player."
+	output OnPressedCube[P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player)."
 
 	@resources
 		[

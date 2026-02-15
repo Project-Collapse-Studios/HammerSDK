@@ -12,6 +12,7 @@
 		]
 
 	// Outputs
+	output OnPressedPlayer(void) : "Called when the button has been pressed by any player."
 	output OnPressedBlue(void) : "Called in Coop when the button has been pressed by ATLAS."
 	output OnPressedOrange(void) : "Called in Coop when the button has been pressed by P-Body."
 
