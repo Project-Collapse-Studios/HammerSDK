@@ -57,4 +57,5 @@
 	output OnPlayerTeleportFromMe[P2](void) : "When the player is teleported from this portal to the linked partner."
 	output OnEntityTeleportToMe[P2](void) : "When any entity is teleported from this linked partner to the portal."
 	output OnPlayerTeleportToMe[P2](void) : "When the player is teleported from this linked partner to the portal."
+	output OnFizzled[Strata](void): "When the portal is fizzled."
 	]

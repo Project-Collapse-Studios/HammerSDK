@@ -2,28 +2,26 @@
 	appliesto(P2) 
 	studioprop() = prop_weighted_cube: "Aperture Science Weighted Cube. Presses floor buttons, and can be moved around."
 	[
-	cubetype[engine](integer) : "Cube Type" : 0
-	cubetype(choices) : "Cube Type" : "0" : "What cube type is this? Use a prop_monster_box for FrankenTurrets. " +
-		"If set to Custom, use AddOutput to change it back OnMapSpawn so gel skins behave correctly." =
+	line_cube[-engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : : "Oops, you must've misclicked."
+	
+	CubeBehavior[engine](integer) : "Cube Behavior" : 0
+	CubeBehavior[+Strata](choices) : "Cube Behavior" : 0 : "How does this cube function? Use a prop_monster_box for Frankenturrets. If Auto, this is chosen based on the cube model." =
 		[
-		0: "[0] Weighted Storage Cube"
-		1: "[1] Weighted Companion Cube"
-		2: "[2] Discouragement Redirection Cube"
-		3: "[3] Edgeless Safety Cube"
-		4: "[4] Antique Storage Cube"
-		5: "[5] Schrodinger's Cube" [Strata]
-		6: "[6] Custom model"
+		0: "Auto (from model)"
+		1: "Standard Cube"
+		2: "Reflection Cube"
+		3: "Schrodinger's Cube"
 		]
-
-	skintype[engine](boolean) : "Skin Type" : 0
-	skintype(choices) : "Skin Type" : "0" : "Is the cube clean or rusty? Storage and Reflection cubes are the only types with a rusty version." =
+	CubeShape[engine](integer) : "Cube Shape" : 0
+	CubeShape[+Strata](choices) : "Cube Shape" : 0 : "What shape is this cube? This determines how it presses buttons. If Auto, this is chosen based on the cube model." =
 		[
-		0: "Clean"
-		1: "Rusted"
+		0: "Auto (from model)"
+		1: "Cubic"
+		2: "Spherical"
 		]
 
 	model[engine](studio) : "Model" : ""
-	model(choices) : "Model" : "models/props/metal_box.mdl" : "The model to show in Hammer. Custom model names can also be typed/pasted in here, and will be shown in-game if the entity is set to use a custom model." =
+	model[-Strata](choices) : "Model" : "models/props/metal_box.mdl" : "The model to show in Hammer. Custom model names can also be typed/pasted in here, and will be shown in-game if the entity is set to use a custom model." =
 		[
 		"models/props/metal_box.mdl": "Weighted Storage/Companion Cube"
 		"models/props/reflection_cube.mdl": "Discouragement Redirection"
@@ -31,6 +29,20 @@
 		"models/props_underground/underground_weighted_cube.mdl": "Antique"
 		"models/props/schrodinger_cube.mdl": "Schrodinger" [P2CE]
 		]
+	model[+Strata](choices) : "Cube Model" : "models/props/cubes/standard_cube.mdl" : "What model to use. You can also type/paste in a custom model path here. " +
+		"If using a custom model, Cube Behavior and Shape must be set." =
+		[
+		"models/props/cubes/standard_cube.mdl": "Weighted Storage Cube"
+		"models/props/cubes/standard_cube_rusty.mdl": "Weighted Storage Cube (rusty)"
+		"models/props/cubes/companion_cube.mdl": "Weighted Companion Cube"
+		"models/props/cubes/reflection_cube.mdl": "Discouragement Redirection Cube"
+		"models/props/cubes/reflection_cube_rusty.mdl": "Discouragement Redirection Cube (rusty)"
+		"models/props/cubes/sphere.mdl": "Edgeless Safety Cube"
+		"models/props/cubes/antique_cube.mdl": "Antique Cube"
+		"models/props/cubes/schrodinger_cube.mdl": "Schrodinger's Cube"
+		"models/props/cubes/schrodinger_cube_rusty.mdl": "Schrodinger's Cube (rusty)"
+		]
+
 	uselasermodifier[Strata](boolean): "Use Laser Modifier" : 0 : "If enabled, this cube will recolor incoming lasers to the modifier color."
 	reflectmodifycolor[engine](color255) : "Laser Modifier Color" : "255 0 0 255"
 	reflectmodifycolor[Strata](choices): "Laser Modifier Color" : "255 0 0 255" : "Set reflected lasers to this color. Only applicable to reflection and Schrodinger cubes. You can also specify a custom RGBA color here." = #snippet "StrataDisBeamColor"
@@ -38,7 +50,43 @@
 	reflectfiltercolor[engine](color255) : "Laser Filter Color" : "255 0 0 255"
 	reflectfiltercolor[Strata](choices): "Laser Filter Color" : "255 0 0 255" : "Filter reflected lasers by this color. Only applicable to reflection and Schrodinger cubes. You can also specify a custom RGBA color here." = #snippet "StrataDisBeamColor"
 
-	comp_custom_model_type[srctools, -engine](choices) : "[HA] Custom Model Type" : 0 : "Automatically handles various methods of setting custom cube models. " + 
+	line_cube_oldskins[+Strata](string) readonly : "----------------------------------------------------------------------------------------------------------"
+
+	cubetype[engine](integer) : "Cube Type" : 0
+	cubetype[-Strata](choices) : "Cube Type" : "0" : "What cube type is this? Use a prop_monster_box for FrankenTurrets. " +
+		"If set to Custom, use AddOutput to change it back OnMapSpawn so gel skins behave correctly." =
+		[
+		0: "[0] Weighted Storage Cube"
+		1: "[1] Weighted Companion Cube"
+		2: "[2] Discouragement Redirection Cube"
+		3: "[3] Edgeless Safety Cube"
+		4: "[4] Antique Storage Cube"
+		5: "[5] Schrodinger's Cube"
+		6: "[6] Custom model"
+		]
+	cubetype[+Strata](choices) : "Cube Type" : "0" : "The old cube type keyvalue, which overrides the model and behavior." =
+		[
+		0: "[0] Weighted Storage Cube"
+		1: "[1] Weighted Companion Cube"
+		2: "[2] Discouragement Redirection Cube"
+		3: "[3] Edgeless Safety Cube"
+		4: "[4] Antique Storage Cube"
+		5: "[5] Schrodinger's Cube"
+		6: "[6] Custom model"
+		]
+
+	skintype[engine](boolean) : "Skin Type" : 0
+	skintype[-Strata](choices) : "Skin Type" : "0" : "Is the cube clean or rusty? Storage and Reflection cubes are the only types with a rusty version." =
+		[
+		0: "Clean"
+		1: "Rusted"
+		]
+	skintype[-Strata](choices) : "Skin Type" : "0" : "The old skin type keyvalue. Storage and Reflection cubes are the only types with a rusty version." =
+		[
+		0: "Clean"
+		1: "Rusted"
+		]
+	comp_custom_model_type[srctools, -engine, -Strata](choices) : "[HA] Custom Model Type" : 0 : "Automatically handles various methods of setting custom cube models. " + 
 		"Cube Type sets the behavior and which skin numbers are used for gel, and the Model keyvalue sets the actual model. " +
 		"Script Override mode requires the collisions to be the same as the base cube type, but tends to produce more correct physics than Cube Type 6." =
 		[
@@ -49,7 +97,14 @@
 
 	skin(integer) : "Skin" : 0 : "The old skin property, mainly to show in Hammer. "
 
-	newskins(integer) readonly : "Use new skins" : 1 : "Use the values in the Cube Type and Skin Type fields instead of the Skin(OLD) field. You shouldn't need to touch this."
+	newskins[-Strata](integer) readonly : "Use new skins" : 1 : "Use the values in the Cube Type and Skin Type fields instead of the Skin(OLD) field. You shouldn't need to touch this."
+
+	newskins[+Strata](choices) : "Configuration Mode" : 2 : "How cube models and behaviors are selected. This determines which of the other keyvalues are used and is present for backwards compatibility." =
+		[
+		2: "New style (behavior/model)"
+		1: "Old style (cube type/skin type)"
+		0: "Oldest style (skin)"
+		]
 
 	// Inputs
 	input ExitDisabledState(void) : "Exits the disabled state of a reflective cube."

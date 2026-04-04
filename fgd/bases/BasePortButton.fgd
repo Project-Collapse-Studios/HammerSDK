@@ -1,4 +1,5 @@
 @BaseClass base(BaseEntityAnimating, SRCIndicator)
+	line(255 255 255, targetname, filtername)
 = BasePortButton: "The base for the various floor buttons - weighted, cube, sphere and Antique weighted."
 	[
 	solid(integer) : "Solid" : 0
@@ -11,7 +12,7 @@
 		6 : "[6] Incorrect (Solid)"
 		]
 
-	filtername(filterclass) : "Filter Name" : : "A filter entity that restricts which things can press the button. If set, the builtin filtering is disabled."
+	filtername[Strata](filterclass) : "Filter Name" : : "A filter entity that restricts which things can press the button. If set, the builtin filtering is disabled."
 
 	// Inputs
 	input PressIn(void) : "Activate the button as if it was pressed, sending it to the bottom position."
@@ -21,13 +22,12 @@
 	output OnPressed(void) : "Fires when the button has been pressed."
 	output OnUnPressed(void) : "Fires when the button has been released."
 
-	output OnPressedPlayer[srctools, -P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a player. " +
-		"This is implemented by using a generated filter's TestActivator input."
+	// PresedPlayer/Cube are defined natively in Strata, also in HA. But no point using OnPressedPlayer in P2 on cube/sphere buttons.
+	// Strata filters make it useful there.
+	output OnPressedPlayer[Strata](void) : "Called when the button is pressed by a player."
 	output OnPressedCube[srctools, -P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player). " +
 		"This is implemented by using a generated filter's TestActivator input."
-
-	output OnPressedPlayer[P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a player."
-	output OnPressedCube[P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a cube (specifically a non-player)."
+	output OnPressedCube[P2CE](void) : "Fires when the button is pressed by a cube (specifically a non-player)."
 
 	@resources
 		[

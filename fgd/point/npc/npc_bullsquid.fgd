@@ -3,7 +3,7 @@
 @BaseClass base(EZ2PredatorNPC) appliesto(EZ2) = _npc_bullsquid_ez2 []
 
 @NpcClass 
-	appliesto(Mesa, EZ2, Strata) 
+	appliesto(Mesa, EZ2) 
 	base(_npc_bullsquid_normal, _npc_bullsquid_ez2)
 	studio[Mesa]("models/xenians/bullsquid.mdl") 
 	studio[-Mesa]("models/bullsquid.mdl") 

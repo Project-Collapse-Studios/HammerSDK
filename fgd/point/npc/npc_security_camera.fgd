@@ -13,7 +13,12 @@
 		]
 
 	model[P2CE](studio): "Camera Model" : "models/props/security_camera.mdl" : "Model to be used in game"
- 
+	rotatesound[P2CE](sound) : "Rotation Sound": "Portalgun.pedestal_rotate_loop" : "Sound loop played when the camera moves."
+	speed[P2CE](float) : "Rotation Speed" : 0 : "Speed the camera rotates, in degrees per second. By default, cameras targeting pings move at 8 deg/s, while all others move at 7 deg/s."
+	decalname[P2CE](decal) : "Detach Decal" : "SecurityCamera.Detachment" : "Decal placed on the wall when the camera detaches. If set to 'none', no decal is placed."
+	glowname[P2CE](sprite) : "Glow Sprite" : "sprites/glow1.vmt" : "Sprite used on the 'lens' attachment point. To remove the sprite, omit the attachment point."
+	enableropes[P2CE](boolean) : "Enable Ropes" : 0 : "Enable a pair of ropes, like in Portal 1. 4 attachments should be defined - Wire1_A, Wire1_B, Wire2_A, Wire2_B."
+
 	lookatplayerpings[engine](boolean): "Target" : 0
 	lookatplayerpings[P2](choices) : "Target" : 0 : "Target to follow: the player, or their pings (co-op mode only)" =
 		[
@@ -41,16 +46,20 @@
 	input Enable(void) : "Start following players."
 	input Disable(void) : "Stop following players, freezing in place."
 	input Toggle(void) : "Toggle following players."
-	input Ragdoll(void) : "Knock the camera off the wall."
+	input Ragdoll[-P2CE](void) : "Knock the camera off the wall."
+	input Detach[+P2CE](void) : "Knock the camera off the wall."
+	input Ragdoll[+P2CE](void) : "Backwards-compatibiity alias for Detach."
 
 	input LookAtBlue[P2](void) : "Make the camera only follow ATLAS."
 	input LookAtOrange[P2](void) : "Make the camera only follow P-Body."
 	input LookAllTeams[P2](void) : "Make the camera follow all players."
+	input ForceLookAt[P2CE](ehandle) : "Force the camera to look at the specified entity, or return to normal if none is supplied."
 
 	// Outputs
 	output OnDeploy(void) : "Fired in response to the Enable input"
 	output OnRetire(void) : "Fired in response to the Disable input"
-	
+	output OnDetach[P2CE](void) : "Camera was knocked off the wall."
+
 	output OnTaunted[P2](void) : "A player STARTED taunting the camera."
 	output OnTauntedBlue[P2](void) : "ATLAS STARTED taunting the camera."
 	output OnTauntedOrange[P2](void) : "P-Body STARTED taunting the camera."

@@ -1,4 +1,4 @@
-@PointClass base(BaseNPC)
+@PointClass base(BaseNPC, PaintableProp)
 	appliesto(P1, P2, -STANLEY) 
 	autovis(Entities, NPCs, Portal Turret)
 	studioprop[P1]("models/props/turret_01.mdl")
@@ -91,5 +91,6 @@
 	output OnExplode[P2](void) : "Turret has exploded."
 	output OnPhysGunPickup(void) : "Turret was picked up by player."
 	output OnPhysGunDrop(void) : "Turret was dropped by player."
-	output OnPainted[P2](void) : "Fires when the turret is first painted or if repainted by a different color."
+	// Strata defines this in PaintableProp
+	output OnPainted[P2, -Strata](void) : "Fires when the turret is first painted or if repainted by a different color."
 	]

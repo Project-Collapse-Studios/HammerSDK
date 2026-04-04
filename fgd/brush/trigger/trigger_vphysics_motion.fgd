@@ -7,6 +7,8 @@
 		]
 
 	setgravityscale(float) : "Gravity Scale" : 1.0 : "Scale gravity of objects in the field by this amount."
+	setgravitydirection[Strata](vector) : "Gravity Direction" : "0 0 0" : "Orient gravity for objects in the field towards this direction."
+	disableaircontrol[Strata](boolean) : "Disable Air Control" : 1 : "Disable air control for players touching this volume."
 	setadditionalairdensity(float) : "Additional air density for drag" : 0
 	setvelocitylimit(float) : "Velocity Limit" : 0.0 : "Max velocity in field (0 disables)"
 	setvelocitylimitdelta(float) : "Velocity Limit Force" : 0.0 : "Max amount to reduce velocity per second when it exceeds the velocity limit (0 disables)"
@@ -33,6 +35,7 @@
 	input SetAngVelocityScale(float) : "Angular Velocity scale/drag"
 	input SetLinearForce(float) : "Linear force (0 disables)"
 	input SetLinearForceAngles(angle) : "Set the force direction."
+	input SetGravityDirection[Strata](vector) : "Update the gravity direction."
 
 	@resources [] // Handled generically
 	]

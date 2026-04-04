@@ -12,6 +12,10 @@
 	skin[-Strata](integer) readonly editor: "<Skin>" : 0 : "Skin on the model to use. The game overrides this based on the button's pressed state, so changing it here has no effect."
 
 	// Outputs
+	// This is for HA, but Strata has it natively.
+	output OnPressedPlayer[srctools, -P2CE](void) : "Added by HammerAddons. Fires when the button is pressed by a player. " +
+		"This is implemented by using a generated filter's TestActivator input."
+	output OnPressedPlayer[Strata](void) : "Called when the button is pressed by a player."
 	output OnPressedBlue(void) : "Called in Coop when the button has been pressed by ATLAS."
 	output OnPressedOrange(void) : "Called in Coop when the button has been pressed by P-Body."
 
