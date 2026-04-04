@@ -1,5 +1,5 @@
 // Super-extra special, so don't use normal bases.
-@SolidClass base(BaseEntity, ResponseContext) = worldspawn: "This is the world entity. Each map can only contain one, and it's automatically created for you."
+@SolidClass base(BaseEntity, ResponseContext) = worldspawn: "This is the world entity, which represents all world/detail brushes and static props. Each map can only contain one, and it's automatically created for you."
 	[
 	world_mins[engine](vector) : "World Minimums" : : "Set by VBSP to the minimum bounds of the map geometry, excluding the 3D skybox (if present)."
 	world_maxs[engine](vector) : "World Maximums" : : "Set by VBSP to the maximum bounds of the map geometry, excluding the 3D skybox (if present)."
@@ -116,7 +116,7 @@
 		1 : "Yes"
 	]
 
-	paintinmap[P2](boolean) : "Enable Paint" : 0 : "Enable code for spreading paint on surfaces, and bouncing physics objects around."
+	paintinmap[P2](boolean) : "Enable Paint" : 0 : "Enables code for spreading paint on surfaces, and bouncing physics objects around."
 	maxblobcount[P2](integer) : "Gel Blob Limit" : 250 : "Number of Gel blobs that can exist. Maximum is 250."
 	maxprojectedtextures[Strata](integer): "Maximum Projected Textures" : 8 : "Maximum number of env_projectedtexture entities that can be enabled at once. Maximum is 8."
 

@@ -7,7 +7,7 @@
 		]
 
 	hinttype[engine](integer) : "Hint" : 0
-	hinttype(choices) : "Hint" : "0" =
+	hinttype(choices) : "Hint" : "0" : "The type of hint for this node, determines how NPCs treat it." =
 		[
 		0: "None"
 		2: "World: Window"

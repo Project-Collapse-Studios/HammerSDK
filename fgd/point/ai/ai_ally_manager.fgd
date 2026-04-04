@@ -1,10 +1,10 @@
 @PointClass base(BaseEntityPoint) 
 	appliesto(EP1, EP2, HL2, P1, Mesa) 
 	iconsprite("materials/editor/ficool2/ai_ally_manager.vmt")
-= ai_ally_manager: "AI Ally Manager"
+= ai_ally_manager: "AI Ally Manager. Tracks how many allies the player has, and spawns new citizens to replenish them."
 	[
-	maxallies(integer) : "Maximum number of allies" : 5
-	maxmedics(integer) : "Maximum number of medics" : 1
+	maxallies(integer) : "Maximum number of allies" : 5 : "The manager will spawn citizens to fill the player's squad to this number."
+	maxmedics(integer) : "Maximum number of medics" : 1 : "The manager will spawn medics until the player's squad has this many."
 
 	// Inputs
 	input SetMaxAllies(integer) : "Set maximum number of allies"
@@ -12,19 +12,19 @@
 	input Replenish(void) : "Replenish player allies"
 
 	// Outputs
-	output SpawnMedicAlly(void) : "Spawn Medic Ally"
-	output SpawnAlly0(void) : "Spawn Ally 0"
-	output SpawnAlly1(void) : "Spawn Ally 1"
-	output SpawnAlly2(void) : "Spawn Ally 2"
-	output SpawnAlly3(void) : "Spawn Ally 3"
-	output SpawnAlly4(void) : "Spawn Ally 4"
-	output SpawnAlly5(void) : "Spawn Ally 5"
-	output SpawnAlly6(void) : "Spawn Ally 6"
-	output SpawnAlly7(void) : "Spawn Ally 7"
-	output SpawnAlly8(void) : "Spawn Ally 8"
-	output SpawnAlly9(void) : "Spawn Ally 9"
-	output OnZeroAllies(void) : "Fires when there are no more allies"
-	output OnZeroMedicAllies(void) : "Fires when there are no more allies"
+	output SpawnMedicAlly(void) : "Fired to spawn a medic."
+	output SpawnAlly0(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly1(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly2(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly3(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly4(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly5(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly6(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly7(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly8(void) : "Fired to spawn one regular citizen."
+	output SpawnAlly9(void) : "Fired to spawn one regular citizen."
+	output OnZeroAllies(void) : "Fires when the player has no allies nearby."
+	output OnZeroMedicAllies(void) : "Fires when the player has no medic allies nearby."
 
 	@resources []
 	]

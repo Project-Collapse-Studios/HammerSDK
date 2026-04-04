@@ -4,7 +4,7 @@
 	"If a TFBot has at least one matching tag, it will pay attention to this entity. " +
 	"Tags that are automatically set on TFBots include bomb_carrier, common, mission_sniper, mission_spy, mission_sentry_buster, or any class name."
 
-	start_disabled(boolean) : "Start Disabled" : 0
+	start_disabled(boolean) : "Start Disabled" : 0: "Whether the entity should start disabled."
 
 	// Inputs
 	input Enable(void) : "Enable"

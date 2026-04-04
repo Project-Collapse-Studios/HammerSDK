@@ -3,11 +3,12 @@
 	iconsprite("editor/ficool2/func_fish_pool")
 = func_fish_pool: "Creates a school of interactive fish that swim near this entity."
 	[
-	model(studio) : "World model" : "models/Junkola.mdl"
+	model[-Strata](studio) : "World model" : "models/Junkola.mdl" : "Model that the fishes will use."
+	model[+Strata](studio) : "Fish model" : "models/props/cs_militia/fishriver01.mdl" : "Model that the fishes will use."
 	skin[MBase](integer) : "Skin" : 0 : "Some models have multiple versions of their textures, called skins. " +
 		"Set this to a number other than 0 to use that skin instead of the default."
 	
-	fish_count(integer) : "Fish Count" : 10 : "Number of Fish in this Pool"
+	fish_count(integer) : "Fish Count" : 10 : "Amount of fish in the pool."
 	max_range(float) : "Max Range" : 150 : "How far away a Fish can wander (max 255)"
 
 	LoudPanicRange[MBase](float) : "Loud Panic Range" : 500 : "How far away an event has to be to make the fish in this pool panic."

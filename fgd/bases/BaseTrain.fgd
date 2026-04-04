@@ -46,7 +46,7 @@
 	movepingsound(sound) : "Move Ping Sound" : : "A sound that is played more frequently as the train speeds up."
 	startsound(sound) : "Start Sound" : : "A sound played when the train starts moving."
 	stopsound(sound) : "Stop Sound" : : "A sound played when the train stops moving."
-	volume(integer) : "Volume (10 = loudest)" : 10
+	volume(integer) : "Volume (10 = loudest)" : 10 : "Volume of the train sounds."
 	movesoundminpitch(integer) : "Min pitch (1-255, > 100 = higher)" : 60 : "The sound pitch value that the train will approach as it comes to a stop."
 	movesoundmaxpitch(integer) : "Max pitch (1-255, > 100 = higher)" : 200 : "The sound pitch value that the train will approach as it approaches its max speed " +
 		" or 1000 units/second if the 'Use max speed for pitch shifting move sound' flag is not set."

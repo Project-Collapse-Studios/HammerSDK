@@ -12,14 +12,14 @@
 	endnode(node_dest) : "End node ID" : : "The node ID of one end of the node connection."
 
 	initialstate[engine](boolean) : "Initial State" : 1
-	initialstate(choices) : "Initial State" : 1 =
+	initialstate(choices) : "Initial State" : 1 : "Initial state of the link." =
 		[
 		0: "Off"
 		1: "On"
 		]
 
 	linktype[engine](integer) : "Type of Connection" : 1
-	linktype(choices) : "Type of Connection" : 1 =
+	linktype(choices) : "Type of Connection" : 1 : "Type of connection between the nodes. NPCs will be forced to do specific actions to move between the nodes." =
 		[
 		1: "Ground"
 		2: "Jump"

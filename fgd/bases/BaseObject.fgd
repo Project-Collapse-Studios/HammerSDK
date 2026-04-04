@@ -1,7 +1,7 @@
 @BaseClass = BaseObject // tf2 CBaseObject
 	[
 	teamnum[engine](integer) : "Team" : 2
-	teamnum(choices) : "Team" : 2 : "Team" =
+	teamnum(choices) : "Team" : 2 : "Player team" =
 		[
 		0: "Unassigned" [+complete]
 		1: "Spectators" [+complete]

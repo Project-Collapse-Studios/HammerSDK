@@ -13,7 +13,7 @@
 	point0(vector) : "Start" : : "Ladder end point."
 	point1(vector) : "End" : : "Ladder end point."
 	
-	startdisabled(boolean) : "Start Disabled" : 0
+	startdisabled(boolean) : "Start Disabled" : 0 : "Should the ladder be unusable on spawn?"
 	laddersurfaceproperties(string) : "Surface properties (optional)"
 
 	// Inputs

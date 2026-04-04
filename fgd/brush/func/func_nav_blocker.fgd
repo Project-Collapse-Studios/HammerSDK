@@ -2,7 +2,7 @@
 	appliesto(TF2, L4D, L4D2, since_CSGO)
 = func_nav_blocker: "A brush entity that can block nav areas touching its AABB."
 	[
-	StartDisabled(boolean) : "Start Disabled" : 0
+	StartDisabled(boolean) : "Start Disabled" : 0 : "Whether the blocker starts inactive."
 
 	@resources []
 	]

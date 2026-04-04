@@ -4,14 +4,14 @@
 	glow[L4D2](target_destination) : "Glow Entity" : : "The name of an entity that will get the +use glow for this button."
 	
 	sounds[engine](integer) : "Press Sound" : 0
-	sounds(choices) : "Press Sound" : 0 : "Sound played when pressed. Choose from sounds in the Buttons.snd* category." = #snippet "Buttons.snd"
+	sounds(choices) : "Press Sound" : 0 : "Sound played when pressed. This plays 'Buttons.sndXX', where XX is the provided number." = #snippet "Buttons.snd"
 
 	locked_sound[engine](integer) : "Locked Sound" : 0
 	locked_sound(choices) : "Locked Sound" : 0 : "Sound played when the player tries to use the button, " +
-		"and fails because it's locked. These are sounds in the Buttons.snd* category." = #snippet "Buttons.snd"
+		"and fails because it's locked. This plays 'Buttons.sndXX', where XX is the provided number." = #snippet "Buttons.snd"
 
 	unlocked_sound[engine](integer) : "Unlocked Sound" : 0
-	unlocked_sound(choices) : "Unlocked Sound" : 0 : "Sound played when the button is unlocked. These are sounds in the Buttons.snd* category." = #snippet "Buttons.snd"
+	unlocked_sound(choices) : "Unlocked Sound" : 0 : "Sound played when the button is unlocked. This plays 'Buttons.sndXX', where XX is the provided number." = #snippet "Buttons.snd"
 
 	locked_sentence[engine](integer) : "Locked Sentence" : 0
 	locked_sentence[complete](choices) : "Locked Sentence" : 0 : "A sentence played when the player tries to use the button, and fails because it's locked." =

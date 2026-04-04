@@ -1,6 +1,6 @@
 @BaseClass base(BaseNPC, EZ2Variant) = BaseHeadcrab
 	[
-	startburrowed(boolean) : "Start burrowed" : 0
+	startburrowed(boolean) : "Start burrowed" : 0 : "Should this headcrab spawn inside the ground?"
 
 	spawnflags(flags) : "spawnflags" =
 		[

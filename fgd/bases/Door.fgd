@@ -35,7 +35,7 @@
 	unlocked_sound(sound) : "Unlocked Sound" : : "Sound played when the button is door."
 
 	spawnpos[engine](integer) : "Spawn Position" : 0
-	spawnpos(choices) : "Spawn Position" : 0 =
+	spawnpos(choices) : "Spawn Position" : 0 : "Spawn position of this door." =
 		[
 		0: "Closed"
 		1: "Open"

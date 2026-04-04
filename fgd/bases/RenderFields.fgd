@@ -93,7 +93,7 @@
 		23: "Ragdoll (ragdolls the entity but does NOT kill it)" [TF2]
 		]
 
-	disablereceiveshadows(boolean) : "Disable Receiving Shadows" : 0
+	disablereceiveshadows(boolean) : "Disable Receiving Shadows" : 0 : "Should this entity receive no dynamic shadows?"
 
 	viewhideflags[engine](integer) : "View Hide Flags" : 0
 	viewhideflags[MBase](choices) : "View ID nodraw" : 0 : "This keyvalue can control whether an entity should only draw on things like monitors or mirrors, " +

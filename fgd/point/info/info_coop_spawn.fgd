@@ -5,7 +5,7 @@
 = info_coop_spawn: "Player spawns for cooperative mode."
 	[
 	enabled[engine](boolean) : "Initial State" : 1
-	enabled(choices) : "Initial State" : 1 =
+	enabled(choices) : "Initial State" : 1 : "Should the spawn be initially active?" =
 		[
 		0: "Disabled"
 		1: "Enabled"

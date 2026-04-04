@@ -2,7 +2,8 @@
 	iconsprite("editor/comp_kv_setter")
 	appliesto(srctools)
 = comp_kv_setter : "Sets a keyvalue on an entity to a new value. " +
-	"This is useful to compute spawnflags, or to adjust keyvalues when the target entity's options can't be set to a fixup variable."
+	"This is useful to compute spawnflags, or to adjust keyvalues when the target entity's options can't be set to a fixup variable." +
+	"Additionally, this copies all outputs to the target entity."
 	[
 	target(target_destination) report: "Target Entity" : : "The name of the entity or entities to set values on. " +
 		"*-suffixed names work to target multiple entities."
@@ -31,11 +32,10 @@
 
 	// We need to provide "some" outputs to allow you to add some.
 	// These exist on everything, at least.
-	output OnUser1(void) : "Fired in response to FireUser1 input."
-	output OnUser2(void) : "Fired in response to FireUser2 input."
-	output OnUser3(void) : "Fired in response to FireUser3 input."
-	output OnUser4(void) : "Fired in response to FireUser4 input."
-	output OnKilled[L4D](void) : "Fired when the entity is killed and removed from the game."
+	output OnUser1(void) : "Fired in response to the FireUser1 input."
+	output OnUser2(void) : "Fired in response to the FireUser2 input."
+	output OnUser3(void) : "Fired in response to the FireUser3 input."
+	output OnUser4(void) : "Fired in response to the FireUser4 input."
 
 	#snippet keyvalue CompVersion
 	#snippet keyvalue CompV1

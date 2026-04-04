@@ -12,10 +12,10 @@
 	// the origin to the entity center and now you can't adjust it to move it back.
 	origin(origin): "Origin": "" : "Always set this to 0 0 0 on effect entities, other values will cause the effects to break. (Temporary until we figure out a better solution for this.)"
 
-	startdisabled(boolean) : "Start Disabled" : 0
-	color[-Strata](color255) : "Particle Color (R G B)" : "255 255 255"
-	color[+Strata](color255) : "Start Particle Color (R G B)" : "255 255 255"
-	color2[+Strata](color255) : "End Particle Color (R G B)" : "255 255 255"
+	startdisabled(boolean) : "Start Disabled" : 0 : "Sets this brush as disabled on map spawn."
+	color[-Strata](color255) : "Particle Color (R G B)" : "255 255 255" : "Color of the particle."
+	color[+Strata](color255) : "Start Particle Color (R G B)" : "255 255 255" : "Color of the particle after spawning."
+	color2[+Strata](color255) : "End Particle Color (R G B)" : "255 255 255" : "Color of the particle when fading."
 	spawnrate(integer) : "Particle Per Second" : 40 : "Number of particles to spawn, per second."
 	speedmax(integer) : "Maximum Particle Speed" : 13 : "Maximum speed that the particles can move after spawning."
 	fallspeed[+Strata](integer) : "Particle Fall Speed" : 0 : "How fast the particles fall to the ground. This value is subtracted from the particle speed in the Z-axis only."

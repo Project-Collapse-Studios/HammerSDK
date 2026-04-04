@@ -1,4 +1,4 @@
-@PointClass base(BaseEntityPoint)
+@PointClass base(BaseEntityPoint, EnableDisable)
 	appliesto(MOMENTUM) 
 = mom_replay_playback: "Plays a replay and allows for various playback options"
 	[
@@ -17,11 +17,8 @@
 		]
 
 	LoopCount(integer) : "Loop Count" : 0 : "How many times to loop the replay. If -1, will loop indefinitely"
-	StartDisabled(boolean) : "Start Disabled" : 0
 
 	// Inputs
-	input Enable(void) : "Enable this entity"
-	input Disable(void) : "Disable this entity"
 	input Start(void) : "Start the replay"
 	input Stop(void) : "Stop the replay (will result in OnPlaybackStopped output)"
 	input Speed(float) : "Set timescale to use for playback"

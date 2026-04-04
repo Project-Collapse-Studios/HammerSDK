@@ -35,8 +35,8 @@
 	renderamt[since_L4D](integer) : "Alpha" : 255 : "Alpha of the fade, where 0 = fully transparent and 255 = fully opaque."
 	rendercolor[since_L4D](color255) : "Color (R G B)" : "255 255 255"
 
-	uniformscale[PROP_SCALING](float) : "Uniform Scale Override" : 1 : "Resize the static prop uniformly."
-	scale[Strata](vector): "Scale Override" : "1 1 1" : "Resize the static prop."
+	uniformscale[PROP_SCALING](float) : "Uniform Scale Override" : 1 : "Resizes the static prop uniformly."
+	scale[Strata](vector): "Scale Override" : "1 1 1" : "Resizes the static prop."
 
 	solid[engine](integer) : "Collisions": 6
 	solid(choices) : "Collisions" : 6 : "Method of collision for this prop." =
@@ -98,7 +98,7 @@
 
 	// Basically obsolete at this point, even the slowest systems will support DX9.
 	// Black Mesa is deferred, these probably don't do anything there...
-	mindxlevel[+complete, until_L4D, !MESA](choices) : "Minimum DirectX Level" : 0 : "Prevents this entity from rendering if the user's DirectX level is lower than the specified value." = 
+	mindxlevel[+complete, until_L4D, !MESA](choices) : "Minimum DirectX Level" : 0 : "Prevents this prop from rendering if the user's DirectX level is lower than the specified value." = 
 		[
 		0 : "Default (Lowest)"
 		60 : "DirectX 6.0"
@@ -112,7 +112,7 @@
 		// 97 : "PlayStation 3 (''97'')"
 		98 : "Xbox 360 (''9.8'')"
 		]
-	maxdxlevel[+complete, until_L4D, !MESA](choices) : "Maximum DirectX Level" : 0 : "Prevents this entity from rendering if the user's DirectX level is higher than the specified value." = 
+	maxdxlevel[+complete, until_L4D, !MESA](choices) : "Maximum DirectX Level" : 0 : "Prevents this prop from rendering if the user's DirectX level is higher than the specified value." = 
 		[
 		0 : "Default (Highest)"
 		60 : "DirectX 6.0"
@@ -129,7 +129,7 @@
 	mindxlevel[until_L4D, +engine](integer): "Minimum DirectX Level": 0
 	maxdxlevel[until_L4D, +engine](integer): "Maximum DirectX Level": 0
 
-	mincpulevel[since_L4D](choices) : "Minimum Effect Detail Level" : 0 : "Prevents this entity from rendering if the user's Effect Detail setting is lower than the specified value." =
+	mincpulevel[since_L4D](choices) : "Minimum Effect Detail Level" : 0 : "Prevents this prop from rendering if the user's Effect Detail setting is lower than the specified value." =
 		[
 		0: "Default (Low)"
 		1: "Low"
@@ -137,7 +137,7 @@
 		3: "High"
 		]
 
-	maxcpulevel[since_L4D](choices) : "Maximum Effect Detail Level" : 0 : "Prevents this entity from rendering if the user's Effect Detail setting is higher than the specified value." =
+	maxcpulevel[since_L4D](choices) : "Maximum Effect Detail Level" : 0 : "Prevents this prop from rendering if the user's Effect Detail setting is higher than the specified value." =
 		[
 		0: "Default (High)"
 		1: "Low"
@@ -145,7 +145,7 @@
 		3: "High"
 		]
 
-	mingpulevel[since_L4D](choices) : "Minimum Shader Detail Level" : 0 : "Prevents this entity from rendering if the user's Shader Detail setting is lower than the specified value." =
+	mingpulevel[since_L4D](choices) : "Minimum Shader Detail Level" : 0 : "Prevents this prop from rendering if the user's Shader Detail setting is lower than the specified value." =
 		[
 		0: "Default (Low)"
 		1: "Low"
@@ -154,7 +154,7 @@
 		4: "Very High"
 		]
 
-	maxgpulevel[since_L4D](choices) : "Maximum Shader Detail Level" : 0 : "Prevents this entity from rendering if the user's Shader Detail setting is higher than the specified value." =
+	maxgpulevel[since_L4D](choices) : "Maximum Shader Detail Level" : 0 : "Prevents this prop from rendering if the user's Shader Detail setting is higher than the specified value." =
 		[
 		0: "Default (Very High)"
 		1: "Low"
@@ -169,5 +169,5 @@
 	maxgpulevel[since_L4D, +engine](integer): "Maximum Shader Detail Level": 0
 
 	// Most modders won't need this...
-	disablex360[complete](boolean) : "Disable on Xbox 360" : 0 : "Prevents this entity from rendering if the game is running on Xbox 360."
+	disablex360[complete](boolean) : "Disable on Xbox 360" : 0 : "Prevents this prop from rendering if the game is running on Xbox 360."
 	]

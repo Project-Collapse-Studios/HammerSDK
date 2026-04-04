@@ -18,7 +18,7 @@
 	linedivider_npc[!engine](string) readonly editor : "----------------------------------------------------------------------------------------------------------" : ""
 
 	// Inputs
-	input SetBodyGroup(integer) : "HACK: Sets this NPC's body group (from 0 - n). You'd better know what you are doing!"
+	input SetBodyGroup(integer) : "Sets this NPC's body group (from 0 - n). It's possible the NPC might set it back."
 
 	input SetExpressionOverride(string) : "Set a VCD file to override facial expressions on this NPC."
 

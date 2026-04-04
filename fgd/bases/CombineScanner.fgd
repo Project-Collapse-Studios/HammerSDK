@@ -5,7 +5,7 @@
 	spotlightlength(integer) : "Spotlight Length" : 500
 	spotlightwidth(integer) : "Spotlight Width" : 50
 
-	spotlightdisabled(boolean) : "Disable Spotlight" : 0
+	spotlightdisabled(boolean) : "Disable Spotlight" : 0 : "Turns off the spotlight entirely."
 	shouldinspect(boolean) : "Should inspect" : 1 : "Should the scanner locate and inspect targets on its own?"
 	onlyinspectplayers(boolean) : "Only Inspect Players" : 0 : "If enabled, the scanner will only inspect the player, ignoring citizens. Mutually exclusive with 'Never Inspect Players'."
 	neverinspectplayers(boolean) : "Never Inspect Players" : 0 : "If enabled, the scanner will ignore the player entirely. Mutually exclusive with 'Only Inspect Players'."

@@ -1,6 +1,6 @@
 @BaseClass = EnableDisable
 	[
-	startdisabled(boolean) : "Start Disabled" : 0
+	startdisabled(boolean) : "Start Disabled" : 0 : "Should the entity start disabled?"
 
 	// Inputs
 	#snippet input Enable
