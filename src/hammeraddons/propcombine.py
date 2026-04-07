@@ -789,11 +789,11 @@ async def decompile_model(
                     with file.open_bin() as src, Path(tempdir, stem + mdl_ext).open('wb') as dest:
                         shutil.copyfileobj(src, dest)
             LOGGER.debug('Extracted "{}" to "{}"', filename, tempdir)
-            args = [
-                *executable_args(crowbar),
-                '-i', str(Path(tempdir, stem + '.mdl')),
-                '-o', str(cache_folder),
-            ]
+            args = await executable_args(
+                crowbar,
+                '-i', Path(tempdir, stem + '.mdl'),
+                '-o', cache_folder,
+            )
             LOGGER.debug('Executing {}', ' '.join(args))
             result = await trio.run_process(args, capture_stdout=True, check=False)
             result_out = result.stdout.replace(b'\r\n', b'\n').decode('ascii', 'backslashescape')

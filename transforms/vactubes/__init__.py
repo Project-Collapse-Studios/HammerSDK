@@ -277,12 +277,12 @@ async def vactube_transform(ctx: Context) -> None:
                 with open(temp_dir + f'/{anim_name}.smd', 'wb') as mesh_file:
                     anim.mesh.export(mesh_file)
 
-        args = [
-            *executable_args(ctx.studiomdl),
+        args = await executable_args(
+            ctx.studiomdl,
             '-nop4', '-i',  # Ignore warnings.
-            '-game', str(ctx.game.path),
-            temp_dir + '/prop.qc',
-        ]
+            '-game', ctx.game.path,
+            Path(temp_dir, 'prop.qc'),
+        )
         LOGGER.info('Compiling vactube animations with args={}...', args)
         try:
             proc = await trio.run_process(args, capture_stdout=True, stderr=subprocess.STDOUT)

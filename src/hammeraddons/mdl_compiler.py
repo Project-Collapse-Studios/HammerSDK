@@ -27,6 +27,7 @@ from hammeraddons.bsp_transform import Context
 
 LOGGER = logger.get_logger(__name__)
 force_regen = False  # If set, force every model to be regenerated.
+_WINE_CACHE = ACache[Path, str]()
 
 
 class GenModel[OutT]:
@@ -44,13 +45,37 @@ class GenModel[OutT]:
         return f'<Model "{self.name}, used={self.used}>'
 
 
-def executable_args(exe: Path) -> list[str]:
-    """Determine the parameters for running an executable."""
-    if not WIN and exe.suffix.casefold() == '.exe':
-        # It's an EXE, assume this means we need WINE to run it.
-        return ['wine', str(exe)]
-    else:
-        return [str(exe)]
+
+async def convert_wine_path(path: Path) -> str:
+    """Convert Linux -> Wine paths."""
+    proc = await trio.run_process(['winepath', '-w', path])
+    proc.check_returncode()
+    return os.fsdecode(proc.stdout)
+
+
+async def executable_args(exe: Path, *args: Path | str) -> list[str]:
+    """Determine the parameters for running an executable, using Wine if required.
+
+    Path args are converted to Windows paths if Wine is used, strings are left unchanged.
+    """
+    if WIN or exe.suffix.casefold() != '.exe':
+        # On Windows natively, or a non-exe (so a Linux executable). Return unchanged.
+        return [str(exe), *args]
+    # Otherwise, assume we need WINE to run it.
+    result = ['wine', str(exe)]
+
+    async def convert(path: Path, i: int) -> None:
+        result[i] = await _WINE_CACHE.fetch(path, convert_wine_path, path)
+
+    async with trio.open_nursery() as nursery:
+        for arg in args:
+            if isinstance(arg, Path):
+                nursery.start_soon(convert, arg, len(result))
+                result.append('')
+            else:
+                result.append(arg)
+
+    return result
 
 
 class ModelCompiler[ModelKey: Hashable, InT, OutT]:
@@ -286,12 +311,12 @@ class ModelCompiler[ModelKey: Hashable, InT, OutT]:
         with ctx_man as folder:
             path = Path(folder)
             result = await compile_func(key, path, f'{self.model_folder}{mdl_name}.mdl', args)
-            studio_args = [
-                *executable_args(self.studiomdl_loc),
+            studio_args = await executable_args(
+                self.studiomdl_loc,
                 '-nop4',
-                '-game', str(self.game.path),
-                str(path / 'model.qc'),
-            ]
+                '-game', self.game.path,
+                (path / 'model.qc'),
+            )
             LOGGER.debug("Execute {}", studio_args)
             async with self.limiter:
                 res = await trio.run_process(studio_args, capture_stdout=True, check=False)
