@@ -48,9 +48,8 @@ class GenModel[OutT]:
 
 async def convert_wine_path(path: Path) -> str:
     """Convert Linux -> Wine paths."""
-    proc = await trio.run_process(['winepath', '-w', path])
-    proc.check_returncode()
-    return os.fsdecode(proc.stdout)
+    proc = await trio.run_process(['winepath', '-w', path], check=True, capture_stdout=True)
+    return os.fsdecode(proc.stdout.strip())
 
 
 async def executable_args(exe: Path, *args: Path | str) -> list[str]:
