@@ -45,7 +45,6 @@ class GenModel[OutT]:
         return f'<Model "{self.name}, used={self.used}>'
 
 
-
 async def convert_wine_path(path: Path) -> str:
     """Convert Linux -> Wine paths."""
     proc = await trio.run_process(['winepath', '-w', path], check=True, capture_stdout=True)
@@ -59,7 +58,7 @@ async def executable_args(exe: Path, *args: Path | str) -> list[str]:
     """
     if WIN or exe.suffix.casefold() != '.exe':
         # On Windows natively, or a non-exe (so a Linux executable). Return unchanged.
-        return [str(exe), *args]
+        return [str(exe), *map(str, args)]
     # Otherwise, assume we need WINE to run it.
     result = ['wine', str(exe)]
 
