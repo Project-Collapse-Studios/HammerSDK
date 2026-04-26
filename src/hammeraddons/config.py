@@ -651,7 +651,7 @@ def _apply_searchpath_entries(
 def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
     """Locate the game configuration to use.
 
-    This can either use hammeraddons_game.vdf next to gameinfo, or lookup from an inbuilt file.
+    This can either use hammeraddons_game.dmx next to gameinfo, or lookup from an inbuilt file.
     """
     try:
         with open(game_folder / GAMES_CONF_NAME, 'rb') as f:
@@ -702,8 +702,8 @@ def parse_games_conf(opts: Options, game_folder: Path) -> GameConfig:
         name_report.append((elem.name, list(elem['aliases'].iter_string())))
 
     raise ValueError(
-        'No game configuration defined. Set "game" in hammeraddons.vdf to a valid game, '
-        'or define your own hammeraddons_game.vdf if this is a custom mod. Valid games:\n' +
+        f'No game configuration defined. Set "game" in {MAIN_CONF_NAME} to a valid game, '
+        f'or define your own {GAMES_CONF_NAME} if this is a custom mod. Valid games:\n' +
         '\n'.join(
             f'- {name} ({", ".join(aliases)})' if aliases else f'- {name}'
             for name, aliases in name_report
