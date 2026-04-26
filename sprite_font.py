@@ -51,3 +51,5 @@ def main() -> None:
     img.save(f'{text}.png')
 
     print('Done!')
+
+main()
