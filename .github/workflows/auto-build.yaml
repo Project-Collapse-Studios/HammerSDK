@@ -44,7 +44,7 @@ jobs:
           archive: true
           path: ./build/
           if-no-files-found: error
-          name: Release-${{ runner.os }}.zip
+          name: Release-${{ runner.os }}
 
   create-release:
 
