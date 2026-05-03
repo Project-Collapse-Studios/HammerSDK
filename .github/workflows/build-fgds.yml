@@ -1,11 +1,7 @@
 name: FGD Build
 on:
   push:
-    branches: [ master, dev ]
-    paths:
-      - 'fgd/**'
-  pull_request:
-    branches: [ master, dev ]
+    branches: [ main ]
     paths:
       - 'fgd/**'
   workflow_dispatch:
@@ -60,3 +56,41 @@ jobs:
           name: build-engine-${{ github.sha }}
           path: fgd.lzma
           if-no-files-found: error
+
+  create-release:
+
+    runs-on: ubuntu-latest
+    name: Create Release
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - run: git fetch --tags origin
+      
+      - name: Get previous tag
+        id: previoustag
+        uses: 'actions-ecosystem/action-get-latest-tag@v1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Next Monotonic Release version
+        id: next
+        uses: actions-ecosystem/action-bump-semver@v1
+        with:
+          current_version: ${{ steps.previoustag.outputs.tag }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: ./downloads/
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        if: ${{ github.event.inputs.version == '' }}
+        with:
+          tag_name: ${{ steps.next.outputs.new_version }}
+          generate_release_notes: true
+          previous_tag: ${{ steps.previoustag.outputs.tag }}
+          files: ./downloads/*

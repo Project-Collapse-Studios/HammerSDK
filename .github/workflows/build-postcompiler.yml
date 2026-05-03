@@ -1,9 +1,7 @@
 name: Build Postcompiler
 on:
-  schedule:
-    - cron: '14 9 * * TUE' # Run at 9:14 (7:14pm local) on Tuesday
-  create:
-    ref_type: 'tag'
+  push:
+    branches: [ main ]
   workflow_dispatch:
     # Allow triggering manually whenever it's useful.
     inputs:
