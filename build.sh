@@ -1,9 +1,17 @@
 #!/bin/sh
-games="p2 p1 hl2 ep1 ep2 gmod csgo tf2 asw l4d l4d2 infra mesa p2ce momentum"
+games="p2 p1 hl2 ep1 ep2 gmod csgo tf2 asw l4d l4d2 infra mesa p2ce momentum psc"
 game=$1
 if [ $# -eq 0 ]; then
   echo Games: "${games[*]}" & echo Enter game to build. Use ALL to build every game. & read -p "" game
 fi
+
+if [ -e "./.venv/bin/python3" ]; then
+  PYTHON3="./.venv/bin/python3"
+else
+  PYTHON3="python3"
+fi
+
+echo "Using python: $PYTHON3"
 
 copy_hammer_files() {
   echo "Copying Hammer files..."
@@ -22,7 +30,7 @@ copy_hammer_files() {
 
 build_game() {
   echo "Building FGD for $1..."
-  python3 src/hammeraddons/unify_fgd.py exp $1 srctools -o "build/$1.fgd"
+  $PYTHON3 src/hammeraddons/unify_fgd.py exp $1 srctools -o "build/$1.fgd"
   
   if [ $? -ne 0 ]; then
     echo "Building FGD for $1 has failed. Exitting." & exit 1
@@ -44,6 +52,6 @@ else
       build_game $game
       exit
     fi
-    echo "Unknown game. Exitting." & exit 1
   done
+  echo "Unknown game. Exitting." & exit 1
 fi

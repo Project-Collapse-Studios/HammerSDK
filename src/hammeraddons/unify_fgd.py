@@ -115,7 +115,7 @@ FEATURES: dict[str, set[str]] = {
     'STRATA': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'P2CE': {'P2', 'HL2', 'EP1', 'EP2', 'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'MOMENTUM': {'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
-    'PSC': {'P2CE'},
+    'PSC': {'P2', 'HL2', 'EP1', 'EP2', 'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
 
     'PSA': {'P1'},
     'P2SIXENSE': {'P2'},
