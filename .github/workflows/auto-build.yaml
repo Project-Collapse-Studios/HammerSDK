@@ -75,6 +75,7 @@ jobs:
         with:
           path: ./downloads/
           merge-multiple: true
+          skip-decompress: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
