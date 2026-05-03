@@ -5,6 +5,14 @@ if [ $# -eq 0 ]; then
   echo Games: "${games[*]}" & echo Enter game to build. Use ALL to build every game. & read -p "" game
 fi
 
+if [ -e "./.venv/bin/python3" ]; then
+  PYTHON3="./.venv/bin/python3"
+else
+  PYTHON3="python3"
+fi
+
+echo "Using python: $PYTHON3"
+
 copy_hammer_files() {
   echo "Copying Hammer files..."
   mkdir -p build/postcompiler &&
@@ -22,7 +30,7 @@ copy_hammer_files() {
 
 build_game() {
   echo "Building FGD for $1..."
-  python3 src/hammeraddons/unify_fgd.py exp $1 srctools -o "build/$1.fgd"
+  $PYTHON3 src/hammeraddons/unify_fgd.py exp $1 srctools -o "build/$1.fgd"
   
   if [ $? -ne 0 ]; then
     echo "Building FGD for $1 has failed. Exitting." & exit 1
