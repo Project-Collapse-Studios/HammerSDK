@@ -78,6 +78,7 @@ MODS_BRANCHED: dict[str, list[tuple[str, str]]] = {
     'STRATA': [
         ('P2CE', 'Portal 2: Community Edition'),
         ('MOMENTUM', 'Momentum Mod'),
+        ('PSC', 'Portal: Singularity Collapse')
     ],
 }
 MOD_TO_BRANCH = {
@@ -114,6 +115,7 @@ FEATURES: dict[str, set[str]] = {
     'STRATA': {'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'P2CE': {'P2', 'HL2', 'EP1', 'EP2', 'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
     'MOMENTUM': {'STRATA', 'INST_IO', 'PROP_SCALING', 'VSCRIPT', 'PROPCOMBINE'},
+    'PSC': {'P2CE'},
 
     'PSA': {'P1'},
     'P2SIXENSE': {'P2'},
