@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 games="p2 p1 hl2 ep1 ep2 gmod csgo tf2 asw l4d l4d2 infra mesa p2ce momentum psc"
 game=$1
 if [ $# -eq 0 ]; then
