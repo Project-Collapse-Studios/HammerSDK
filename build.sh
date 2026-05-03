@@ -44,6 +44,6 @@ else
       build_game $game
       exit
     fi
-    echo "Unknown game. Exitting." & exit 1
   done
+  echo "Unknown game. Exitting." & exit 1
 fi
