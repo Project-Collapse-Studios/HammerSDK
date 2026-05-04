@@ -34,8 +34,8 @@ jobs:
         run: python -m PyInstaller --distpath ../build/ -y ../postcompiler.spec
         working-directory: ./src/
 
-      - name: Build the rest of the application - psc only
-        run: ./build.sh psc
+      - name: Build the rest of the application
+        run: ./build.sh ALL
         shell: bash
 
       - name: Upload artifacts
@@ -62,9 +62,6 @@ jobs:
         uses: 'actions-ecosystem/action-get-latest-tag@v1'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          initial_version: v1.0.0
-          with_initial_version: true
 
 
       - name: Next Monotonic Release version
@@ -78,6 +75,7 @@ jobs:
         with:
           path: ./downloads/
           merge-multiple: true
+          skip-decompress: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
@@ -87,4 +85,15 @@ jobs:
           generate_release_notes: true
           previous_tag: ${{ steps.previoustag.outputs.tag }}
           files: ./downloads/*
+
+  dispatch-fgd-build:
+    run: |
+      curl -L \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer {{ secrets.DISPATCH_WORKFLOW_PAT }}" \
+        -H "X-GitHub-Api-Version: 2026-03-10" \
+        https://api.github.com/repos/Project-Collapse-Studios/PrivateFGDs/dispatches \
+        -d '{"event_type":"build-fgd","client_payload":{"unit":false,"integration":true}}'
+
           
