@@ -10,7 +10,7 @@
 	
 	linedivider_tgname[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
 
-    tm_enable(boolean) : "Set Tonemap" : 1 : "Change the tonemap to the values below."
+    tm_enable(boolean) : "Set Tonemap" : 0 : "Change the tonemap to the values below."
 	tonemapper(target_destination) : "env_tonemap_controller" : "@Tonemapper" : "Tonemapper entity used. Needs to be set to use tonemap presets."
 	tm_autoexposuremax(float) 	: "Auto Exposure Max" 	: 2.0 : "Set the auto exposure maximum."
 	tm_autoexposuremin(float) 	: "Auto Exposure Min" 	: 0.5 : "Set the auto exposure minimum."
@@ -18,7 +18,7 @@
 
 	linedivider_tm[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
 
-    fog_enable(boolean) : "Set Fog" : 1 : "Change fog to the values below."
+    fog_enable(boolean) : "Set Fog" : 0 : "Change fog to the values below."
 	fog_controller(target_destination) : "env_fog_controller" : "@FogController" : "Env_fog_controller entity used to set tonemap presets. Should have master flag checked."
 	fog_primary_color(color255) : "Primary Fog Color" : "255 255 255" : "Primary fog color to use."
 	fog_start(float) : "Fog Start" : -1.0
@@ -28,7 +28,7 @@
 
 	linedivider_fg[!engine](string) readonly : "----------------------------------------------------------------------------------------------------------" : ""
 
-    cc_enable(boolean) : "Set Color Correction" : 1 : "Change color correction to the .raw file specified below, with the fadein/fadeout times."
+    cc_enable(boolean) : "Set Color Correction" : 0 : "Change color correction to the .raw file specified below, with the fadein/fadeout times."
 	cc_filename(string) : "CC Filename" : : "The filename used by color correction for this preset (if set), e.g. 'cc_RECYCLED_TEST'."
 	cc_fadein(float) : "CC FadeIn Time" : 1.0
 	cc_fadeout(float) : "CC FadeOut Time" : 1.0
