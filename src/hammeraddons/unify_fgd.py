@@ -170,6 +170,10 @@ BASE_ENTITY = '_CBaseEntity_'
 
 MAP_SIZE_DEFAULT = 16384  # Default grid bounds.
 
+MAP_SIZES = {
+    'STRATA': 65536,
+}
+
 
 # Helpers which are only used by one or two entities each.
 UNIQUE_HELPERS = {
@@ -1334,7 +1338,7 @@ def main(args: list[str] | None = None) -> None:
     )
     parser_exp.add_argument(
         "--map-size",
-        default=MAP_SIZE_DEFAULT,
+        default=0,
         dest="map_size",
         type=int,
     )
@@ -1418,6 +1422,19 @@ def main(args: list[str] | None = None) -> None:
         for tag in tags:
             if tag not in ALL_TAGS:
                 parser.error(f'Invalid tag "{tag}"! Allowed tags: \n{format_all_tags()}')
+        
+        map_size = None
+        for tag in expand_tags(tags):
+            if tag in MAP_SIZES.keys():
+                map_size = MAP_SIZES[tag]
+                break # Grab the first tag. This will be the most ""accurate"" engine branch.
+
+        if map_size is None:
+            if result.map_size: # By default result.map_size = 0
+                map_size = result.map_size
+            else:
+                map_size = MAP_SIZE_DEFAULT
+
         action_export(
             dbase,
             extra_db,
@@ -1425,7 +1442,7 @@ def main(args: list[str] | None = None) -> None:
             Path(result.output).resolve(),
             result.binary,
             result.engine | result.binary,  # Binary mode forces --engine
-            result.map_size,
+            map_size,
             result.srctools_only,
             result.collapse_bases,
         )
