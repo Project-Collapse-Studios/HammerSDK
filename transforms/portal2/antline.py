@@ -45,6 +45,7 @@ def comp_antlines(ctx: Context) -> None:
 
         # Or brush ents holding overlays.
         ind_overlays: set[str] = set()
+        ind_models: set[str] = set()
         ind_toggles: set[str] = set()
         # These need the right inputs.
         ind_panel_tim: set[str] = set()
@@ -69,6 +70,8 @@ def comp_antlines(ctx: Context) -> None:
                 ind_set = ind_toggles
             elif ind_ent['model'].startswith('*'):  # Brush model index
                 ind_set = ind_overlays
+            elif cls == 'prop_dynamic':
+                ind_set = ind_models
             else:
                 LOGGER.warning(
                     'Invalid indicator entity "{}" @ {}!',
@@ -109,6 +112,10 @@ def comp_antlines(ctx: Context) -> None:
                 Output('SetTextureIndex', ind_name, 'SetTextureIndex')
             )
 
+        for ind_name in ind_models:
+            ent.add_out(Output(out_on, ind_name, 'Skin', 1),
+                        Output(out_off, ind_name, 'Skin', 0),
+                        )
         for ind_name in ind_panel_check:
             ent.add_out(
                 Output(out_on, ind_name, 'Check'),
