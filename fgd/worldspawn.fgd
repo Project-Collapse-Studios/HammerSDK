@@ -7,7 +7,8 @@
 	// message(string) : "Map Description / Title"
 
 	skyname(string)                : "SkyBox Texture Name" :                       : "Texture used for the 2D skybox."
-	skyname[HL2, EP1, EP2](string) : "SkyBox Texture Name" : "sky_day01_01"        : "Texture used for the 2D skybox."
+	// TODO: Why do we need to strictly disable Strata here, shouldn't the option for P2CE be used with higher priority?
+	skyname[HL2, EP1, EP2, !Strata](string) : "SkyBox Texture Name" : "sky_day01_01"        : "Texture used for the 2D skybox."
 	skyname[TF2](string)           : "SkyBox Texture Name" : "sky_tf2_04"          : "Texture used for the 2D skybox."
 	skyname[P2](string)            : "SkyBox Texture Name" : "sky_black_nofog"     : "Texture used for the 2D skybox."
 	skyname[ASW](string)           : "SkyBox Texture Name" : "blacksky"            : "Texture used for the 2D skybox."
