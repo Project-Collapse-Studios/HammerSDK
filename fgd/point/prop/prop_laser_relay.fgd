@@ -1,4 +1,4 @@
-@PointClass base(BaseEntityAnimating, SetSkin, SRCIndicator) 
+@PointClass base(BaseEntityAnimating, SetSkin, SRCIndicator, SRCDelayers) 
 	appliesto(P2) 
 	autovis(Test Elements, Dis. Beam, Laser Relay)
 	studioprop() 

@@ -1,0 +1,12 @@
+@BaseClass
+	appliesto(srctools) 
+= SRCDelayers: "Adds settings for activation and shutdown delayers."
+[
+    activation_delay(float) : "[HA] Activation Delay" : 0 : "Sets the time needed for this object to be active, in order to fire it's powered on output (such as OnPowered)."
+    shutdown_delay(float) : "[HA] Shutdown Delay" : 0 : "Sets the time needed for this object to be inactive, in order to fire it's powered off output (such as OnUnPowered)."
+
+    // Special outputs
+    // TODO: Figure out what's the best way to program this in. Later...
+    // output OnActivatedNoDelay(void) : "Omits the activation delayer and fires the powered on output immediately."
+    // output OnDeactivatedNoDelay(void) : "Omits the shutdown delayer and fires the powered off output immediately."
+]

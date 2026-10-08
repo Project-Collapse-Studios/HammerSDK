@@ -1,4 +1,4 @@
-@BaseClass base(BaseEntityAnimating, SRCIndicator)
+@BaseClass base(BaseEntityAnimating, SRCIndicator, SRCDelayers)
 	line(255 255 255, targetname, filtername)
 = BasePortButton: "The base for the various floor buttons - weighted, cube, sphere and Antique weighted."
 	[
